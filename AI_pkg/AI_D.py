@@ -1,9 +1,7 @@
 import torch
 from datetime import datetime
-from UnityAdaptor import transfer_obs
+from RealCarAdaptor import transfer_obs
 # from Entity import State
-
-
 import threading
 import sys
 from rclpy.node import Node
@@ -19,57 +17,52 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 DEG2RAD = 0.01745329251
-
 unityState = ""
+
 
 class AiNode(Node):
     def __init__(self):
         super().__init__("aiNode")
-        self.get_logger().info("Ai start")#ros2Ai #unity2Ros
+        self.get_logger().info("Ai start")  # ros2Ai #unity2Ros
         self.subsvriber_ = self.create_subscription(String, "/real_car_data", self.receive_data_from_ros, 10)
         self.dataList = list()
-        self.publisher_Ai2ros = self.create_publisher(String, DeviceDataTypeEnum.car_D_control, 10)#Ai2ros #ros2Unity
+        self.publisher_Ai2ros = self.create_publisher(String, DeviceDataTypeEnum.car_D_control, 10)  # Ai2ros #ros2Unity
 
         input_size = 182
         hidden_size1 = 128  # 根据需要调整
         hidden_size2 = 64
         output_size = 2
 
-    
         self.loaded_model_1 = MLP(input_size, hidden_size1, hidden_size2, output_size)
 
-
-        self.loaded_model_1.load_state_dict(torch.load("./dataFile/ver2.pth", map_location=torch.device('cpu'))) #model loading
+        self.loaded_model_1.load_state_dict(
+            torch.load("./dataFile/ver2.pth", map_location=torch.device('cpu')))  # model loading
         self.loaded_model_1.apply(self.init_weights)
+
     def init_weights(self, m):
         if type(m) == nn.Linear:
             nn.init.xavier_uniform_(m.weight)
             m.bias.data.fill_(0.01)
 
-        
-
-
     def receive_data_from_ros(self, msg):
-        global unityState        
+        global unityState
         unityState = msg.data
 
         unityState = transfer_obs(unityState)
         # unityState.lidar = [100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 0.8339383, 0.8186077, 0.8048507, 0.7925648, 0.7816623, 0.772067, 0.7637132, 0.7565457, 0.7505185, 0.745592952, 0.7417379, 0.7389294, 0.737150848, 0.7363909, 0.7366452, 0.737915039, 0.7402084, 0.7435392, 0.7479278, 0.7534018, 0.7599954, 0.767751455, 0.776720643, 0.786962867, 0.7985488, 0.8115604, 0.8260931, 0.8422568, 0.8601785, 0.880005538, 0.9019089, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100]
         self.data = torch.tensor([
-                    unityState.car_pos.x, 
-                    unityState.car_pos.y, 
-                    # 0.0,
-                    # 0.0,
-                    # unityState.car_vel.x, 
-                    # unityState.car_vel.y,
-                    # unityState.car_angular_vel,
-                    # unityState.wheel_angular_vel.left_back,
-                    # unityState.wheel_angular_vel.right_back,
-                    
-                    ]+unityState.lidar,dtype=torch.float32)
+                                     unityState.car_pos.x,
+                                     unityState.car_pos.y,
+                                     # 0.0,
+                                     # 0.0,
+                                     # unityState.car_vel.x,
+                                     # unityState.car_vel.y,
+                                     # unityState.car_angular_vel,
+                                     # unityState.wheel_angular_vel.left_back,
+                                     # unityState.wheel_angular_vel.right_back,
 
+                                 ] + unityState.lidar, dtype=torch.float32)
 
-            
         def abs_and_clamp(value):
             # 取绝对值
             abs_value = abs(value)
@@ -79,14 +72,13 @@ class AiNode(Node):
 
         self.loaded_model_1.eval()
         with torch.no_grad():
-
             output = self.loaded_model_1(self.data)
             print(output)
             action = list()
             action.append(abs_and_clamp(output[0]))
             action.append(abs_and_clamp(output[1]))
             action = [float(value) for value in action]
-            
+
             control_signal_forward = {
                 "type": str(DeviceDataTypeEnum.car_D_control),
                 "data": dict(CarDControl(
@@ -106,10 +98,12 @@ def spin_pros(node):
     rclpy.shutdown()
     sys.exit(0)
 
+
 def returnUnityState():
     while len(unityState) == 0:
         pass
     return unityState
+
 
 class MLP(nn.Module):
     def __init__(self, input_size, hidden_size1, hidden_size2, output_size):
@@ -129,17 +123,13 @@ class MLP(nn.Module):
         x = self.fc3(x)
         return x
 
-def main():
-    
 
+def main():
     rclpy.init()
     node = AiNode()
     pros = threading.Thread(target=spin_pros, args=(node,))
-    pros.start()  
+    pros.start()
 
-
-                  
 
 if __name__ == '__main__':
-
     main()

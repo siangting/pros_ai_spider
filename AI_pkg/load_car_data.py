@@ -9,15 +9,17 @@ from geometry_msgs.msg import PoseStamped
 from sensor_msgs.msg import LaserScan
 import json
 from std_msgs.msg import String
+from car_models import *
+import sys
+
 
 class AiNode(Node):
     def __init__(self):
         super().__init__("aiNode")
-        self.get_logger().info("Ai start")#ros2Ai #unity2Ros
+        self.get_logger().info("Ai start")  # ros2Ai #unity2Ros
         self.real_car_data = {}
         self.data_to_AI = ""
         self.prev_car_yaw = 0
-        # initialize!!!!
         self.real_car_data['ROS2CarPosition'] = []
         self.real_car_data['ROS2CarQuaternion'] = []
         self.real_car_data['ROS2TargetPosition'] = []
@@ -28,11 +30,14 @@ class AiNode(Node):
         self.real_car_data['ROS2Range'] = []
         self.real_car_data['ROS2RangePosition'] = []
 
-        self.subscriber_amcl = self.create_subscription(PoseWithCovarianceStamped, "/amcl_pose", self.subscribe_callback_amcl, 10)
+        self.subscriber_amcl = self.create_subscription(PoseWithCovarianceStamped, "/amcl_pose",
+                                                        self.subscribe_callback_amcl, 10)
         self.subscriber_goal = self.create_subscription(PoseStamped, "/goal", self.subscribe_callback_goal, 10)
         self.subscriber_lidar = self.create_subscription(LaserScan, "/scan", self.laser_scan_callback, 10)
-        self.subscriber_rear = self.create_subscription(String, "carD_rear_wheel_speed", self.rear_wheel_callback, 10)
-        self.subscriber_forward = self.create_subscription(String, "carD_forward_wheel_speed", self.forward_wheel_callback, 10)
+        self.subscriber_rear = self.create_subscription(String, DeviceDataTypeEnum.car_D_state,
+                                                        self.rear_wheel_callback, 10)
+        self.subscriber_forward = self.create_subscription(String, DeviceDataTypeEnum.car_D_state_front,
+                                                           self.forward_wheel_callback, 10)
 
         self.timer = self.create_timer(0.5, self.timer_callback)
         self.publisher_to_AI = self.create_publisher(
@@ -44,7 +49,6 @@ class AiNode(Node):
     def subscribe_callback_amcl(self, message):
         pose = self.transfer_car_pose(message)[0]
         quaternion = self.transfer_car_pose(message)[1]
-        
         self.real_car_data['ROS2CarPosition'] = pose
         self.real_car_data['ROS2CarQuaternion'] = quaternion
         # print(self.real_car_data)
@@ -63,7 +67,7 @@ class AiNode(Node):
         position = msg.pose.position
         return [[position.x, position.y, position.z]]
 
-    def laser_scan_callback(self,msg):
+    def laser_scan_callback(self, msg):
         angle_min = msg.angle_min
         angle_max = msg.angle_max
         angle_increment = msg.angle_increment
@@ -93,6 +97,7 @@ class AiNode(Node):
                 print("Invalid message format. Missing 'vels' key.")
         except json.JSONDecodeError as e:
             print(f"Error decoding JSON: {e}")
+
     def forward_wheel_callback(self, message):
         try:
             json_str = message.data
@@ -124,18 +129,21 @@ class AiNode(Node):
             self.publisher_to_AI.publish(data_to_AI)
             print(data_to_AI)
 
+
 def spin_pros(node):
     exe = rclpy.executors.SingleThreadedExecutor()
     exe.add_node(node)
     exe.spin()
     rclpy.shutdown()
     sys.exit(0)
+
+
 def main():
     rclpy.init()
     node = AiNode()
     pros = threading.Thread(target=spin_pros, args=(node,))
     pros.start()
 
-if __name__ == '__main__':
 
+if __name__ == '__main__':
     main()
