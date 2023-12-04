@@ -17,19 +17,12 @@ SHELL ["/bin/bash", "-c"]
 
 ENV ROS_DOMAIN_ID=1
 
-COPY ./requirements.txt /tmp
-RUN pip3 install -r /tmp/requirements.txt
-
-RUN apt-get update && \
-    apt-get install -y vim && \
-    rm -rf /var/lib/apt/lists/*
-
 # new a requirement
 COPY ./requirements.txt /tmp
-RUN pip3 install -r /tmp/requirements.txt
+RUN pip3 install --no-cache-dir -r /tmp/requirements.txt
 
 RUN apt-get update && \
-    apt-get install -y vim && \
+    apt-get install -y vim ncdu tmux && \
     rm -rf /var/lib/apt/lists/*
 
 WORKDIR /tmp
@@ -41,7 +34,7 @@ ENV PYTHONIOENCODING=utf-8
 
 # set Python3 as default
 RUN update-alternatives --install /usr/bin/python python /usr/bin/python3 1
-    
+
 # build ROS from source
 COPY ros2_build.sh ros2_build.sh
 RUN ./ros2_build.sh
@@ -56,6 +49,6 @@ COPY ros_entrypoint.sh /ros_entrypoint.sh
 ENTRYPOINT ["/ros_entrypoint.sh"]
 CMD ["/bin/bash"]
 
-RUN pip3 install torch torchvision torchaudio -f https://download.pytorch.org/whl/cu111/torch_stable.html
+RUN pip3 install --no-cache-dir torch torchvision torchaudio -f https://download.pytorch.org/whl/cu111/torch_stable.html
 
 WORKDIR /
