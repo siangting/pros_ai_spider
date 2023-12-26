@@ -11,7 +11,8 @@ import json
 from std_msgs.msg import String
 from car_models import *
 import sys
-
+import math
+from tools import *
 
 class AiNode(Node):
     def __init__(self):
@@ -46,26 +47,48 @@ class AiNode(Node):
             10
         )
 
+    def quaternion_2_euler(self,x,y,z,w):
+        sinr_cosp = 2 * (w * x + y * z)
+        cosr_cosp = 1 - 2 * (x * x + y * y)
+        roll = math.atan2(sinr_cosp, cosr_cosp)
+        sinp = 2 * (w * y - z * x)
+        if abs(sinp) >= 1:
+            # use 90 degrees if out of range
+            pitch = math.copysign(math.pi / 2, sinp)
+        else:
+            pitch = math.asin(sinp)
+        siny_cosp = 2 * (w * z + x * y)
+        cosy_cosp = 1 - 2 * (y * y + z * z)
+        yaw = math.atan2(siny_cosp, cosy_cosp)
+        roll_deg = math.degrees(roll) % 360
+        pitch_deg = math.degrees(pitch) % 360
+        yaw_deg = math.degrees(yaw) % 360
+        return roll_deg, pitch_deg, yaw_deg
+
     def subscribe_callback_amcl(self, message):
         pose = self.transfer_car_pose(message)[0]
         quaternion = self.transfer_car_pose(message)[1]
         self.real_car_data['ROS2CarPosition'] = pose
         self.real_car_data['ROS2CarQuaternion'] = quaternion
-        # print(self.real_car_data)
+        
+        
 
     def transfer_car_pose(self, msg):
         position = msg.pose.pose.position
         orientation = msg.pose.pose.orientation
         return [position.x, position.y, position.z], [orientation.x, orientation.y, orientation.z, orientation.w]
 
-    def subscribe_callback_goal(self, message):
+    def subscribe_callback_goal(self, message): #  有訊號才會近來
         target = self.transfer_target_pos(message)
         self.real_car_data['ROS2TargetPosition'] = target
-        # print(self.real_car_data['ROS2TargetPosition'])
+            
+        
+        
+        
 
     def transfer_target_pos(self, msg):
         position = msg.pose.position
-        return [[position.x, position.y, position.z]]
+        return [position.x, position.y, position.z]
 
     def laser_scan_callback(self, msg):
         angle_min = msg.angle_min
@@ -75,7 +98,7 @@ class AiNode(Node):
         direction_180 = []
         all_ranges = msg.ranges
         for i in range(len(all_ranges)):
-            if i % 10 == 0:
+            if i % 5 == 0: # 處理lidar的數量
                 angle_tmp = angle_min + i * angle_increment
                 ranges_180.append(all_ranges[i])
                 direction_180.append([math.cos(angle_tmp), math.sin(angle_tmp), 0])
@@ -127,7 +150,7 @@ class AiNode(Node):
             data_to_AI = String()
             data_to_AI.data = self.car_data
             self.publisher_to_AI.publish(data_to_AI)
-            print(data_to_AI)
+            # print(data_to_AI)
 
 
 def spin_pros(node):

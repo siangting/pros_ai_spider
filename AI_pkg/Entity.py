@@ -24,6 +24,7 @@ class WheelAngularVel(BaseModel):
 
 class State(BaseModel):
     car_pos: ROS2Point
+    target_pos: ROS2Point
     car_direction: list
     wheel_angular_vel_left_back: float
     wheel_angular_vel_right_back: float

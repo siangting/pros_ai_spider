@@ -15,6 +15,8 @@ from car_models import *
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from tools import *
+from avoidance import refined_obstacle_avoidance_with_target_orientation
 
 DEG2RAD = 0.01745329251
 unityState = ""
@@ -28,67 +30,66 @@ class AiNode(Node):
         self.dataList = list()
         self.publisher_Ai2ros = self.create_publisher(String, DeviceDataTypeEnum.car_D_control, 10)  # Ai2ros #ros2Unity
 
+
         input_size = 182
         hidden_size1 = 128  # 根据需要调整
         hidden_size2 = 64
         output_size = 2
 
-        self.loaded_model_1 = MLP(input_size, hidden_size1, hidden_size2, output_size)
+        # self.loaded_model_1 = MLP(input_size, hidden_size1, hidden_size2, output_size)
 
-        self.loaded_model_1.load_state_dict(
-            torch.load("./dataFile/ver2.pth", map_location=torch.device('cpu')))  # model loading
-        self.loaded_model_1.apply(self.init_weights)
+        # self.loaded_model_1.load_state_dict(
+        #     torch.load("./dataFile/ver2.pth", map_location=torch.device('cpu')))  # model loading
+        # self.loaded_model_1.apply(self.init_weights)
 
     def init_weights(self, m):
         if type(m) == nn.Linear:
             nn.init.xavier_uniform_(m.weight)
             m.bias.data.fill_(0.01)
 
+    def wheel_speed_transform(self, action):
+        speed = 5
+        if action == 0:
+            left = speed
+            right = speed
+        elif action == 1:
+            left = -speed
+            right = speed
+        elif action == 2:
+            left = speed
+            right = -speed
+        elif action == 3:
+            left = -speed
+            right = -speed
+        return left, right
+    
     def receive_data_from_ros(self, msg):
         global unityState
         unityState = msg.data
-
         unityState = transfer_obs(unityState)
-        # unityState.lidar = [100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 0.8339383, 0.8186077, 0.8048507, 0.7925648, 0.7816623, 0.772067, 0.7637132, 0.7565457, 0.7505185, 0.745592952, 0.7417379, 0.7389294, 0.737150848, 0.7363909, 0.7366452, 0.737915039, 0.7402084, 0.7435392, 0.7479278, 0.7534018, 0.7599954, 0.767751455, 0.776720643, 0.786962867, 0.7985488, 0.8115604, 0.8260931, 0.8422568, 0.8601785, 0.880005538, 0.9019089, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100]
-        self.data = torch.tensor([
-                                     unityState.car_pos.x,
-                                     unityState.car_pos.y,
-                                     # 0.0,
-                                     # 0.0,
-                                     # unityState.car_vel.x,
-                                     # unityState.car_vel.y,
-                                     # unityState.car_angular_vel,
-                                     # unityState.wheel_angular_vel.left_back,
-                                     # unityState.wheel_angular_vel.right_back,
+        action = refined_obstacle_avoidance_with_target_orientation(
+            unityState['lidar_data'],
+            unityState['car_quaternion'][2],
+            unityState['car_quaternion'][3],
+            unityState['car_pos'][:2],
+            unityState['target_pos'][:2]
+        )
+        left, right = self.wheel_speed_transform(action)
+        action = list()
+        action.append(left)
+        action.append(right)
+        action = [float(value) for value in action]
 
-                                 ] + unityState.lidar, dtype=torch.float32)
+        control_signal_forward = {
+            "type": str(DeviceDataTypeEnum.car_D_control),
+            "data": dict(CarDControl(
+                target_vel=action
+            ))
+        }
 
-        def abs_and_clamp(value):
-            # 取绝对值
-            abs_value = abs(value)
-            # 将值限制在1到5之间
-            clamped_value = max(min(abs_value, 5), 1)
-            return clamped_value
-
-        self.loaded_model_1.eval()
-        with torch.no_grad():
-            output = self.loaded_model_1(self.data)
-            print(output)
-            action = list()
-            action.append(abs_and_clamp(output[0]))
-            action.append(abs_and_clamp(output[1]))
-            action = [float(value) for value in action]
-
-            control_signal_forward = {
-                "type": str(DeviceDataTypeEnum.car_D_control),
-                "data": dict(CarDControl(
-                    target_vel=action
-                ))
-            }
-
-            control_msg_forward = String()
-            control_msg_forward.data = orjson.dumps(control_signal_forward).decode()
-            self.publisher_Ai2ros.publish(control_msg_forward)
+        control_msg_forward = String()
+        control_msg_forward.data = orjson.dumps(control_signal_forward).decode()
+        self.publisher_Ai2ros.publish(control_msg_forward)
 
 
 def spin_pros(node):
