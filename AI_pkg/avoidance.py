@@ -55,7 +55,7 @@ def refined_obstacle_avoidance_with_target_orientation(lidars,
             return 3  # No clear path, reverse
     else:
         # No obstacle near, align and move towards the target
-        if np.abs(angle_diff) > 50:
+        if np.abs(angle_diff) > 30:
             # Rotate towards target angle
             if angle_diff > 0:
                 return 1  # if (target_angle - current_angle + 360) % 360 < 180 else 2
@@ -86,7 +86,5 @@ def calculate_angle_point(car_quaternion_1, car_quaternion_2, car_pos, target_po
     direction_vector = get_direction_vector(car_pos, target_pos)
     angle_to_target = get_angle_to_target(car_yaw, direction_vector)
     # angle_diff = np.abs(angle_to_target - 180)
-    # angle_diff = angle_to_target
-    angle_diff = angle_to_target - 180
+    angle_diff = angle_to_target - 360 if angle_to_target > 180 else angle_to_target
     print(angle_diff)
-    return angle_diff
