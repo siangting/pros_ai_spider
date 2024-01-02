@@ -48,19 +48,19 @@ class AiNode(Node):
             m.bias.data.fill_(0.01)
 
     def wheel_speed_transform(self, action):
-        speed = 3
+        speed = 2
         if action == 0:  # forward
             left = speed
             right = speed
         elif action == 1:  # left turn
-            left = -speed * 0.8
+            left = -speed * 0.1
             right = speed
         elif action == 2:  # right turn
             left = speed
             right = -speed
         elif action == 3:  # backward
             left = -speed
-            right = -speed * 0.8
+            right = -speed * 0.1
         return left, right
 
     def receive_data_from_ros(self, msg):

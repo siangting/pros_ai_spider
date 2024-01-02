@@ -88,3 +88,4 @@ def calculate_angle_point(car_quaternion_1, car_quaternion_2, car_pos, target_po
     # angle_diff = np.abs(angle_to_target - 180)
     angle_diff = angle_to_target - 360 if angle_to_target > 180 else angle_to_target
     print(angle_diff)
+    return angle_diff
