@@ -57,7 +57,6 @@ def refined_obstacle_avoidance_with_target_orientation(lidars,
         # No obstacle near, align and move towards the target
         if np.abs(angle_diff) > 30:
             # Rotate towards target angle
-            # 先試著一個方向轉就好
             if angle_diff > 0:
                 return 1  # if (target_angle - current_angle + 360) % 360 < 180 else 2
             else:
@@ -68,17 +67,14 @@ def refined_obstacle_avoidance_with_target_orientation(lidars,
 
 
 def get_yaw_from_quaternion(z, w):
-    """从四元数的 z 和 w 分量中提取偏航角（Y 轴旋转）"""
     return np.degrees(2 * np.arctan2(z, w))
 
 
 def get_direction_vector(current_position, target_position):
-    """计算从当前位置指向目标位置的向量"""
     return np.array(target_position) - np.array(current_position)
 
 
 def get_angle_to_target(car_yaw, direction_vector):
-    #  計算car與target之間的角度差
     target_yaw = np.arctan2(direction_vector[1], direction_vector[0])
     angle_diff = target_yaw - np.radians(car_yaw)
 

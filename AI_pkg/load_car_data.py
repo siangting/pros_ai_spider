@@ -77,7 +77,7 @@ class AiNode(Node):
         orientation = msg.pose.pose.orientation
         return [position.x, position.y, position.z], [orientation.x, orientation.y, orientation.z, orientation.w]
 
-    def subscribe_callback_goal(self, message):  # 有訊號才會近來
+    def subscribe_callback_goal(self, message):  # execute only if there has signal
         target = self.transfer_target_pos(message)
         self.real_car_data['ROS2TargetPosition'] = target
 
@@ -93,7 +93,7 @@ class AiNode(Node):
         direction_180 = []
         all_ranges = msg.ranges
         for i in range(len(all_ranges)):
-            if i % 9 == 0:  # 處理lidar的數量
+            if i % 9 == 0:  # handle the amount of lidar.
                 angle_tmp = angle_min + i * angle_increment
                 ranges_180.append(all_ranges[i])
                 direction_180.append([math.cos(angle_tmp), math.sin(angle_tmp), 0])

@@ -32,7 +32,7 @@ class AiNode(Node):
         self.publisher_Ai2ros = self.create_publisher(String, DeviceDataTypeEnum.car_B_control, 10)  # Ai2ros #ros2Unity
 
         input_size = 182
-        hidden_size1 = 128  # 根据需要调整
+        hidden_size1 = 128  # adjust if need
         hidden_size2 = 64
         output_size = 2
 
