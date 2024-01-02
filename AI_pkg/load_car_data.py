@@ -14,6 +14,7 @@ import sys
 import math
 from tools import *
 
+
 class AiNode(Node):
     def __init__(self):
         super().__init__("aiNode")
@@ -47,7 +48,7 @@ class AiNode(Node):
             10
         )
 
-    def quaternion_2_euler(self,x,y,z,w):
+    def quaternion_2_euler(self, x, y, z, w):
         sinr_cosp = 2 * (w * x + y * z)
         cosr_cosp = 1 - 2 * (x * x + y * y)
         roll = math.atan2(sinr_cosp, cosr_cosp)
@@ -70,21 +71,15 @@ class AiNode(Node):
         quaternion = self.transfer_car_pose(message)[1]
         self.real_car_data['ROS2CarPosition'] = pose
         self.real_car_data['ROS2CarQuaternion'] = quaternion
-        
-        
 
     def transfer_car_pose(self, msg):
         position = msg.pose.pose.position
         orientation = msg.pose.pose.orientation
         return [position.x, position.y, position.z], [orientation.x, orientation.y, orientation.z, orientation.w]
 
-    def subscribe_callback_goal(self, message): #  有訊號才會近來
+    def subscribe_callback_goal(self, message):  # 有訊號才會近來
         target = self.transfer_target_pos(message)
         self.real_car_data['ROS2TargetPosition'] = target
-            
-        
-        
-        
 
     def transfer_target_pos(self, msg):
         position = msg.pose.position
@@ -98,7 +93,7 @@ class AiNode(Node):
         direction_180 = []
         all_ranges = msg.ranges
         for i in range(len(all_ranges)):
-            if i % 5 == 0: # 處理lidar的數量
+            if i % 9 == 0:  # 處理lidar的數量
                 angle_tmp = angle_min + i * angle_increment
                 ranges_180.append(all_ranges[i])
                 direction_180.append([math.cos(angle_tmp), math.sin(angle_tmp), 0])

@@ -17,6 +17,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from tools import *
 from avoidance import refined_obstacle_avoidance_with_target_orientation
+import time
 
 DEG2RAD = 0.01745329251
 unityState = ""
@@ -28,8 +29,7 @@ class AiNode(Node):
         self.get_logger().info("Ai start")  # ros2Ai #unity2Ros
         self.subsvriber_ = self.create_subscription(String, "/real_car_data", self.receive_data_from_ros, 10)
         self.dataList = list()
-        self.publisher_Ai2ros = self.create_publisher(String, DeviceDataTypeEnum.car_D_control, 10)  # Ai2ros #ros2Unity
-
+        self.publisher_Ai2ros = self.create_publisher(String, DeviceDataTypeEnum.car_B_control, 10)  # Ai2ros #ros2Unity
 
         input_size = 182
         hidden_size1 = 128  # 根据需要调整
@@ -48,7 +48,7 @@ class AiNode(Node):
             m.bias.data.fill_(0.01)
 
     def wheel_speed_transform(self, action):
-        speed = 5
+        speed = 3
         if action == 0:
             left = speed
             right = speed
@@ -62,7 +62,7 @@ class AiNode(Node):
             left = -speed
             right = -speed
         return left, right
-    
+
     def receive_data_from_ros(self, msg):
         global unityState
         unityState = msg.data
@@ -81,8 +81,8 @@ class AiNode(Node):
         action = [float(value) for value in action]
 
         control_signal_forward = {
-            "type": str(DeviceDataTypeEnum.car_D_control),
-            "data": dict(CarDControl(
+            "type": str(DeviceDataTypeEnum.car_B_control),
+            "data": dict(CarBControl(
                 target_vel=action
             ))
         }
@@ -90,6 +90,7 @@ class AiNode(Node):
         control_msg_forward = String()
         control_msg_forward.data = orjson.dumps(control_signal_forward).decode()
         self.publisher_Ai2ros.publish(control_msg_forward)
+        time.sleep(0.7)
 
 
 def spin_pros(node):
