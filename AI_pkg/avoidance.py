@@ -55,9 +55,9 @@ def refined_obstacle_avoidance_with_target_orientation(lidars,
             return 3  # No clear path, reverse
     else:
         # No obstacle near, align and move towards the target
-        if np.abs(angle_diff) > 50:
+        if np.abs(angle_diff - 180) > 50:
             # Rotate towards target angle
-            if angle_diff > 0:
+            if angle_diff - 180 > 0:
                 return 1  # if (target_angle - current_angle + 360) % 360 < 180 else 2
             else:
                 return 2
