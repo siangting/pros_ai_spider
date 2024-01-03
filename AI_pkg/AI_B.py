@@ -48,7 +48,7 @@ class AiNode(Node):
             m.bias.data.fill_(0.01)
 
     def wheel_speed_transform(self, action):
-        speed = 10.0
+        speed = 14.0
         if action == -1:  # stop
             left = 0.0625
             right = 0.0625

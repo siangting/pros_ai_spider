@@ -19,7 +19,7 @@ def refined_obstacle_avoidance_with_target_orientation(lidars,
     :param target_pos: The position of the target.
     :returns: Movement direction (0: Forward, 1: Turn Left, 2: Turn Right, 3: Backward)
     """
-    safe_distance = 0.5  # meters or as per lidar unit
+    safe_distance = 1  # meters or as per lidar unit
     angle_tolerance = 10  # degrees, the tolerance for angle alignment
 
     # Calculate the smallest angle difference to the target, considering the circular nature of angles
@@ -46,13 +46,13 @@ def refined_obstacle_avoidance_with_target_orientation(lidars,
     obstacle_near = any(lidar < safe_distance for lidar in lidars)
 
     # If an obstacle is detected, switch to obstacle avoidance mode
-    if dist_diff < 0.1:
+    if dist_diff < 0.4:
         print("Reach Goal!!!")
         return -1  # stop
     elif obstacle_near:
         front_clear = lidars[0] > safe_distance and lidars[7] > safe_distance
-        left_clear = all(lidar > safe_distance for lidar in lidars[1:4])
-        right_clear = all(lidar > safe_distance for lidar in lidars[4:7])
+        left_clear = all(lidar > safe_distance for lidar in lidars[1:3])
+        right_clear = all(lidar > safe_distance for lidar in lidars[5:7])
 
         # Decide on movement based on clear path
         if front_clear:
