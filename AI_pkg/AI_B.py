@@ -48,19 +48,22 @@ class AiNode(Node):
             m.bias.data.fill_(0.01)
 
     def wheel_speed_transform(self, action):
-        speed = 2
-        if action == 0:  # forward
+        speed = 10.0
+        if action == -1:  # stop
+            left = 0.0625
+            right = 0.0625
+        elif action == 0:  # forward
             left = speed
             right = speed
         elif action == 1:  # left turn
-            left = -speed * 0.1
+            left = -speed * 0.5
             right = speed
         elif action == 2:  # right turn
             left = speed
-            right = -speed
+            right = -speed * 0.5
         elif action == 3:  # backward
             left = -speed
-            right = -speed * 0.1
+            right = -speed
         return left, right
 
     def receive_data_from_ros(self, msg):
@@ -75,22 +78,41 @@ class AiNode(Node):
             unityState['target_pos'][:2]
         )
         left, right = self.wheel_speed_transform(action)
-        action = list()
-        action.append(left)
-        action.append(right)
-        action = [float(value) for value in action]
+        speed = [left, right]
 
         control_signal_forward = {
             "type": str(DeviceDataTypeEnum.car_B_control),
             "data": dict(CarBControl(
-                target_vel=action
+                target_vel=speed
             ))
         }
 
         control_msg_forward = String()
         control_msg_forward.data = orjson.dumps(control_signal_forward).decode()
         self.publisher_Ai2ros.publish(control_msg_forward)
-        time.sleep(0.7)
+        # Do 0.5 seconds after turn left or right, 0.75 seconds otherwise.
+        if action == 1 or action == 2:
+            time.sleep(0.5)
+        else:
+            time.sleep(0.75)
+
+        # Pause the car
+        speed = [0.0625, 0.0625]
+        control_signal_forward = {
+            "type": str(DeviceDataTypeEnum.car_B_control),
+            "data": dict(CarBControl(
+                target_vel=speed
+            ))
+        }
+        control_msg_forward = String()
+        control_msg_forward.data = orjson.dumps(control_signal_forward).decode()
+        self.publisher_Ai2ros.publish(control_msg_forward)
+        time.sleep(5)
+        # # Pause 5 seconds after turn left or right, 2 seconds otherwise.
+        # if action == 1 or action == 2:
+        #     time.sleep(5)
+        # else:
+        #     time.sleep(2)
 
 
 def spin_pros(node):

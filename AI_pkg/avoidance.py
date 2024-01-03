@@ -1,3 +1,4 @@
+import math
 import numpy as np
 
 
@@ -19,13 +20,19 @@ def refined_obstacle_avoidance_with_target_orientation(lidars,
     :returns: Movement direction (0: Forward, 1: Turn Left, 2: Turn Right, 3: Backward)
     """
     safe_distance = 0.5  # meters or as per lidar unit
-    angle_tolerance = 5  # degrees, the tolerance for angle alignment
+    angle_tolerance = 10  # degrees, the tolerance for angle alignment
 
     # Calculate the smallest angle difference to the target, considering the circular nature of angles
     angle_diff = calculate_angle_point(car_quaternion_1,
                                        car_quaternion_2,
                                        car_pos,
                                        target_pos)
+    # Calculate the distance between car and target.
+    dist_diff = math.dist(car_pos, target_pos)
+    print(f"-------------------------")
+    print(f"Angle diff: {angle_diff}")
+    print(f"Distance: {dist_diff}")
+    print(f"-------------------------\n")
 
     """
     The lidar position in the car.
@@ -39,7 +46,10 @@ def refined_obstacle_avoidance_with_target_orientation(lidars,
     obstacle_near = any(lidar < safe_distance for lidar in lidars)
 
     # If an obstacle is detected, switch to obstacle avoidance mode
-    if obstacle_near:
+    if dist_diff < 0.1:
+        print("Reach Goal!!!")
+        return -1  # stop
+    elif obstacle_near:
         front_clear = lidars[0] > safe_distance and lidars[7] > safe_distance
         left_clear = all(lidar > safe_distance for lidar in lidars[1:4])
         right_clear = all(lidar > safe_distance for lidar in lidars[4:7])
@@ -55,7 +65,7 @@ def refined_obstacle_avoidance_with_target_orientation(lidars,
             return 3  # No clear path, reverse
     else:
         # No obstacle near, align and move towards the target
-        if np.abs(angle_diff) > 30:
+        if np.abs(angle_diff) > angle_tolerance:
             # Rotate towards target angle
             if angle_diff > 0:
                 return 1  # if (target_angle - current_angle + 360) % 360 < 180 else 2
@@ -87,5 +97,4 @@ def calculate_angle_point(car_quaternion_1, car_quaternion_2, car_pos, target_po
     angle_to_target = get_angle_to_target(car_yaw, direction_vector)
     # angle_diff = np.abs(angle_to_target - 180)
     angle_diff = angle_to_target - 360 if angle_to_target > 180 else angle_to_target
-    print(angle_diff)
     return angle_diff
