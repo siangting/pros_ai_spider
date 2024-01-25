@@ -108,6 +108,8 @@ class AI_node(Node):
         # Publish the control signal
         self.publisher_forward.publish(control_msg_forward)
         
+        #  lidar轉一圈需要0.1多秒, 確保lidar更新到最新data
+        time.sleep(0.2)
         
     def publish_to_unity_RESET(self):
         self.publish_to_unity(4)

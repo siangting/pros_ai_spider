@@ -13,6 +13,9 @@ def transfer_obs(obs):
     angle_diff = calculate_angle_point(car_quaternion[0], car_quaternion[1], car_pos, target_pos)#  輸出面向目標角度
     car_target_distance = cal_distance(car_pos, target_pos)
     
+    '''
+    這邊宣告自己要回傳的資料
+    '''
     state_dict = {
         "car_pos": trans_to_float(car_pos),
         "target_pos": trans_to_float(target_pos),
