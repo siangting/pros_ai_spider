@@ -5,13 +5,14 @@ from geometry_msgs.msg import PoseStamped
 from sensor_msgs.msg import LaserScan
 import json
 from std_msgs.msg import String
-from car_models import *
+from ROS_receive_and_data_processing.car_models import *
 import sys
 import math
 from rclpy.node import Node
-from UnityAdaptor import *
+from ROS_receive_and_data_processing.UnityAdaptor import *
 import orjson
 import time
+from ROS_receive_and_data_processing.config import ACTION_MAPPINGS
 
 class AI_node(Node):
     def __init__(self):
@@ -33,6 +34,7 @@ class AI_node(Node):
         self.real_car_data['ROS2WheelAngularVelocityRightFront'] = 0.01
         self.real_car_data['ROS2Range'] = []
         self.real_car_data['ROS2RangePosition'] = []
+        
         #  追蹤每個數據是否更新
         self.data_updated = {
             'amcl': False,
@@ -49,10 +51,10 @@ class AI_node(Node):
         self.subscriber_forward = self.create_subscription(String, DeviceDataTypeEnum.car_C_state_front,
                                                            self.forward_wheel_callback, 1)
 
-        
+        #  publish給前後的esp32驅動車輪
         self.publisher = self.create_publisher(
             String,
-            DeviceDataTypeEnum.car_C_control,  # topic name
+            DeviceDataTypeEnum.car_C_control,
             10
         )
         self.publisher_forward = self.create_publisher(
@@ -69,23 +71,27 @@ class AI_node(Node):
             self.data_updated['amcl'] = False
             self.data_updated['lidar'] = False
             self.lastest_data = transfer_obs(self.real_car_data)
-            
+
+    # 取得資料
     def get_latest_data(self):
         return self.lastest_data
     
     #  輸出給車子的writer
-    def publish_to_unity(self, action):
+    def publish_to_unity(self, action_code):
         '''
         _vel1, _vel3是左側
         _vel2, _vel4是右側
         '''
-        _vel1, _vel2, _vel3, _vel4 = self.action_mapping(action)
+        action = ACTION_MAPPINGS.get(action_code, "invalid")
+        _vel1, _vel2, _vel3, _vel4 = action[0],action[1],action[2],action[3]
+        
         control_signal = {
             "type": str(DeviceDataTypeEnum.car_C_control),
             "data": dict(CarCControl(
                 target_vel=[_vel1, _vel2]
             ))
         }
+        
         control_msg = String()
         control_msg.data = orjson.dumps(control_signal).decode()
         self.publisher.publish(control_msg)
@@ -101,33 +107,10 @@ class AI_node(Node):
 
         # Publish the control signal
         self.publisher_forward.publish(control_msg_forward)
-
-        # self.get_logger().info(f'publish {control_msg}')
-        # self.get_logger().info(f'publish to forward {control_msg_forward}')
+        
         
     def publish_to_unity_RESET(self):
         self.publish_to_unity(4)
-        
-    def action_mapping(self, action):
-        rotate_speed = 5
-        vel = 3
-        _vel1 = 0 # left
-        _vel2 = 0 # right
-        _vel3 = 0 # left
-        _vel4 = 0 # right
-        if action == 0:
-            _vel1, _vel2, _vel3, _vel4 = vel, vel, vel, vel
-        elif action == 1:
-            _vel1, _vel3 = -rotate_speed, -rotate_speed
-            _vel2, _vel4 = rotate_speed, rotate_speed
-        elif action == 2:
-            _vel1, _vel3 = rotate_speed, rotate_speed
-            _vel2, _vel4 = -rotate_speed, -rotate_speed
-        elif action == 3:
-            _vel1, _vel2, _vel3, _vel4 = -vel, -vel, -vel, -vel
-        elif action == 4:
-            _vel1, _vel2, _vel3, _vel4 = 0.0, 0.0, 0.0, 0.0
-        return _vel1, _vel2, _vel3, _vel4
             
     def reset(self):
         self.lastest_data = None

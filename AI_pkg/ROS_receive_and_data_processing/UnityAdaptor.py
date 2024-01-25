@@ -1,13 +1,16 @@
 from utils.adaptor_utils import *
+from utils.rotate_angle import *
 
 def transfer_obs(obs):
     car_pos = obs['ROS2CarPosition'][:2]
     target_pos = obs['ROS2TargetPosition'][:2]
     car_quaternion = obs['ROS2CarQuaternion'][2:4]
     lidar_data = obs['ROS2Range']
-
-    
-    angle_diff = calculate_angle_point(car_quaternion[0], car_quaternion[1], car_pos, target_pos)
+    left_front_speed = obs['ROS2WheelAngularVelocityLeftFront']
+    right_front_speed = obs['ROS2WheelAngularVelocityRightFront']
+    left_back_speed = obs['ROS2WheelAngularVelocityLeftBack']
+    right_back_speed = obs['ROS2WheelAngularVelocityRightBack']
+    angle_diff = calculate_angle_point(car_quaternion[0], car_quaternion[1], car_pos, target_pos)#  輸出面向目標角度
     car_target_distance = cal_distance(car_pos, target_pos)
     
     state_dict = {

@@ -1,6 +1,6 @@
 import rclpy
 import threading
-from AINode import AI_node
+from ROS_receive_and_data_processing.AI_node import AI_node
 from avoidance_rule.rule_base import RuleBasedController
 
 def init_ros_node():
@@ -17,8 +17,10 @@ def main():
     rule_controller = RuleBasedController(
         node, 
         './Simulated_Annealing_model/parameters.pkl',
-        load_parameters=False,
-        )
+        load_parameters=True, 
+        save_to_csv=True
+    )
+    
     rule_controller.run()
     
     rclpy.shutdown()
