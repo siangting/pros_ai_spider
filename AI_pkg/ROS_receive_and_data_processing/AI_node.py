@@ -145,7 +145,9 @@ class AI_node(Node):
 
     def laser_scan_callback(self, msg):
         '''
-        普通lidar all_ranges = 1800
+        普通lidar 預設輸出1800個數值
+        高級lidar 預設輸出3240個數值
+        可以透過print(len(msg.ranges))去觀察
         '''
         angle_min = msg.angle_min
         angle_max = msg.angle_max

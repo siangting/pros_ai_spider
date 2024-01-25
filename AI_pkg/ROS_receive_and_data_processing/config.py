@@ -17,7 +17,6 @@ ACTION_MAPPINGS = {
     4: [0.0,0.0,0.0,0.0]      # 停止
 }
 
-LIDAR_RANGE = 90
 FRONT_LIDAR_INDICES = list(range(0, 16)) + list(range(-15, 0)) #0~16個和-15到0的LIDAR RANGE
 LEFT_LIDAR_INDICES = list(range(16, 46))
 RIGHT_LIDAR_INDICES = list(range(-45, -15)) 
