@@ -16,7 +16,11 @@ ACTION_MAPPINGS = {
     3: [-vel, -vel, -vel, -vel], # 後退
     4: [0.0,0.0,0.0,0.0]      # 停止
 }
-
+'''
+以下為lidar分成90個區間的數值
+'''
+LIDAR_PER_SECTOR = 20 #  這是一般lidar
+# LIDAR_PER_SECTOR = 36  #  這是高級lidar
 FRONT_LIDAR_INDICES = list(range(0, 16)) + list(range(-15, 0)) #0~16個和-15到0的LIDAR RANGE
 LEFT_LIDAR_INDICES = list(range(16, 46))
 RIGHT_LIDAR_INDICES = list(range(-45, -15)) 

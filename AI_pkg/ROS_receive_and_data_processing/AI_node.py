@@ -12,7 +12,7 @@ from rclpy.node import Node
 from ROS_receive_and_data_processing.UnityAdaptor import *
 import orjson
 import time
-from ROS_receive_and_data_processing.config import ACTION_MAPPINGS
+from ROS_receive_and_data_processing.config import ACTION_MAPPINGS, LIDAR_PER_SECTOR
 
 class AI_node(Node):
     def __init__(self):
@@ -156,7 +156,7 @@ class AI_node(Node):
         direction_180 = []
         all_ranges = msg.ranges
         for i in range(len(all_ranges)):
-            if i % 20 == 0:  # handle the amount of lidar.
+            if i % LIDAR_PER_SECTOR == 0:  # handle the amount of lidar.
                 angle_tmp = angle_min + i * angle_increment
                 ranges_180.append(all_ranges[i])
                 direction_180.append([math.cos(angle_tmp), math.sin(angle_tmp), 0])
