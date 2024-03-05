@@ -11,7 +11,7 @@ class ObstacleAvoidanceController:
         self.last_turn_direction = None
         self.turn_persistence = 3
         self.bias_counter = 0
-    
+
     def load_parameters(self, filename):
         with open(filename, 'rb') as file:
             parameters = pickle.load(file)
@@ -19,12 +19,12 @@ class ObstacleAvoidanceController:
             self.last_turn_direction = parameters['last_turn_direction']
             self.turn_persistence = parameters['turn_persistence']
             self.bias_counter = parameters['bias_counter']
-    
+
     def check_file(self, filename):
         directory = os.path.dirname(filename)
         if not os.path.exists(directory):
             os.makedirs(directory, exist_ok=True)
-                
+
     def save_parameters(self, filename):
         self.check_file(filename)
         with open(filename, 'wb') as file:
@@ -34,32 +34,35 @@ class ObstacleAvoidanceController:
                 'turn_persistence': self.turn_persistence,
                 'bias_counter': self.bias_counter
             }, file)
-            
+
     def refined_obstacle_avoidance_with_target_orientation(self, lidars, car_quaternion_1, car_quaternion_2, car_pos, target_pos):
-        safe_distance = 0.5
+        safe_distance = 0.7
         angle_tolerance = 10  # degrees, tolerance for angle alignment
 
         angle_diff = calculate_angle_point(car_quaternion_1, car_quaternion_2, car_pos, target_pos)
         obstacle_near = any(lidar < safe_distance for lidar in lidars)
-        
+
         if obstacle_near:
             # 找安全方向
             #  8個lidar的版本
             # front_clear = lidars[0] > safe_distance and lidars[7] > safe_distance
             # left_clear = all(lidar > safe_distance for lidar in lidars[1:4])
             # right_clear = all(lidar > safe_distance for lidar in lidars[4:7])
-            
+
             #  90個lidar
             front_clear = min(lidars[:16]) > safe_distance and min(lidars[-15:]) > safe_distance
             left_clear = all(lidar > safe_distance for lidar in lidars[16:46])
             right_clear = all(lidar > safe_distance for lidar in lidars[-45:-15])
-            
+
             clear_directions = []
             if front_clear:
+                return 0
                 clear_directions.append(0)  # 前進
             if left_clear:
+                return 1
                 clear_directions.append(1)  # 左
             if right_clear:
+                return 2
                 clear_directions.append(2)  # 右
 
             # 用溫度影響決策
