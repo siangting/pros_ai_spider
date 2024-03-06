@@ -4,32 +4,24 @@ from utils.obs_utils import *
 from csv_store_and_file.csv_store import save_data_to_csv, set_csv_format
 import time
 
+
 class RuleBasedController:
-    def __init__(self, node, parameter_file='parameters.pkl', load_parameters=True, save_to_csv=True):
+    def __init__(self, node):
         self.node = node
         self.data = []
         self.controller = ObstacleAvoidanceController()
-        self.parameter_file = parameter_file
-        self.load_parameters = load_parameters
-        self.save_to_csv = save_to_csv #  是否寫入csv
-        try:
-            if self.load_parameters:
-                self.controller.load_parameters(self.parameter_file)
-        except:
-            pass
 
     def rule_action(self, obs_for_avoidance):
         action = self.controller.refined_obstacle_avoidance_with_target_orientation(
-            obs_for_avoidance['lidar_data'],
-            obs_for_avoidance['car_quaternion'][0],
-            obs_for_avoidance['car_quaternion'][1],
-            obs_for_avoidance['car_pos'],
-            obs_for_avoidance['target_pos'],
+            obs_for_avoidance["lidar_data"],
+            obs_for_avoidance["car_quaternion"][0],
+            obs_for_avoidance["car_quaternion"][1],
+            obs_for_avoidance["car_pos"],
+            obs_for_avoidance["target_pos"],
         )
         return action
 
     def reset_controller(self):
-        # time.sleep(1)
         self.data = []
         self.node.publish_to_unity_RESET()
 
@@ -42,15 +34,13 @@ class RuleBasedController:
             self.node.reset()
             _, unity_data = wait_for_data(self.node)
 
-            if unity_data['car_target_distance'] < 1:
-                # if self.save_to_csv:
-                #     save_data_to_csv(self.data)
+            if unity_data["car_target_distance"] < 1:
                 self.reset_controller()
 
             #  檢查是否撞到牆壁
-            elif min(unity_data['lidar_data']) < 0.2:
+            elif min(unity_data["lidar_data"]) < 0.2:
                 self.reset_controller()
-            else :
+            else:
+                #  這邊可以自訂一演算法回傳action
                 action = self.rule_action(unity_data)
                 self.node.publish_to_unity(action)
-                #  這邊可以自訂一演算法回傳action
