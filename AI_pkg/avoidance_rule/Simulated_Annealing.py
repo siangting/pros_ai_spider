@@ -1,8 +1,13 @@
 import random
 from utils.rotate_angle import calculate_angle_point
 import pickle
-from ROS_receive_and_data_processing.config import FRONT_LIDAR_INDICES, LEFT_LIDAR_INDICES, RIGHT_LIDAR_INDICES
+from ROS_receive_and_data_processing.config import (
+    FRONT_LIDAR_INDICES,
+    LEFT_LIDAR_INDICES,
+    RIGHT_LIDAR_INDICES,
+)
 import os
+
 
 class ObstacleAvoidanceController:
     def __init__(self, initial_temperature=1.0, cooling_rate=0.95):
@@ -13,12 +18,12 @@ class ObstacleAvoidanceController:
         self.bias_counter = 0
 
     def load_parameters(self, filename):
-        with open(filename, 'rb') as file:
+        with open(filename, "rb") as file:
             parameters = pickle.load(file)
-            self.temperature = parameters['temperature']
-            self.last_turn_direction = parameters['last_turn_direction']
-            self.turn_persistence = parameters['turn_persistence']
-            self.bias_counter = parameters['bias_counter']
+            self.temperature = parameters["temperature"]
+            self.last_turn_direction = parameters["last_turn_direction"]
+            self.turn_persistence = parameters["turn_persistence"]
+            self.bias_counter = parameters["bias_counter"]
 
     def check_file(self, filename):
         directory = os.path.dirname(filename)
@@ -27,19 +32,26 @@ class ObstacleAvoidanceController:
 
     def save_parameters(self, filename):
         self.check_file(filename)
-        with open(filename, 'wb') as file:
-            pickle.dump({
-                'temperature': self.temperature,
-                'last_turn_direction': self.last_turn_direction,
-                'turn_persistence': self.turn_persistence,
-                'bias_counter': self.bias_counter
-            }, file)
+        with open(filename, "wb") as file:
+            pickle.dump(
+                {
+                    "temperature": self.temperature,
+                    "last_turn_direction": self.last_turn_direction,
+                    "turn_persistence": self.turn_persistence,
+                    "bias_counter": self.bias_counter,
+                },
+                file,
+            )
 
-    def refined_obstacle_avoidance_with_target_orientation(self, lidars, car_quaternion_1, car_quaternion_2, car_pos, target_pos):
+    def refined_obstacle_avoidance_with_target_orientation(
+        self, lidars, car_quaternion_1, car_quaternion_2, car_pos, target_pos
+    ):
         safe_distance = 0.7
         angle_tolerance = 10  # degrees, tolerance for angle alignment
 
-        angle_diff = calculate_angle_point(car_quaternion_1, car_quaternion_2, car_pos, target_pos)
+        angle_diff = calculate_angle_point(
+            car_quaternion_1, car_quaternion_2, car_pos, target_pos
+        )
         obstacle_near = any(lidar < safe_distance for lidar in lidars)
 
         if obstacle_near:
@@ -50,9 +62,9 @@ class ObstacleAvoidanceController:
             # right_clear = all(lidar > safe_distance for lidar in lidars[4:7])
 
             #  90個lidar
-            front_clear = min(lidars[:16]) > safe_distance and min(lidars[-15:]) > safe_distance
-            left_clear = all(lidar > safe_distance for lidar in lidars[16:46])
-            right_clear = all(lidar > safe_distance for lidar in lidars[-45:-15])
+            front_clear = all(lidars[i] > safe_distance for i in FRONT_LIDAR_INDICES)
+            left_clear = all(lidars[i] > safe_distance for i in LEFT_LIDAR_INDICES)
+            right_clear = all(lidars[i] > safe_distance for i in RIGHT_LIDAR_INDICES)
 
             clear_directions = []
             if front_clear:
@@ -72,7 +84,11 @@ class ObstacleAvoidanceController:
                     return random.choice(clear_directions)
                 else:
                     self.temperature *= self.cooling_rate
-                    return self.last_turn_direction if self.last_turn_direction in clear_directions else 0
+                    return (
+                        self.last_turn_direction
+                        if self.last_turn_direction in clear_directions
+                        else 0
+                    )
             elif len(clear_directions) == 1:
                 self.temperature *= self.cooling_rate
                 return clear_directions[0]
