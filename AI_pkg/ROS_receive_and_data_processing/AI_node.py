@@ -3,6 +3,10 @@ from collections import defaultdict
 from geometry_msgs.msg import PoseWithCovarianceStamped
 from geometry_msgs.msg import PoseStamped
 from sensor_msgs.msg import LaserScan
+from geometry_msgs.msg import Twist
+from nav_msgs.msg import Path
+from rclpy.qos import QoSProfile, ReliabilityPolicy
+
 import json
 from std_msgs.msg import String
 from ROS_receive_and_data_processing.car_models import *
@@ -36,6 +40,12 @@ class AI_node(Node):
         self.real_car_data["ROS2Range"] = []
         self.real_car_data["ROS2RangePosition"] = []
 
+        #  navigation
+        self.real_car_data["twist_msg"] = Twist()
+        self.real_car_data["path_msg"] = Path()
+        self.real_car_data["path_position_msg"] = []
+        self.real_car_data["path_orientation_msg"] = []
+
         #  追蹤每個數據是否更新
         self.data_updated = {
             "amcl": False,
@@ -65,6 +75,22 @@ class AI_node(Node):
         )
 
         self.publisher_forward = self.create_publisher(String, "test", 10)  # topic name
+
+        """
+        回傳經過路徑規劃時物體該用多少速度去移動
+        return linear x y z & angular x y z
+        """
+
+        self.subscriber_navigation = self.create_subscription(
+            Twist, "/cmd_vel_nav", self.navigation_callback, 1
+        )
+
+        """
+        路徑位置和四位數轉角
+        """
+        self.subscriber_navigation_plan = self.create_subscription(
+            Path, "/plan", self.navigation_plan_callback, 1
+        )
 
     #  檢查所有的數據是否更新
     def check_and_get_lastest_data(self):
@@ -108,10 +134,36 @@ class AI_node(Node):
         self.publisher_forward.publish(control_msg_forward)
 
         #  lidar轉一圈需要0.1多秒, 確保lidar更新到最新data
-        time.sleep(0.2)
+        # time.sleep(0.2)
+
+    def publish_to_unity_nav(self, action):
+        """
+        _vel1, _vel3是左側
+        _vel2, _vel4是右側
+        """
+        _vel1, _vel2, _vel3, _vel4 = action[0], action[1], action[2], action[3]
+
+        control_signal = {
+            "type": str(DeviceDataTypeEnum.car_C_control),
+            "data": dict(CarCControl(target_vel=[_vel1, _vel2])),
+        }
+
+        control_msg = String()
+        control_msg.data = orjson.dumps(control_signal).decode()
+        self.publisher.publish(control_msg)
+        # print("DeviceDataTypeEnum.car_C_control : ", DeviceDataTypeEnum.car_C_control)
+        control_signal_forward = {
+            "type": str(DeviceDataTypeEnum.car_C_control),
+            "data": dict(CarCControl(target_vel=[_vel3, _vel4])),
+        }
+        control_msg_forward = String()
+        control_msg_forward.data = orjson.dumps(control_signal_forward).decode()
+
+        # Publish the control signal
+        self.publisher_forward.publish(control_msg_forward)
 
     def publish_to_unity_RESET(self):
-        self.publish_to_unity(4)
+        self.publish_to_unity(6)
 
     def reset(self):
         self.lastest_data = None
@@ -167,6 +219,14 @@ class AI_node(Node):
         self.real_car_data["ROS2Range"] = ranges_180
         self.real_car_data["ROS2RangePosition"] = direction_180
         self.update_and_check_data("lidar")
+
+    def navigation_callback(self, msg):
+        self.real_car_data["twist_msg"] = msg
+
+    def navigation_plan_callback(self, msg):
+        if msg.poses:
+            self.real_car_data["path_msg"] = msg.poses[0]
+            # self.real_car_data["path_msg"] = msg.poses[-1].pose
 
     def rear_wheel_callback(self, message):
         try:
