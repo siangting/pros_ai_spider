@@ -77,6 +77,7 @@ class NavigationController:
             if unity_data["car_target_distance"] < 1:
                 self.node.publish_to_unity_RESET()
             else:
+                #  強制設定若距離牆壁0.2就後退
                 if min(front_lidar_data) < 0.2:
                     action = 3
                 elif abs(pwm_right - pwm_left) <= 20.0:

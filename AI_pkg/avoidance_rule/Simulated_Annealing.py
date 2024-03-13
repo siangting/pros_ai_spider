@@ -46,7 +46,7 @@ class ObstacleAvoidanceController:
     def refined_obstacle_avoidance_with_target_orientation(
         self, lidars, car_quaternion_1, car_quaternion_2, car_pos, target_pos
     ):
-        safe_distance = 0.7
+        safe_distance = 0.5
         angle_tolerance = 10  # degrees, tolerance for angle alignment
 
         angle_diff = calculate_angle_point(
@@ -68,14 +68,11 @@ class ObstacleAvoidanceController:
 
             clear_directions = []
             if front_clear:
-                return 0
                 clear_directions.append(0)  # 前進
             if left_clear:
-                return 1
-                clear_directions.append(1)  # 左
+                clear_directions.append(2)  # 左
             if right_clear:
-                return 2
-                clear_directions.append(2)  # 右
+                clear_directions.append(4)  # 右
 
             # 用溫度影響決策
             if len(clear_directions) > 1:
@@ -94,14 +91,14 @@ class ObstacleAvoidanceController:
                 return clear_directions[0]
             else:
                 self.temperature *= self.cooling_rate
-                return random.choice([1, 2])
+                return random.choice([2, 4])
         else:
             if abs(angle_diff) > angle_tolerance:
                 if self.last_turn_direction is None or self.turn_persistence == 0:
-                    self.last_turn_direction = 1 if angle_diff > 0 else 2
+                    self.last_turn_direction = 2 if angle_diff > 0 else 4
                     self.turn_persistence = 3
                 else:
-                    self.turn_persistence -= 1
+                    self.turn_persistence -= 2
                 self.temperature *= self.cooling_rate
                 return self.last_turn_direction
             else:
