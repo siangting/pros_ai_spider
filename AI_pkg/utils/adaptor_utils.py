@@ -1,11 +1,12 @@
 import numpy as np
 import math
 
+"""
+將小數取到第三位
+"""
+
 
 def round_to_decimal_places(data_list, decimal_places=3):
-    """
-    Round the elements of a list to a specified number of decimal places.
-    """
     return [round(num, decimal_places) for num in data_list]
 
 
