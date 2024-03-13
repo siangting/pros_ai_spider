@@ -3,6 +3,7 @@ import threading
 from ROS_receive_and_data_processing.AI_node import AI_node
 from avoidance_rule.rule_base import RuleBasedController
 from car_supervised.lstm_inference import supervised_inference
+from car_navigation.nav_main import NavigationController
 
 
 def init_ros_node():
@@ -25,6 +26,11 @@ def main(mode):
     elif mode == "2":
         supervised = supervised_inference()
         supervised.lstm_inference(node)
+    elif mode == "3":
+        navigation_controller = NavigationController(
+            node,
+        )
+        navigation_controller.run()
     else:
         print("Please type the correct numbers.")
 
@@ -36,6 +42,7 @@ def print_usage():
     print("modes:")
     print(" 1 -- rule-based.")
     print(" 2 -- supervised learning inference.")
+    print(" 3 -- ros2 navigation.")
 
 
 if __name__ == "__main__":
