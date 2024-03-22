@@ -64,22 +64,19 @@ class NavigationController:
             )
             rpm_left = self.speed_to_rpm(v_left)
             rpm_right = self.speed_to_rpm(v_right)
-            print(rpm_left, rpm_right)
             pwm_left = self.rpm_to_pwm(rpm_left)
             pwm_right = self.rpm_to_pwm(rpm_right)
-            front_lidar_data = [
-                car_data["lidar_data"][i]
-                for i in FRONT_LIDAR_INDICES
-                if i < len(car_data["lidar_data"])
-                and i >= -len(car_data["lidar_data"])
-            ]
+            stop_signal = self.node.check_signal()
 
             if car_data["car_target_distance"] < 1:
                 self.node.publish_to_unity_RESET()
             else:
+                front_clear = all(car_data["lidar_data"][i] > 0.35 for i in FRONT_LIDAR_INDICES)
                 #  強制設定若距離牆壁0.2就後退
-                if min(front_lidar_data) < 0.2:
+                if not front_clear:
                     action = 3
+                elif stop_signal:
+                    action = 6
                 elif abs(pwm_right - pwm_left) <= 20.0:
                     action = 0
                 elif pwm_right > pwm_left:

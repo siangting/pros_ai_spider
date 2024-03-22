@@ -8,6 +8,7 @@ import json
 from std_msgs.msg import String
 import orjson
 import math
+import time
 from rclpy.node import Node
 from ros_receive_and_data_processing.car_models import *
 from ros_receive_and_data_processing.data_transform import preprocess_data
@@ -107,6 +108,8 @@ class AI_node(Node):
         self.subscriber_navigation = self.create_subscription(
             Twist, "/cmd_vel_nav", self.navigation_callback, 1
         )
+        self.last_message_time = time.time()
+        self.no_signal = False
 
         """
         路徑位置和四位數轉角
@@ -301,8 +304,18 @@ class AI_node(Node):
     """
 
     def navigation_callback(self, msg):
+        self.last_message_time = time.time()
         self.real_car_data["twist_msg"] = msg
-
+    '''
+    在navigation沒送資料時讓車子停止
+    '''
+    def check_signal(self):
+        timeout = 2.0
+        current_time = time.time()
+        if current_time - self.last_message_time > timeout:
+            print("No signal")
+            self.publish_to_unity_RESET()
+            return True
     """
     navigation輸出路徑位置及四位數轉角的subscribe function
     """
