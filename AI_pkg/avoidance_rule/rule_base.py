@@ -1,6 +1,5 @@
 from avoidance_rule.Simulated_Annealing import ObstacleAvoidanceController
 import rclpy
-from utils.obs_utils import *
 from csv_store_and_file.csv_store import save_data_to_csv, set_csv_format
 import time
 
@@ -32,15 +31,13 @@ class RuleBasedController:
     def run(self):
         while rclpy.ok():
             self.node.reset()
-            _, unity_data = wait_for_data(self.node)
-
-            if unity_data["car_target_distance"] < 1:
+            car_data = self.node.wait_for_data()
+            if car_data["car_target_distance"] < 0.3:
                 self.reset_controller()
 
             #  檢查是否撞到牆壁
-            elif min(unity_data["lidar_data"]) < 0.2:
+            elif min(car_data["lidar_data"]) < 0.2:
                 self.reset_controller()
             else:
-                #  這邊可以自訂一演算法回傳action
-                action = self.rule_action(unity_data)
+                action = self.rule_action(car_data)
                 self.node.publish_to_unity(action)

@@ -5,14 +5,6 @@ vel、rotate_vel
 """
 vel = 10.0
 rotate_vel = 10.0
-#  這邊可以自行定義動作
-# ACTION_MAPPINGS = {
-#     0: [vel, vel, vel, vel],  # 前進
-#     1: [-rotate_vel, rotate_vel, -rotate_vel, rotate_vel],  # 左轉
-#     2: [rotate_vel, -rotate_vel, rotate_vel, -rotate_vel],  # 右轉
-#     3: [-vel, -vel, -vel, -vel],  # 後退
-#     4: [0.0, 0.0, 0.0, 0.0],  # 停止
-# }
 
 ACTION_MAPPINGS = {
     0: [vel, vel, vel, vel],  # 前進

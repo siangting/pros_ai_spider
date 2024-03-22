@@ -1,16 +1,11 @@
-#  給env用的tools
-#  主要給RL內的env用的tools
 import numpy as np
+import math
 
-def data_dict_pop(data_dict):
-    '''拿掉自己沒有要丟入obs的features'''
-    data_dict.pop('car_quaternion', None)
-    data_dict.pop('car_pos', None)
-    data_dict.pop('target_pos', None)
-    return data_dict
 
-def process_data(unity_data):  
-    '''data轉成np後給env的observation'''
+"""
+data轉成np後給env的observation
+"""
+def process_data(unity_data):
     flat_list = []
     for value in unity_data.values():
         if isinstance(value, list):
@@ -19,12 +14,55 @@ def process_data(unity_data):
             flat_list.append(value)
     return np.array(flat_list, dtype=np.float32)
 
-def wait_for_data(AI_node): 
-    '''等待最新的data, 並回傳給reward計算用的state和給obs的state'''
-    unity_data = AI_node.get_latest_data()
-    
-    while unity_data is None:
-        unity_data = AI_node.get_latest_data()
-    unity_data_for_reward = unity_data.copy()
-    unity_data = data_dict_pop(unity_data)
-    return unity_data, unity_data_for_reward
+'''
+自動推算lidar前方 左方 右方的射線範圍
+'''
+def calculate_dynamic_indices(lidar_range):
+    # 根據LIDAR射線總數動態計算各方向的索引範圍
+    # 計算每個方向上的射線數量
+    front_count = int(lidar_range * 0.3)  # 前方30%
+    side_count = front_count  # 左側和右側各30%，因為不考慮後方40%
+
+    # 計算前方的索引範圍，前方被平分為正向和反向兩部分
+    front_start_positive = 0
+    front_end_positive = front_count // 2
+    front_start_negative = -front_end_positive
+
+    # 計算左側的索引範圍
+    left_start = front_end_positive
+    left_end = left_start + side_count
+
+    # 計算右側的索引範圍
+    right_start = lidar_range - side_count
+    right_end = lidar_range
+
+    return {
+        'front_positive': (front_start_positive, front_end_positive),
+        'front_negative': (front_start_negative, 0),
+        'left': (left_start, left_end),
+        'right': (right_start, right_end)
+    }
+
+"""
+將小數取到第三位
+"""
+def round_to_decimal_places(data_list, decimal_places=3):
+    return [round(num, decimal_places) for num in data_list]
+
+
+"""
+將數值轉換成float
+"""
+def trans_to_float(data_list):
+    return [float(i) for i in data_list]
+
+
+"""
+計算車子與目標之間的距離
+"""
+def cal_distance(car_pos, target_pos):
+    car_target_distance = (car_pos[0] - target_pos[0]) ** 2 + (
+        car_pos[1] - target_pos[1]
+    ) ** 2
+    car_target_distance = round_to_decimal_places([math.sqrt(car_target_distance)])[0]
+    return car_target_distance
