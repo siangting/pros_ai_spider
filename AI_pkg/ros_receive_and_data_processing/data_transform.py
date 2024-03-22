@@ -1,5 +1,5 @@
-from utils.adaptor_utils import *
-from utils.rotate_angle import *
+from utils.obs_utils import cal_distance,trans_to_float,round_to_decimal_places
+from utils.rotate_angle import calculate_angle_point
 
 """
 將AI_node.py收到的資料在這邊做轉換
@@ -7,7 +7,7 @@ from utils.rotate_angle import *
 """
 
 
-def transfer_obs(obs):
+def preprocess_data(obs):
     car_pos = obs["ROS2CarPosition"][:2]
     target_pos = obs["ROS2TargetPosition"][:2]
     car_quaternion = obs["ROS2CarQuaternion"][2:4]

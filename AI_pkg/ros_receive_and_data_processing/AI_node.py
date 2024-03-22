@@ -1,22 +1,17 @@
 from std_msgs.msg import Float32MultiArray
-from collections import defaultdict
 from geometry_msgs.msg import PoseWithCovarianceStamped
 from geometry_msgs.msg import PoseStamped
 from sensor_msgs.msg import LaserScan
 from geometry_msgs.msg import Twist
 from nav_msgs.msg import Path
-from rclpy.qos import QoSProfile, ReliabilityPolicy
-
 import json
 from std_msgs.msg import String
-from ROS_receive_and_data_processing.car_models import *
-import sys
+import orjson
 import math
 from rclpy.node import Node
-from ROS_receive_and_data_processing.UnityAdaptor import *
-import orjson
-import time
-from ROS_receive_and_data_processing.config import ACTION_MAPPINGS, LIDAR_PER_SECTOR
+from ros_receive_and_data_processing.car_models import *
+from ros_receive_and_data_processing.data_transform import preprocess_data
+from ros_receive_and_data_processing.config import ACTION_MAPPINGS, LIDAR_PER_SECTOR
 
 
 class AI_node(Node):
@@ -121,9 +116,8 @@ class AI_node(Node):
         )
 
     """
-    檢查所有數據是否更新
-    如果amcl lidar goal都收到就傳入UnityAdaptor.py內的transfer_obs()並更新資料
-    goal只會在點擊目標的一瞬間更新 所以下面恢復成false的部分沒有goal
+    檢查所有數據是否更新,
+    更新最新車體狀態資料
     """
 
     def check_and_get_lastest_data(self):
@@ -131,17 +125,27 @@ class AI_node(Node):
             # 確認所有的數據都更新並publish
             self.data_updated["amcl"] = False
             self.data_updated["lidar"] = False
-            self.lastest_data = transfer_obs(self.real_car_data)
-
-    """
-    給其他有引入AI_node的程式碼取得最新資料
-    """
+            self.lastest_data = preprocess_data(self.real_car_data)
 
     def get_latest_data(self):
         return self.lastest_data
 
+    '''
+    取得經過data_transform處理後的最新資料
+
+    Returns:
+        dict: raw data經過整理的資料
+
+    '''
+    def wait_for_data(self):
+        car_state_data = self.get_latest_data()
+        while car_state_data is None:
+            car_state_data = self.get_latest_data()
+        return car_state_data
+
+
     """
-    輸出給車子驅動用的電壓
+    指定動作輸出給
     """
 
     def publish_to_unity(self, action_code):
@@ -341,3 +345,6 @@ class AI_node(Node):
                 print("Invalid message format. Missing 'vels' key.")
         except json.JSONDecodeError as e:
             print(f"Error decoding JSON: {e}")
+
+
+

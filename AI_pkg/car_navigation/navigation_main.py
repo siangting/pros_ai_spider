@@ -4,7 +4,7 @@ from utils.obs_utils import *
 from math import pi
 from utils.rotate_angle import calculate_angle_point
 import time
-from ROS_receive_and_data_processing.config import FRONT_LIDAR_INDICES
+from ros_receive_and_data_processing.config import FRONT_LIDAR_INDICES
 
 
 class NavigationController:
@@ -53,9 +53,9 @@ class NavigationController:
         while rclpy.ok():
             self.node.reset()
             start = time.time()
-            _, unity_data = wait_for_data(self.node)
+            car_data = self.node.wait_for_data()
             end = time.time()
-            twist_data = unity_data["navigation_data"]
+            twist_data = car_data["navigation_data"]
             #  用/cmd_vel_nav
             linear_velocity = twist_data.linear.x
             angular_velocity = twist_data.angular.z
@@ -68,13 +68,13 @@ class NavigationController:
             pwm_left = self.rpm_to_pwm(rpm_left)
             pwm_right = self.rpm_to_pwm(rpm_right)
             front_lidar_data = [
-                unity_data["lidar_data"][i]
+                car_data["lidar_data"][i]
                 for i in FRONT_LIDAR_INDICES
-                if i < len(unity_data["lidar_data"])
-                and i >= -len(unity_data["lidar_data"])
+                if i < len(car_data["lidar_data"])
+                and i >= -len(car_data["lidar_data"])
             ]
 
-            if unity_data["car_target_distance"] < 1:
+            if car_data["car_target_distance"] < 1:
                 self.node.publish_to_unity_RESET()
             else:
                 #  強制設定若距離牆壁0.2就後退
@@ -91,23 +91,3 @@ class NavigationController:
                 elif pwm_right == 0 and pwm_left == 0:
                     action = 6
                 self.node.publish_to_unity(action)
-            # end = time.time()
-
-            #  path
-            # current_position = unity_data["car_pos"]
-            # try:
-            #     # print(unity_data["navigation_plan_data"].pose.position)
-            #     first_position = unity_data["navigation_plan_data"].pose.position
-            #     next_target = [first_position.x, first_position.y]
-            #     first_orientation = unity_data["navigation_plan_data"].pose.orientation
-            #     print(next_target)
-            #     angle_diff = calculate_angle_point(
-            #         first_orientation.z,
-            #         first_orientation.w,
-            #         current_position,
-            #         next_target,
-            #     )
-            #     action = self.action_control(angle_diff)
-            #     self.node.publish_to_unity(action)
-            # except:
-            #     pass

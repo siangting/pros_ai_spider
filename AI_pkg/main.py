@@ -1,9 +1,9 @@
 import rclpy
 import threading
-from ROS_receive_and_data_processing.AI_node import AI_node
+from ros_receive_and_data_processing.AI_node import AI_node
 from avoidance_rule.rule_base import RuleBasedController
 from car_supervised.lstm_inference import supervised_inference
-from car_navigation.nav_main import NavigationController
+from car_navigation.navigation_main import NavigationController
 
 
 def init_ros_node():
