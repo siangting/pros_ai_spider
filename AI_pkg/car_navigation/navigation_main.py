@@ -4,9 +4,8 @@ from utils.obs_utils import *
 from math import pi
 from utils.rotate_angle import calculate_angle_point
 import time
-from ros_receive_and_data_processing.config import FRONT_LIDAR_INDICES
-
-
+from ros_receive_and_data_processing.config import FRONT_LIDAR_INDICES, LEFT_LIDAR_INDICES, RIGHT_LIDAR_INDICES
+from car_navigation.avoidance_rule import ObstacleAvoidanceController
 class NavigationController:
     def __init__(self, node):
         self.node = node
@@ -14,6 +13,17 @@ class NavigationController:
         self.body_width = 0.3
         self.wheel_diameter = 0.05
         self.angle_tolerance = 10
+        self.controller = ObstacleAvoidanceController()
+
+    def rule_action(self, obs_for_avoidance):
+        action = self.controller.refined_obstacle_avoidance_with_target_orientation(
+            obs_for_avoidance["lidar_data"],
+            obs_for_avoidance["car_quaternion"][0],
+            obs_for_avoidance["car_quaternion"][1],
+            obs_for_avoidance["car_pos"],
+            obs_for_avoidance["target_pos"],
+        )
+        return action
 
     def reset_controller(self):
         self.data = []
@@ -67,17 +77,29 @@ class NavigationController:
             pwm_left = self.rpm_to_pwm(rpm_left)
             pwm_right = self.rpm_to_pwm(rpm_right)
             stop_signal = self.node.check_signal()
-
-            if car_data["car_target_distance"] < 1:
+            sensitivity_value = 20.0
+            
+            left_clear = all(car_data["lidar_data"][i] > 0.5 for i in FRONT_LIDAR_INDICES)
+            right_clear = all(car_data["lidar_data"][i] > 0.5 for i in FRONT_LIDAR_INDICES)
+            if not left_clear and not right_clear :
+                front_clear = all(car_data["lidar_data"][i] > 1.0 for i in FRONT_LIDAR_INDICES)
+                if front_clear:
+                    sensitivity_value = 10.0
+                else:
+                    sensitivity_value = 5.0
+            print("sensitivity_value : ", sensitivity_value)
+            if car_data["car_target_distance"] < 0.3:
                 self.node.publish_to_unity_RESET()
             else:
-                front_clear = all(car_data["lidar_data"][i] > 0.35 for i in FRONT_LIDAR_INDICES)
+                front_clear = all(car_data["lidar_data"][i] > 0.2 for i in FRONT_LIDAR_INDICES)
                 #  強制設定若距離牆壁0.2就後退
                 if not front_clear:
                     action = 3
+                    # action = self.rule_action(car_data)
                 elif stop_signal:
                     action = 6
-                elif abs(pwm_right - pwm_left) <= 20.0:
+                    # action = self.rule_action(car_data)
+                elif abs(pwm_right - pwm_left) <= sensitivity_value:
                     action = 0
                 elif pwm_right > pwm_left:
                     action = 2
