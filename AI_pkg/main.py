@@ -4,7 +4,7 @@ from ros_receive_and_data_processing.AI_node import AI_node
 from avoidance_rule.rule_base import RuleBasedController
 from car_supervised.lstm_inference import supervised_inference
 from car_navigation.navigation_main import NavigationController
-
+from robot_arm.robot_control import RobotArmControl
 
 def init_ros_node():
     """node初始化並開一個thread跑ros node"""
@@ -31,6 +31,11 @@ def main(mode):
             node,
         )
         navigation_controller.run()
+    elif mode == "4":
+        robot_controler = RobotArmControl(
+            node,
+        )
+        robot_controler.action()
     else:
         print("Please type the correct numbers.")
 

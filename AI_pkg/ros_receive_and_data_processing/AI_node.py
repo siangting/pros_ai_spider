@@ -13,6 +13,7 @@ from rclpy.node import Node
 from ros_receive_and_data_processing.car_models import *
 from ros_receive_and_data_processing.data_transform import preprocess_data
 from ros_receive_and_data_processing.config import ACTION_MAPPINGS, LIDAR_PER_SECTOR
+from trajectory_msgs.msg import JointTrajectoryPoint
 
 
 class AI_node(Node):
@@ -101,6 +102,15 @@ class AI_node(Node):
 
         self.publisher_forward = self.create_publisher(String, "test", 10)  # 後輪esp32
 
+        '''
+        機械手臂
+        '''
+        self.joint_trajectory_publisher_ = self.create_publisher(
+            JointTrajectoryPoint,
+            'joint_trajectory_point',
+            10
+        )
+
         """
         回傳經過路徑規劃時物體該用多少速度去移動
         return linear x y z & angular x y z
@@ -177,6 +187,13 @@ class AI_node(Node):
 
         #  lidar轉一圈需要0.1多秒, 確保lidar更新到最新data
         # time.sleep(0.2)
+
+
+    def publish_arm(self, joint_pos):
+        msg = JointTrajectoryPoint()
+        msg.positions = [float(pos) for pos in joint_pos]
+        msg.velocities = [0.0, 0.0, 0.0, 0.0, 0.0]  # Replace with actual desired velocities
+        self.joint_trajectory_publisher_.publish(msg)
 
     """
     這個func目前還在考慮要不要用
