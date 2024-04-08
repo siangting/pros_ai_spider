@@ -282,7 +282,6 @@ class AI_node(Node):
         if target:
             self.real_car_data["ROS2TargetPosition"] = target
             self.update_and_check_data("goal")
-
     """
     給 subscribe_callback_goal 轉換用
     """

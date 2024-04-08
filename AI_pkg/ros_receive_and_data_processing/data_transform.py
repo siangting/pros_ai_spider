@@ -22,9 +22,6 @@ def preprocess_data(obs):
     )
     car_target_distance = cal_distance(car_pos, target_pos)
     navigation_data = obs["twist_msg"]
-    navigation_plan_data = obs["path_msg"]
-    navigation_plan_position_data = obs["path_position_msg"]
-    navigation_plan_orientation_data = obs["path_orientation_msg"]
 
     # 以下宣告自己要回傳的資料
 
@@ -41,9 +38,6 @@ def preprocess_data(obs):
         ),
         "angle_diff": angle_diff,
         "navigation_data": navigation_data,
-        "navigation_plan_data": navigation_plan_data,
-        "navigation_plan_position_data": navigation_plan_position_data,
-        "navigation_plan_orientation_data": navigation_plan_orientation_data,
     }
 
     return state_dict
