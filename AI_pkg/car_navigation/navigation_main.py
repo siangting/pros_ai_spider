@@ -1,5 +1,5 @@
 import rclpy
-from utils.obs_utils import *
+# from utils.obs_utils import
 from math import pi
 from utils.rotate_angle import calculate_angle_point
 import time
@@ -133,9 +133,9 @@ class NavigationController:
                     # self.robot_controler.action()
                     self.data_collector.save_data_to_csv()
                     self.target_reached_once = True
-
-            else:  # If no action decided based on signal
+            # 有動作
+            else:
                 action = self.decide_action_based_on_signal(stop_signal, car_data["lidar_data"])
                 self.data_collector.add_data(action, car_data)
-
+            print(action)
             self.node.publish_to_unity(action)
