@@ -1,6 +1,6 @@
 from avoidance_rule.Simulated_Annealing import ObstacleAvoidanceController
 import rclpy
-from csv_store_and_file.csv_store import save_data_to_csv, set_csv_format
+# from csv_store_and_file.csv_store import save_data_to_csv, set_csv_format
 import time
 
 
