@@ -2,33 +2,40 @@ import csv
 from datetime import datetime
 import os
 
-def set_csv_format(action, data_dict):
-    data_dict["action"] = action
-    return data_dict
+class DataCollector:
+    def __init__(self):
+        self.data = []
+        self.path = self._create_directory()
 
-def save_data_to_csv(data):
-    # 確定有數據
-    if not data:
-        return
+    def _create_directory(self):
+        # 用時間創建文件名稱
+        timestamp = datetime.now().strftime("%Y%m%d")
+        current_dir = os.getcwd()
+        path = os.path.join(current_dir, f'training_data_{timestamp}')
+        if not os.path.exists(path):
+            os.makedirs(path)
+        return path
 
-    # 用時間創文件名稱
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    filename = f'collected_data_{timestamp}.csv'
+    def add_data(self, action, data_dict):
+        # 為數據添加動作字段
+        data_dict["action"] = action
+        self.data.append(data_dict)
 
-    # 指定路徑
-    current_dir = os.getcwd()  # 抓現在目錄
-    path = os.path.join(current_dir, 'training_data')  # 創文件名稱
+    def save_data_to_csv(self):
+        if not self.data:
+            print("No data to save.")
+            return
 
-    if not os.path.exists(path):
-        os.makedirs(path)
+        # 使用第一條數據的鍵作為欄位名稱
+        keys = self.data[0].keys()
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f'collected_data_{timestamp}.csv'
+        full_path = os.path.join(self.path, filename)
 
-    full_path = os.path.join(path, filename)
+        with open(full_path, 'w', newline='', encoding='utf-8') as csvfile:
+            writer = csv.DictWriter(csvfile, fieldnames=keys)
+            writer.writeheader()
+            for data_dict in self.data:
+                writer.writerow(data_dict)
 
-    keys = data[0].keys()  # 取字典的key當作title
-
-    with open(full_path, 'w', newline='') as csvfile:
-        writer = csv.DictWriter(csvfile, fieldnames=keys)
-        writer.writeheader()
-        for i in data:
-            writer.writerow(i)
-    print("store csv file")
+        print(f"Data stored in {full_path}")
