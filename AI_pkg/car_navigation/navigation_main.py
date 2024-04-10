@@ -118,16 +118,25 @@ class NavigationController:
             self.previous_target_pos = current_target_pos
             return True
         return False
+
     '''
-    計算切線
+    根據曲線選擇動作
     '''
-    def calculate_tangent(self, point1, point2):
-        slope = (point2[1] - point1[1]) / (point2[0] - point1[0])
-        tangent_slope = -1 / slope
-        x = point1[0]
-        y = point1[1]
-        b = y - tangent_slope * x
-        return tangent_slope, b
+    def action_choice(self, angle_to_target):
+        print(angle_to_target)
+        if abs(angle_to_target)<20:
+            action = 0
+        elif 20 < abs(angle_to_target) < 40:
+            if angle_to_target > 0:
+                action = 1
+            elif angle_to_target < 0:
+                action = 5
+        else:
+            if angle_to_target > 0:
+                action = 2
+            elif angle_to_target < 0:
+                action = 4
+        return action
 
     def run(self):
         while rclpy.ok():
@@ -138,22 +147,6 @@ class NavigationController:
             self.received_global_plan = car_data['received_global_plan']
             # car_posel
             self.car_pos = car_data['car_pos'][:2]
-            if self.received_global_plan == None:
-                action = 6
-            else:
-                a = calculate_angle_to_target(self.car_pos,
-                                        self.received_global_plan,
-                                        car_data['car_quaternion'])
-                if abs(a)<10:
-                    action = 0
-                elif a > 0:
-                    action = 2
-                elif a < 0:
-                    action = 4
-            self.node.publish_to_unity(action)
-
-            # tangent_slope, b = self.calculate_tangent(self.received_global_plan, self.car_pos)
-            # print(tangent_slope, b)
             #  取得兩輪pwm速度
             self.pwm_left, self.pwm_right = self.calculate_wheel_speeds(car_data["navigation_data"])
             self.sensitivity_value = self.calculate_sensitivity(car_data)
@@ -178,7 +171,13 @@ class NavigationController:
                     self.target_reached_once = True
 
             # 未到達終點的動作
+            elif self.received_global_plan == None:
+                action = 6
             else:
                 action = self.decide_action_based_on_signal(stop_signal, car_data["lidar_data"])
                 self.data_collector.add_data(action, car_data)
-            # self.node.publish_to_unity(action)
+                angle_to_target = calculate_angle_to_target(self.car_pos,
+                                        self.received_global_plan,
+                                        car_data['car_quaternion'])
+                action = self.action_choice(angle_to_target)
+            self.node.publish_to_unity(action)
