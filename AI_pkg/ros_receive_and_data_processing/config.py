@@ -3,8 +3,8 @@
 """
 vel、rotate_vel
 """
-vel = 5.0
-rotate_vel = 4.0
+vel = 20.0
+rotate_vel = 5.0
 
 ACTION_MAPPINGS = {
     0: [vel, vel, vel, vel],  # 前進
