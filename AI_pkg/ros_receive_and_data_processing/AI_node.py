@@ -121,6 +121,12 @@ class AI_node(Node):
         self.last_message_time = time.time()
         self.no_signal = False
 
+        '''
+        received_global_plan
+        '''
+        self.subscriber_received_global_plan = self.create_subscription(
+            Path, "/received_global_plan", self.global_plan_callback, 1
+        )
         """
         路徑位置和四位數轉角
         """
@@ -322,6 +328,18 @@ class AI_node(Node):
     def navigation_callback(self, msg):
         self.last_message_time = time.time()
         self.real_car_data["twist_msg"] = msg
+
+    def global_plan_callback(self, msg):
+        try:
+            if len(msg.poses) > 1:
+                first_point = msg.poses[20].pose.position
+                self.real_car_data['received_global_plan'] = [first_point.x, first_point.y]
+            else:
+                self.get_logger().info('Global plan does not contain enough points.')
+        except:
+            self.real_car_data['received_global_plan'] = None
+
+
     '''
     在navigation沒送資料時讓車子停止
     '''

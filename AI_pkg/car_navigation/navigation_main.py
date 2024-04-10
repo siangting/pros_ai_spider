@@ -1,11 +1,13 @@
 import rclpy
 # from utils.obs_utils import
 from math import pi
-from utils.rotate_angle import calculate_angle_point
+from utils.rotate_angle import calculate_angle_point, calculate_angle_to_target
 import time
 from ros_receive_and_data_processing.config import FRONT_LIDAR_INDICES, LEFT_LIDAR_INDICES, RIGHT_LIDAR_INDICES
 from robot_arm.robot_control import RobotArmControl
 from csv_store_and_file.csv_store import DataCollector
+
+import csv
 
 class NavigationController:
     def __init__(self, node):
@@ -21,6 +23,11 @@ class NavigationController:
         self.target_reached_once = False
         self.previous_target_pos = None
 
+    def write_to_csv(self,filename, data):
+        with open(filename, 'a', newline='') as csvfile:
+            writer = csv.writer(csvfile)
+            writer.writerow(data)
+
     '''
     換算出兩輪pwm速度
     '''
@@ -31,6 +38,8 @@ class NavigationController:
         L = self.body_width
         v_left = linear_velocity - (L / 2) * angular_velocity
         v_right = linear_velocity + (L / 2) * angular_velocity
+
+
         rpm_left, rpm_right = self.speed_to_rpm(v_left), self.speed_to_rpm(v_right)
         pwm_left, pwm_right = self.rpm_to_pwm(rpm_left), self.rpm_to_pwm(rpm_right)
         return pwm_left, pwm_right
@@ -51,7 +60,7 @@ class NavigationController:
     sensitivity_value 越小容易轉動
     '''
     def calculate_sensitivity(self, car_data):
-        sensitivity_value = 20.0
+        sensitivity_value = 3.0
 
         left_clear = self.is_direction_clear(car_data, LEFT_LIDAR_INDICES, 0.3)
         right_clear = self.is_direction_clear(car_data, RIGHT_LIDAR_INDICES, 0.3)
@@ -87,6 +96,8 @@ class NavigationController:
 
     def adjust_action_based_on_pwm(self, pwm_left, pwm_right, sensitivity_value):
         # print(pwm_left, pwm_right)
+        self.write_to_csv("data.csv", [pwm_left, pwm_right])
+        sensitivity_value = 5
         if pwm_right < 0 and pwm_left < 0:
             return 3
         if abs(pwm_right - pwm_left) <= sensitivity_value:
@@ -107,11 +118,42 @@ class NavigationController:
             self.previous_target_pos = current_target_pos
             return True
         return False
+    '''
+    計算切線
+    '''
+    def calculate_tangent(self, point1, point2):
+        slope = (point2[1] - point1[1]) / (point2[0] - point1[0])
+        tangent_slope = -1 / slope
+        x = point1[0]
+        y = point1[1]
+        b = y - tangent_slope * x
+        return tangent_slope, b
 
     def run(self):
         while rclpy.ok():
             self.node.reset()
+            # 抓adaptor資料
             car_data = self.node.wait_for_data()
+            # received_global_plan
+            self.received_global_plan = car_data['received_global_plan']
+            # car_posel
+            self.car_pos = car_data['car_pos'][:2]
+            if self.received_global_plan == None:
+                action = 6
+            else:
+                a = calculate_angle_to_target(self.car_pos,
+                                        self.received_global_plan,
+                                        car_data['car_quaternion'])
+                if abs(a)<10:
+                    action = 0
+                elif a > 0:
+                    action = 2
+                elif a < 0:
+                    action = 4
+            self.node.publish_to_unity(action)
+
+            # tangent_slope, b = self.calculate_tangent(self.received_global_plan, self.car_pos)
+            # print(tangent_slope, b)
             #  取得兩輪pwm速度
             self.pwm_left, self.pwm_right = self.calculate_wheel_speeds(car_data["navigation_data"])
             self.sensitivity_value = self.calculate_sensitivity(car_data)
@@ -125,6 +167,7 @@ class NavigationController:
             #  偵測navigation有無輸出訊號 true就代表沒訊號
             stop_signal = self.node.check_signal()
 
+            # 到達終點
             if car_data["car_target_distance"] < 0.3:
                 print("end")
                 action = 6
@@ -133,9 +176,9 @@ class NavigationController:
                     # self.robot_controler.action()
                     self.data_collector.save_data_to_csv()
                     self.target_reached_once = True
-            # 有動作
+
+            # 未到達終點的動作
             else:
                 action = self.decide_action_based_on_signal(stop_signal, car_data["lidar_data"])
                 self.data_collector.add_data(action, car_data)
-            print(action)
-            self.node.publish_to_unity(action)
+            # self.node.publish_to_unity(action)
