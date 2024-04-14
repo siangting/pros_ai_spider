@@ -8,11 +8,11 @@ rotate_vel = 5.0
 
 ACTION_MAPPINGS = {
     0: [vel, vel, vel, vel],  # 前進
-    1: [vel / 5, vel * 1.2, vel / 5, vel * 1.2],  # 左前
+    1: [rotate_vel, rotate_vel * 1.2, rotate_vel, rotate_vel * 1.2],  # 左前
     2: [-rotate_vel, rotate_vel, -rotate_vel, rotate_vel],  # 左自轉
     3: [-vel, -vel, -vel, -vel],  # 後退
     4: [rotate_vel, -rotate_vel, rotate_vel, -rotate_vel],  # 右自轉
-    5: [vel * 1.2, vel / 5, vel * 1.2, vel / 5],  # 右前
+    5: [rotate_vel * 1.2, rotate_vel, rotate_vel * 1.2, rotate_vel],  # 右前
     6: [0.0, 0.0, 0.0, 0.0],
 }
 

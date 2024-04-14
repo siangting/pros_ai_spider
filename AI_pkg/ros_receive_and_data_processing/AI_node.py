@@ -332,7 +332,7 @@ class AI_node(Node):
     def global_plan_callback(self, msg):
         try:
             if len(msg.poses) > 1:
-                first_point = msg.poses[10].pose.position
+                first_point = msg.poses[20].pose.position
                 self.real_car_data['received_global_plan'] = [first_point.x, first_point.y]
             else:
                 self.get_logger().info('Global plan does not contain enough points.')
