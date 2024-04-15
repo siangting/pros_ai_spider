@@ -332,8 +332,16 @@ class AI_node(Node):
     def global_plan_callback(self, msg):
         try:
             if len(msg.poses) > 1:
-                first_point = msg.poses[20].pose.position
-                self.real_car_data['received_global_plan'] = [first_point.x, first_point.y]
+                # first_point = msg.poses[1].pose.position
+                # dis = ((first_point.x-self.real_car_data["ROS2CarPosition"][0])**2+(first_point.y-self.real_car_data["ROS2CarPosition"][1]))**0.5
+                current_x, current_y = self.real_car_data["ROS2CarPosition"][0], self.real_car_data["ROS2CarPosition"][1]
+                for i in range(10):
+                    point_x, point_y = msg.poses[i].pose.position.x, msg.poses[i].pose.position.y
+                    distance = math.sqrt((point_x - current_x) ** 2 + (point_y - current_y) ** 2)
+                    if abs(distance - 0.2) < 0.01:
+                        break
+                # print(abs(distance))
+                self.real_car_data['received_global_plan'] = [point_x, point_y]
             else:
                 self.get_logger().info('Global plan does not contain enough points.')
         except:

@@ -123,7 +123,6 @@ class NavigationController:
     根據曲線選擇動作
     '''
     def action_choice(self, angle_to_target):
-        print(angle_to_target)
         if abs(angle_to_target)<20:
             action = 0
         elif 20 < abs(angle_to_target) < 40:
