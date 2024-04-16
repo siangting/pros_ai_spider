@@ -202,10 +202,10 @@ class AI_node(Node):
         self.joint_trajectory_publisher_.publish(msg)
 
     """
-    這個func目前還在考慮要不要用
+    直接輸出rpm給車體
     """
 
-    def publish_to_unity_nav(self, action):
+    def publish_to_unity_rpm(self, action):
         """
         _vel1, _vel3是左側
         _vel2, _vel4是右側
@@ -329,18 +329,21 @@ class AI_node(Node):
         self.last_message_time = time.time()
         self.real_car_data["twist_msg"] = msg
 
+    '''
+    navigation的global route planning
+    會輸出座標點
+    '''
     def global_plan_callback(self, msg):
         try:
             if len(msg.poses) > 1:
                 # first_point = msg.poses[1].pose.position
                 # dis = ((first_point.x-self.real_car_data["ROS2CarPosition"][0])**2+(first_point.y-self.real_car_data["ROS2CarPosition"][1]))**0.5
                 current_x, current_y = self.real_car_data["ROS2CarPosition"][0], self.real_car_data["ROS2CarPosition"][1]
-                for i in range(10):
+                for i in range(20):
                     point_x, point_y = msg.poses[i].pose.position.x, msg.poses[i].pose.position.y
                     distance = math.sqrt((point_x - current_x) ** 2 + (point_y - current_y) ** 2)
-                    if abs(distance - 0.2) < 0.01:
+                    if abs(distance - 0.5) < 0.01:
                         break
-                # print(abs(distance))
                 self.real_car_data['received_global_plan'] = [point_x, point_y]
             else:
                 self.get_logger().info('Global plan does not contain enough points.')

@@ -41,8 +41,9 @@ class NavigationController:
 
 
         rpm_left, rpm_right = self.speed_to_rpm(v_left), self.speed_to_rpm(v_right)
-        pwm_left, pwm_right = self.rpm_to_pwm(rpm_left), self.rpm_to_pwm(rpm_right)
-        return pwm_left, pwm_right
+        rpm_left, rpm_right = self.speed_to_pid(rpm_left), self.speed_to_pid(rpm_right)
+        # pwm_left, pwm_right = self.rpm_to_pwm(rpm_left), self.rpm_to_pwm(rpm_right)
+        return rpm_left, rpm_right
 
     def speed_to_rpm(self, speed):
         wheel_circumference = pi * self.wheel_diameter
@@ -53,6 +54,9 @@ class NavigationController:
         pwm = (rpm / max_rpm) * 100
         return max(0, min(pwm, 100))
 
+    def speed_to_pid(self, rpm):
+        return rpm / 10
+
     def is_direction_clear(self, car_data, direction_indices, threshold):
         return all(car_data["lidar_data"][i] > threshold for i in direction_indices)
 
@@ -60,29 +64,23 @@ class NavigationController:
     sensitivity_value 越小容易轉動
     '''
     def calculate_sensitivity(self, car_data):
-        sensitivity_value = 3.0
+        sensitivity_value = 10.0
 
         left_clear = self.is_direction_clear(car_data, LEFT_LIDAR_INDICES, 0.3)
         right_clear = self.is_direction_clear(car_data, RIGHT_LIDAR_INDICES, 0.3)
         front_clear = self.is_direction_clear(car_data, FRONT_LIDAR_INDICES, 0.3)
 
         if not left_clear or not right_clear or not front_clear:
-            sensitivity_value = 5.0  # 前方不清晰或部分清晰时的敏感度值
-        left_clear = self.is_direction_clear(car_data, LEFT_LIDAR_INDICES, 0.5)
-        right_clear = self.is_direction_clear(car_data, RIGHT_LIDAR_INDICES, 0.5)
-        front_clear = self.is_direction_clear(car_data, FRONT_LIDAR_INDICES, 0.5)
-        # if left_clear and right_clear and front_clear:
-        #     # 前方额外清晰的检查
-        #     front_extra_clear = self.is_direction_clear(car_data, FRONT_LIDAR_INDICES, 0.7)
-        #     sensitivity_value = 30 if front_extra_clear else 20
+            sensitivity_value = 3.0  # 前方不清晰或部分清晰时的敏感度值
 
-        # print(sensitivity_value)
         return sensitivity_value
 
     '''
     如果前方小於15cm然後又沒訊號,就選擇後退
     如果單純沒訊號就停止運作
     如果有訊號就回傳 None
+
+    要修改成rpm版本
     '''
     def decide_action_based_on_signal(self, stop_signal, lidar_data):
         front_clear = all(lidar_data[i] > 0.15 for i in FRONT_LIDAR_INDICES)
@@ -97,7 +95,7 @@ class NavigationController:
     def adjust_action_based_on_pwm(self, pwm_left, pwm_right, sensitivity_value):
         # print(pwm_left, pwm_right)
         self.write_to_csv("data.csv", [pwm_left, pwm_right])
-        sensitivity_value = 5
+        # sensitivity_value = 5
         if pwm_right < 0 and pwm_left < 0:
             return 3
         if abs(pwm_right - pwm_left) <= sensitivity_value:
@@ -148,6 +146,8 @@ class NavigationController:
             self.car_pos = car_data['car_pos'][:2]
             #  取得兩輪pwm速度
             self.pwm_left, self.pwm_right = self.calculate_wheel_speeds(car_data["navigation_data"])
+
+            # 取得敏感直
             self.sensitivity_value = self.calculate_sensitivity(car_data)
 
             #
@@ -163,20 +163,25 @@ class NavigationController:
             if car_data["car_target_distance"] < 0.3:
                 print("end")
                 action = 6
+                stop_signal = True
                 if not self.target_reached_once:
                     print("test")
-                    # self.robot_controler.action()
-                    self.data_collector.save_data_to_csv()
+                    # self.robot_controler.action() # 機械手
+                    # self.data_collector.save_data_to_csv() #存資料
                     self.target_reached_once = True
 
             # 未到達終點的動作
             elif self.received_global_plan == None:
                 action = 6
             else:
-                action = self.decide_action_based_on_signal(stop_signal, car_data["lidar_data"])
-                self.data_collector.add_data(action, car_data)
+                # action = self.decide_action_based_on_signal(stop_signal, car_data["lidar_data"]) # 用nav給的速度判斷動作
+                # self.data_collector.add_data(action, car_data) #存資料
                 angle_to_target = calculate_angle_to_target(self.car_pos,
                                         self.received_global_plan,
                                         car_data['car_quaternion'])
-                action = self.action_choice(angle_to_target)
-            self.node.publish_to_unity(action)
+                action = self.action_choice(angle_to_target) # 用路徑選動作
+            # 如果nav2有給訊號就用他給的
+            if stop_signal != True:
+                self.node.publish_to_unity_rpm([self.pwm_left,self.pwm_right,self.pwm_left,self.pwm_right])
+            else:
+                self.node.publish_to_unity(action) # 輸出action給車體
