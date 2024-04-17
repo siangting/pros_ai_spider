@@ -6,7 +6,7 @@ import time
 from ros_receive_and_data_processing.config import FRONT_LIDAR_INDICES, LEFT_LIDAR_INDICES, RIGHT_LIDAR_INDICES
 from robot_arm.robot_control import RobotArmControl
 from csv_store_and_file.csv_store import DataCollector
-
+import threading
 import csv
 
 class NavigationController:
@@ -135,6 +135,9 @@ class NavigationController:
                 action = 4
         return action
 
+    def robot_action_thread(self):
+        self.robot_controler.action()
+
     def run(self):
         while rclpy.ok():
             self.node.reset()
@@ -165,7 +168,8 @@ class NavigationController:
                 action = 6
                 stop_signal = True
                 if not self.target_reached_once:
-                    print("test")
+                    robot_thread = threading.Thread(target=self.robot_action_thread)
+                    robot_thread.start()
                     # self.robot_controler.action() # 機械手
                     # self.data_collector.save_data_to_csv() #存資料
                     self.target_reached_once = True
