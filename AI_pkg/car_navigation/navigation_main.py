@@ -11,11 +11,6 @@ class NavigationController:
         self.previous_target_pos = None
         self.NavigationProcess = NavigationProcess(node=node)
 
-    def write_to_csv(self, filename, data):
-        with open(filename, "a", newline="") as csvfile:
-            writer = csv.writer(csvfile)
-            writer.writerow(data)
-
     def run(self):
         while rclpy.ok():
             self.NavigationProcess.run()
