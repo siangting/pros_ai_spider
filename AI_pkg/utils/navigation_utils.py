@@ -1,4 +1,4 @@
-from ros_receive_and_data_processing.config import body_width, wheel_diameter
+from ros_receive_and_data_processing.config import BODY_WIDTH, WHEEL_DIAMETER
 from math import pi
 from typing import Tuple
 
@@ -20,7 +20,7 @@ Example :
 def calculate_wheel_speeds(cmd_vel_nav) -> Tuple[float, float]:
     linear_velocity = cmd_vel_nav.linear.x
     angular_velocity = cmd_vel_nav.angular.z
-    L = body_width
+    L = BODY_WIDTH
     v_left = linear_velocity - (L / 2) * angular_velocity
     v_right = linear_velocity + (L / 2) * angular_velocity
     rpm_left, rpm_right = speed_to_rpm(v_left), speed_to_rpm(v_right)
@@ -29,7 +29,7 @@ def calculate_wheel_speeds(cmd_vel_nav) -> Tuple[float, float]:
 
 
 def speed_to_rpm(speed) -> float:
-    wheel_circumference = pi * wheel_diameter
+    wheel_circumference = pi * WHEEL_DIAMETER
     return (speed / wheel_circumference) * 60
 
 

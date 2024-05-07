@@ -1,4 +1,3 @@
-from std_msgs.msg import Float32MultiArray
 from geometry_msgs.msg import PoseWithCovarianceStamped
 from geometry_msgs.msg import PoseStamped
 from sensor_msgs.msg import LaserScan
@@ -12,7 +11,11 @@ import time
 from rclpy.node import Node
 from ros_receive_and_data_processing.car_models import *
 from ros_receive_and_data_processing.data_transform import preprocess_data
-from ros_receive_and_data_processing.config import ACTION_MAPPINGS, LIDAR_PER_SECTOR
+from ros_receive_and_data_processing.config import (
+    ACTION_MAPPINGS,
+    LIDAR_PER_SECTOR,
+    NEXT_POINT_DISTANCE,
+)
 from trajectory_msgs.msg import JointTrajectoryPoint
 
 
@@ -324,7 +327,7 @@ class AI_node(Node):
                     distance = math.sqrt(
                         (point_x - current_x) ** 2 + (point_y - current_y) ** 2
                     )
-                    if abs(distance - 0.5) < 0.01:
+                    if abs(distance - NEXT_POINT_DISTANCE) < 0.01:
                         break
                 self.real_car_data["received_global_plan"] = [point_x, point_y]
             else:

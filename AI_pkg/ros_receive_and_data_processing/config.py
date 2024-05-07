@@ -9,7 +9,12 @@ rotate_vel = 5.0
 ACTION_MAPPINGS = {
     "FORWARD": [vel, vel, vel, vel],  # 前進
     "LEFT_FRONT": [rotate_vel, rotate_vel * 1.2, rotate_vel, rotate_vel * 1.2],  # 左前
-    "COUNTERCLOCKWISE_ROTATION": [-rotate_vel, rotate_vel, -rotate_vel, rotate_vel],  # 左自轉
+    "COUNTERCLOCKWISE_ROTATION": [
+        -rotate_vel,
+        rotate_vel,
+        -rotate_vel,
+        rotate_vel,
+    ],  # 左自轉
     "BACKWARD": [-vel, -vel, -vel, -vel],  # 後退
     "CLOCKWISE_ROTATION": [rotate_vel, -rotate_vel, rotate_vel, -rotate_vel],  # 右自轉
     "RIGHT_FRONT": [rotate_vel * 1.2, rotate_vel, rotate_vel * 1.2, rotate_vel],  # 右前
@@ -40,8 +45,13 @@ WALL_DISTANCE = 0.2
 TARGET_DISTANCE = 1
 
 """
-body_width : 車寬
-wheel_diameter : 車輪直徑
+BODY_WIDTH : 車寬
+WHEEL_DIAMETER : 車輪直徑
 """
-body_width = 0.3
-wheel_diameter = 0.05
+BODY_WIDTH = 0.3
+WHEEL_DIAMETER = 0.05
+
+"""
+NEXT_POINT_DISTANCE : 距離下一個點的距離
+"""
+NEXT_POINT_DISTANCE = 0.5
