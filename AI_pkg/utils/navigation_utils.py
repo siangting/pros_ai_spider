@@ -1,0 +1,58 @@
+from ros_receive_and_data_processing.config import body_width, wheel_diameter
+from math import pi
+from typing import Tuple
+
+"""
+Calculate wheel speeds based on the given command velocity.
+
+Parameters :
+    cmd_vel_nav: ROS2 Topic data
+
+Returns :
+    A tuple of two floats representing the left and right wheel speeds in PID (revolutions per minute).
+
+Example :
+    car_data = self.node.wait_for_data()
+    self.pwm_left, self.pwm_right = self.calculate_wheel_speeds(car_data["navigation_data"])
+"""
+
+
+def calculate_wheel_speeds(cmd_vel_nav) -> Tuple[float, float]:
+    linear_velocity = cmd_vel_nav.linear.x
+    angular_velocity = cmd_vel_nav.angular.z
+    L = body_width
+    v_left = linear_velocity - (L / 2) * angular_velocity
+    v_right = linear_velocity + (L / 2) * angular_velocity
+    rpm_left, rpm_right = speed_to_rpm(v_left), speed_to_rpm(v_right)
+    pid_left, pid_right = speed_to_pid(rpm_left), speed_to_pid(rpm_right)
+    return pid_left, pid_right
+
+
+def speed_to_rpm(speed) -> float:
+    wheel_circumference = pi * wheel_diameter
+    return (speed / wheel_circumference) * 60
+
+
+def speed_to_pid(rpm) -> float:
+    return rpm / 10
+
+
+"""
+根據曲線選擇動作
+"""
+
+
+def action_choice(angle_to_target):
+    if abs(angle_to_target) < 20:
+        action = "FORWARD"
+    elif 20 < abs(angle_to_target) < 40:
+        if angle_to_target > 0:
+            action = "LEFT_FRONT"
+        elif angle_to_target < 0:
+            action = "RIGHT_FRONT"
+    else:
+        if angle_to_target > 0:
+            action = "COUNTERCLOCKWISE_ROTATION"
+        elif angle_to_target < 0:
+            action = "CLOCKWISE_ROTATION"
+    return action

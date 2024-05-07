@@ -102,13 +102,11 @@ class AI_node(Node):
 
         self.publisher_forward = self.create_publisher(String, "test", 10)  # 後輪esp32
 
-        '''
+        """
         機械手臂
-        '''
+        """
         self.joint_trajectory_publisher_ = self.create_publisher(
-            JointTrajectoryPoint,
-            'joint_trajectory_point',
-            10
+            JointTrajectoryPoint, "joint_trajectory_point", 10
         )
 
         """
@@ -121,9 +119,9 @@ class AI_node(Node):
         self.last_message_time = time.time()
         self.no_signal = False
 
-        '''
+        """
         received_global_plan
-        '''
+        """
         self.subscriber_received_global_plan = self.create_subscription(
             Path, "/received_global_plan", self.global_plan_callback, 1
         )
@@ -149,94 +147,68 @@ class AI_node(Node):
     def get_latest_data(self):
         return self.lastest_data
 
-    '''
+    """
     取得經過data_transform處理後的最新資料
 
     Returns:
         dict: raw data經過整理的資料
 
-    '''
+    """
+
     def wait_for_data(self):
         car_state_data = self.get_latest_data()
         while car_state_data is None:
             car_state_data = self.get_latest_data()
         return car_state_data
 
-
-    """
-    指定動作輸出給
-    """
-
-    def publish_to_unity(self, action_code):
-
-        # _vel1, _vel3是左側 _vel2, _vel4是右側
-
-        action = ACTION_MAPPINGS.get(action_code, "invalid")
-        _vel1, _vel2, _vel3, _vel4 = action[0], action[1], action[2], action[3]
-
+    def publish_control_signal(self, velocities: List[float], publisher):
         control_signal = {
             "type": str(DeviceDataTypeEnum.car_C_control),
-            "data": dict(CarCControl(target_vel=[_vel1, _vel2])),
+            "data": dict(CarCControl(target_vel=velocities)),
         }
-
         control_msg = String()
         control_msg.data = orjson.dumps(control_signal).decode()
-        self.publisher.publish(control_msg)
-        control_signal_forward = {
-            "type": str(DeviceDataTypeEnum.car_C_control),
-            "data": dict(CarCControl(target_vel=[_vel3, _vel4])),
-        }
-        control_msg_forward = String()
-        control_msg_forward.data = orjson.dumps(control_signal_forward).decode()
+        publisher.publish(control_msg)
 
-        self.publisher_forward.publish(control_msg_forward)
+    """
+    Publish vehicle control signals to robot.
 
-        #  lidar轉一圈需要0.1多秒, 確保lidar更新到最新data
-        # time.sleep(0.2)
+    Args :
+    - action(str or [float]) : action code or velocity
+    - pid_control : If True, action is treated as PID value
+    """
 
+    def publish_to_robot(self, action, pid_control: bool = True):
+        if pid_control:
+            _vel1, _vel2, _vel3, _vel4 = action
+        else:
+            mapped_action = ACTION_MAPPINGS.get(
+                action, [0, 0, 0, 0]
+            )  # Default to stop if action is invalid
+            _vel1, _vel2, _vel3, _vel4 = mapped_action
+        velocities_front = [_vel1, _vel2]  # 前面的esp32
+        velocities_back = [_vel3, _vel4]  # 後面的esp32
+        self.publish_control_signal(velocities_front, self.publisher)
+        self.publish_control_signal(velocities_back, self.publisher_forward)
 
     def publish_arm(self, joint_pos):
         msg = JointTrajectoryPoint()
         msg.positions = [float(pos) for pos in joint_pos]
-        msg.velocities = [0.0, 0.0, 0.0, 0.0, 0.0]  # Replace with actual desired velocities
+        msg.velocities = [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+        ]  # Replace with actual desired velocities
         self.joint_trajectory_publisher_.publish(msg)
-
-    """
-    直接輸出rpm給車體
-    """
-
-    def publish_to_unity_rpm(self, action):
-        """
-        _vel1, _vel3是左側
-        _vel2, _vel4是右側
-        """
-        _vel1, _vel2, _vel3, _vel4 = action[0], action[1], action[2], action[3]
-
-        control_signal = {
-            "type": str(DeviceDataTypeEnum.car_C_control),
-            "data": dict(CarCControl(target_vel=[_vel1, _vel2])),
-        }
-
-        control_msg = String()
-        control_msg.data = orjson.dumps(control_signal).decode()
-        self.publisher.publish(control_msg)
-        # print("DeviceDataTypeEnum.car_C_control : ", DeviceDataTypeEnum.car_C_control)
-        control_signal_forward = {
-            "type": str(DeviceDataTypeEnum.car_C_control),
-            "data": dict(CarCControl(target_vel=[_vel3, _vel4])),
-        }
-        control_msg_forward = String()
-        control_msg_forward.data = orjson.dumps(control_signal_forward).decode()
-
-        # Publish the control signal
-        self.publisher_forward.publish(control_msg_forward)
 
     """
     給車子四個輪子停止的電壓
     """
 
-    def publish_to_unity_RESET(self):
-        self.publish_to_unity(6)
+    def publish_to_robot_reset(self):
+        self.publish_to_robot("STOP", pid_control=False)
 
     """
     重製lastest_data
@@ -288,6 +260,7 @@ class AI_node(Node):
         if target:
             self.real_car_data["ROS2TargetPosition"] = target
             self.update_and_check_data("goal")
+
     """
     給 subscribe_callback_goal 轉換用
     """
@@ -329,38 +302,48 @@ class AI_node(Node):
         self.last_message_time = time.time()
         self.real_car_data["twist_msg"] = msg
 
-    '''
+    """
     navigation的global route planning
     會輸出座標點
-    '''
+    """
+
     def global_plan_callback(self, msg):
         try:
             if len(msg.poses) > 1:
                 # first_point = msg.poses[1].pose.position
                 # dis = ((first_point.x-self.real_car_data["ROS2CarPosition"][0])**2+(first_point.y-self.real_car_data["ROS2CarPosition"][1]))**0.5
-                current_x, current_y = self.real_car_data["ROS2CarPosition"][0], self.real_car_data["ROS2CarPosition"][1]
+                current_x, current_y = (
+                    self.real_car_data["ROS2CarPosition"][0],
+                    self.real_car_data["ROS2CarPosition"][1],
+                )
                 for i in range(20):
-                    point_x, point_y = msg.poses[i].pose.position.x, msg.poses[i].pose.position.y
-                    distance = math.sqrt((point_x - current_x) ** 2 + (point_y - current_y) ** 2)
+                    point_x, point_y = (
+                        msg.poses[i].pose.position.x,
+                        msg.poses[i].pose.position.y,
+                    )
+                    distance = math.sqrt(
+                        (point_x - current_x) ** 2 + (point_y - current_y) ** 2
+                    )
                     if abs(distance - 0.5) < 0.01:
                         break
-                self.real_car_data['received_global_plan'] = [point_x, point_y]
+                self.real_car_data["received_global_plan"] = [point_x, point_y]
             else:
-                self.get_logger().info('Global plan does not contain enough points.')
+                self.get_logger().info("Global plan does not contain enough points.")
         except:
-            self.real_car_data['received_global_plan'] = None
+            self.real_car_data["received_global_plan"] = None
 
-
-    '''
+    """
     在navigation沒送資料時讓車子停止
-    '''
+    """
+
     def check_signal(self):
         timeout = 2.0
         current_time = time.time()
         if current_time - self.last_message_time > timeout:
             print("No signal")
-            self.publish_to_unity_RESET()
+            self.publish_to_robot_reset()
             return True
+
     """
     navigation輸出路徑位置及四位數轉角的subscribe function
     """
@@ -403,6 +386,3 @@ class AI_node(Node):
                 print("Invalid message format. Missing 'vels' key.")
         except json.JSONDecodeError as e:
             print(f"Error decoding JSON: {e}")
-
-
-
