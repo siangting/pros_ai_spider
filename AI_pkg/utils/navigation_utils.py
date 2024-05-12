@@ -33,6 +33,11 @@ def speed_to_rpm(speed) -> float:
     return (speed / wheel_circumference) * 60
 
 
+"""
+rpm轉換成PID數值, 可於esp32程式碼做測量, 找尋rpm與PID數值之間的關係
+"""
+
+
 def speed_to_pid(rpm) -> float:
     return rpm / 10
 

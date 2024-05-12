@@ -3,10 +3,7 @@ from utils.rotate_angle import calculate_angle_to_target
 import threading
 from robot_arm.robot_control import RobotArmControl
 from csv_store_and_file.csv_store import DataCollector
-
-
-def robot_action_thread(self):
-    self.robot_controler.action()
+from ros_receive_and_data_processing.config import TARGET_DISTANCE
 
 
 class NavigationProcess:
@@ -15,9 +12,14 @@ class NavigationProcess:
         self.robot_controler = RobotArmControl(
             node,
         )
-        self.data_collector = DataCollector()  # 資料收集
-        self.target_reached_once = False
-        self.previous_target_pos = None
+        # self.data_collector = DataCollector()  # 資料收集
+
+    def robot_action_thread(self):
+        self.robot_controler.action()
+
+    """
+    接收車子經處理過的state
+    """
 
     def node_receive_data(self):
         self.node.reset()
@@ -33,6 +35,8 @@ class NavigationProcess:
     def handle_reached_destination(self):
         print("end")
         action = "STOP"
+        robot_thread = threading.Thread(target=self.robot_action_thread)
+        robot_thread.start()
         self.node.publish_to_robot(action, pid_control=False)
 
     def pid_control(self, pwm_left, pwm_right):
@@ -71,7 +75,7 @@ class NavigationProcess:
 
     def run(self):
         car_data = self.node_receive_data()
-        if car_data["car_target_distance"] < 0.3:
+        if car_data["car_target_distance"] < TARGET_DISTANCE:
             self.handle_reached_destination()
         else:
             self.handle_action(car_data)
