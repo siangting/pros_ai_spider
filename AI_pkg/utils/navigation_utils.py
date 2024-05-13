@@ -1,4 +1,4 @@
-from ros_receive_and_data_processing.config import BODY_WIDTH, WHEEL_DIAMETER
+from ros_receive_and_data_processing.config import BODY_WIDTH, WHEEL_DIAMETER, FACTOR
 from math import pi
 from typing import Tuple
 
@@ -28,6 +28,11 @@ def calculate_wheel_speeds(cmd_vel_nav) -> Tuple[float, float]:
     return pid_left, pid_right
 
 
+"""
+根據WHEEL_DIAMETER轉換成RPM
+"""
+
+
 def speed_to_rpm(speed) -> float:
     wheel_circumference = pi * WHEEL_DIAMETER
     return (speed / wheel_circumference) * 60
@@ -39,7 +44,7 @@ rpm轉換成PID數值, 可於esp32程式碼做測量, 找尋rpm與PID數值之�
 
 
 def speed_to_pid(rpm) -> float:
-    return rpm / 10
+    return rpm / FACTOR
 
 
 """

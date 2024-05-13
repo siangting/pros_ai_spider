@@ -64,3 +64,12 @@ WHEEL_DIAMETER : 車輪直徑
 """
 BODY_WIDTH = 0.3
 WHEEL_DIAMETER = 0.05
+
+"""
+FACTOR : rpm與pid的比例關係
+rpm數值會除以這個FACTOR數值轉換成PID數值
+ex. 車體的RPM與PID之間是10 : 1, 若RPM = 100, PID = RPM / FACTOR, PID = 10
+
+於ros_receive_and_data_processing/navigation_utils.py使用
+"""
+FACTOR = 10
