@@ -26,7 +26,6 @@ class AI_node(Node):
         self.real_car_data = {}
         self.data_to_AI = ""
 
-        self.latest_goal_position = None
         self.lastest_data = None
         """
         以下字典是用來定義這個node接收到最新的數值後傳送到UnityAdaptor.py內轉換
@@ -48,10 +47,8 @@ class AI_node(Node):
         self.real_car_data["ROS2RangePosition"] = []
 
         #  navigation資料
-        self.real_car_data["twist_msg"] = Twist()
-        self.real_car_data["path_msg"] = Path()
-        self.real_car_data["path_position_msg"] = []
-        self.real_car_data["path_orientation_msg"] = []
+        self.real_car_data["cmd_vel_nav"] = Twist()
+        self.real_car_data["received_global_plan"] = None
 
         """
         確定以下資料都有收到 才會在 check_and_get_lastest_data() 更新最新資料
@@ -127,12 +124,6 @@ class AI_node(Node):
         """
         self.subscriber_received_global_plan = self.create_subscription(
             Path, "/received_global_plan", self.global_plan_callback, 1
-        )
-        """
-        路徑位置和四位數轉角
-        """
-        self.subscriber_navigation_plan = self.create_subscription(
-            Path, "/plan", self.navigation_plan_callback, 1
         )
 
     """
@@ -303,7 +294,7 @@ class AI_node(Node):
 
     def navigation_callback(self, msg):
         self.last_message_time = time.time()
-        self.real_car_data["twist_msg"] = msg
+        self.real_car_data["cmd_vel_nav"] = msg
 
     """
     navigation的global route planning
@@ -313,12 +304,11 @@ class AI_node(Node):
     def global_plan_callback(self, msg):
         try:
             if len(msg.poses) > 1:
-                # first_point = msg.poses[1].pose.position
-                # dis = ((first_point.x-self.real_car_data["ROS2CarPosition"][0])**2+(first_point.y-self.real_car_data["ROS2CarPosition"][1]))**0.5
                 current_x, current_y = (
                     self.real_car_data["ROS2CarPosition"][0],
                     self.real_car_data["ROS2CarPosition"][1],
                 )
+                #  找出離目前車體 NEXT_POINT_DISTANCE 距離的座標點
                 for i in range(20):
                     point_x, point_y = (
                         msg.poses[i].pose.position.x,
@@ -343,18 +333,8 @@ class AI_node(Node):
         timeout = 2.0
         current_time = time.time()
         if current_time - self.last_message_time > timeout:
-            print("No signal")
             self.publish_to_robot_reset()
             return True
-
-    """
-    navigation輸出路徑位置及四位數轉角的subscribe function
-    """
-
-    def navigation_plan_callback(self, msg):
-        if msg.poses:
-            self.real_car_data["path_msg"] = msg.poses[0]
-            # self.real_car_data["path_msg"] = msg.poses[-1].pose
 
     """
     接收後輪的電壓 subscribe function

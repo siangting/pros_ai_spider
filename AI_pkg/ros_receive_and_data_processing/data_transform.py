@@ -1,4 +1,4 @@
-from utils.obs_utils import cal_distance,trans_to_float,round_to_decimal_places
+from utils.obs_utils import cal_distance, trans_to_float, round_to_decimal_places
 from utils.rotate_angle import calculate_angle_point
 
 """
@@ -21,12 +21,11 @@ def preprocess_data(obs):
         car_quaternion[0], car_quaternion[1], car_pos, target_pos
     )
     car_target_distance = cal_distance(car_pos, target_pos)
-    navigation_data = obs["twist_msg"]
+    cmd_vel_nav = obs["cmd_vel_nav"]
     try:
-        received_global_plan = obs['received_global_plan']
+        received_global_plan = obs["received_global_plan"]
     except:
         received_global_plan = None
-
 
     # 以下宣告自己要回傳的資料
 
@@ -42,7 +41,7 @@ def preprocess_data(obs):
             )
         ),
         "angle_diff": angle_diff,
-        "navigation_data": navigation_data,
+        "cmd_vel_nav": cmd_vel_nav,
         "received_global_plan": received_global_plan,
     }
 
