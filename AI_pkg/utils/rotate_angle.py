@@ -31,27 +31,29 @@ def calculate_angle_point(car_quaternion_1, car_quaternion_2, car_pos, target_po
         angle_diff -= 360
     return angle_diff
 
+
 def quaternion_to_euler(z, w):
     t0 = +2.0 * (w * z + 0.0 * 0.0)
     t1 = +1.0 - 2.0 * (0.0 * 0.0 + z * z)
     yaw = atan2(t0, t1)
     return yaw
 
+
 def calculate_angle_to_target(vehicle_pos, target_pos, vehicle_orientation):
-    # 计算目标点相对于车辆位置的向量
+    # 計算目標點相對於車子位置的向量
     dx = target_pos[0] - vehicle_pos[0]
     dy = target_pos[1] - vehicle_pos[1]
 
-    # 计算车辆到目标点的方向角度
+    # 計算車子到目標點的方向角度
     target_angle = atan2(dy, dx)
 
-    # 将四元数转换为偏航角
+    # 將四元數轉換成偏航角
     vehicle_yaw = quaternion_to_euler(vehicle_orientation[0], vehicle_orientation[1])
 
-    # 计算车辆当前朝向与目标方向之间的角度差
+    # 計算車子當前朝向與目標方向之間的角度差
     angle_difference = target_angle - vehicle_yaw
 
-    # 规范化角度到 [-π, π] 区间
+    # 規定角度在 [-π, π] 區間
     angle_difference = atan2(math.sin(angle_difference), math.cos(angle_difference))
 
     return degrees(angle_difference)
