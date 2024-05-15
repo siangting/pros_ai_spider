@@ -24,7 +24,7 @@ def calculate_wheel_speeds(cmd_vel_nav) -> Tuple[float, float]:
     v_left = linear_velocity - (L / 2) * angular_velocity
     v_right = linear_velocity + (L / 2) * angular_velocity
     rpm_left, rpm_right = speed_to_rpm(v_left), speed_to_rpm(v_right)
-    pid_left, pid_right = speed_to_pid(rpm_left), speed_to_pid(rpm_right)
+    pid_left, pid_right = rpm_to_pid(rpm_left), rpm_to_pid(rpm_right)
     return pid_left, pid_right
 
 
@@ -43,7 +43,7 @@ rpm轉換成PID數值, 可於esp32程式碼做測量, 找尋rpm與PID數值之�
 """
 
 
-def speed_to_pid(rpm) -> float:
+def rpm_to_pid(rpm) -> float:
     return rpm / FACTOR
 
 
