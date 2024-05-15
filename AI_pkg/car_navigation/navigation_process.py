@@ -29,14 +29,15 @@ class NavigationProcess:
     def process_car_data(self, car_data):
         received_global_plan = car_data["received_global_plan"]
         car_position = car_data["car_pos"][:2]
-        pwm_left, pwm_right = calculate_wheel_speeds(car_data["cmd_vel_nav"])
-        return received_global_plan, car_position, pwm_left, pwm_right
+        pid_left, pid_right = calculate_wheel_speeds(car_data["cmd_vel_nav"])
+        return received_global_plan, car_position, pid_left, pid_right
 
     # 到達終點時要做的事
     def handle_reached_destination(self):
         if self.flag == 1:
             print("end")
             action = "STOP"
+            # 讓機械手臂動
             robot_thread = threading.Thread(target=self.robot_action_thread)
             robot_thread.start()
             self.node.publish_to_robot(action, pid_control=False)
@@ -45,27 +46,42 @@ class NavigationProcess:
     # 未到達終點時做的事
     def handle_action(self, car_data):
         self.flag = 1
-        # stop_signal == True時代表nav2的cmd_vel_nav的topic沒訊號，要改用其他控制方式
+        """
+        stop_signal == True 時代表 nav2 的 cmd_vel_nav 的 topic 沒訊號, 要改用其他控制方式
+        車子接收 nav2 的 cmd_vel_nav 的速度移動快碰到牆壁時會花很長時間重算, 因為要等很久
+        , 所以發現他在重算就改用其他控制方式
+        """
         stop_signal = self.node.check_signal()
-        received_global_plan, car_position, pwm_left, pwm_right = self.process_car_data(
+        received_global_plan, car_position, pid_left, pid_right = self.process_car_data(
             car_data
         )
-        # 用pid數值控制
+        # 將數值傳送至PID控制器
         if stop_signal is not True:
             self.node.publish_to_robot(
-                [pwm_left, pwm_right, pwm_left, pwm_right],
+                [pid_left, pid_right, pid_left, pid_right],
                 pid_control=True,
             )
-        # 用點對點到達方式
         else:
-            angle_to_target = calculate_angle_to_target(
-                car_position, received_global_plan, car_data["car_quaternion"]
-            )
-            action = action_choice(angle_to_target)
-            self.node.publish_to_robot(action, pid_control=False)
+            """
+            因為 received_global_plan 有時會讀取到空值的關係, 若讀取到空值就讓車子停止
+            """
+            if received_global_plan == None:
+                action = "STOP"
+                self.node.publish_to_robot(action, pid_control=False)
+            else:
+                """
+                根據車頭面向全域路徑給的路徑距離(config設定的NEXT_POINT_DISTANCE)座標計算角度差，
+                用角度差決定要用什麼動作
+                """
+                angle_to_target = calculate_angle_to_target(
+                    car_position, received_global_plan, car_data["car_quaternion"]
+                )
+                action = action_choice(angle_to_target)
+                self.node.publish_to_robot(action, pid_control=False)
 
     def run(self):
         car_data = self.node_receive_data()
+        # 車子距離終點一定的距離時便判定到達目標
         if car_data["car_target_distance"] < TARGET_DISTANCE:
             self.handle_reached_destination()
         else:
