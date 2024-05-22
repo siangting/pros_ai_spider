@@ -96,17 +96,15 @@ class AI_node(Node):
         """
         publish給前後的esp32驅動車輪
         """
-        self.publisher = self.create_publisher(
-            String, DeviceDataTypeEnum.car_C_control, 10
-        )  # 後輪esp32
+        self.publisher = self.create_publisher(String, DeviceDataTypeEnum.car_C_rear_wheel, 10)  # 後輪esp32
 
-        self.publisher_forward = self.create_publisher(String, "test", 10)  # 後輪esp32
+        self.publisher_forward = self.create_publisher(String, DeviceDataTypeEnum.car_C_front_wheel, 10)  # 前輪esp32
 
         """
         機械手臂
         """
         self.joint_trajectory_publisher_ = self.create_publisher(
-            JointTrajectoryPoint, "joint_trajectory_point", 10
+            JointTrajectoryPoint, DeviceDataTypeEnum.robot_arm, 10
         )
 
         """
@@ -157,7 +155,7 @@ class AI_node(Node):
 
     def publish_control_signal(self, velocities: List[float], publisher):
         control_signal = {
-            "type": str(DeviceDataTypeEnum.car_C_control),
+            "type": str(DeviceDataTypeEnum.car_C_rear_wheel),
             "data": dict(CarCControl(target_vel=velocities)),
         }
         control_msg = String()
