@@ -5,18 +5,24 @@ import math
 """
 data轉成np後給env的observation
 """
+
+
 def process_data(unity_data):
     flat_list = []
-    for value in unity_data.values():
-        if isinstance(value, list):
-            flat_list.extend(value)
-        else:
-            flat_list.append(value)
-    return np.array(flat_list, dtype=np.float32)
+    print(unity_data)
+    # for value in unity_data.values():
+    #     if isinstance(value, list):
+    #         flat_list.extend(value)
+    #     else:
+    #         flat_list.append(value)
+    # return np.array(flat_list, dtype=np.float32)
 
-'''
+
+"""
 自動推算lidar前方 左方 右方的射線範圍
-'''
+"""
+
+
 def calculate_dynamic_indices(lidar_range):
     # 根據LIDAR射線總數動態計算各方向的索引範圍
     # 計算每個方向上的射線數量
@@ -37,15 +43,18 @@ def calculate_dynamic_indices(lidar_range):
     right_end = lidar_range
 
     return {
-        'front_positive': (front_start_positive, front_end_positive),
-        'front_negative': (front_start_negative, 0),
-        'left': (left_start, left_end),
-        'right': (right_start, right_end)
+        "front_positive": (front_start_positive, front_end_positive),
+        "front_negative": (front_start_negative, 0),
+        "left": (left_start, left_end),
+        "right": (right_start, right_end),
     }
+
 
 """
 將小數取到第三位
 """
+
+
 def round_to_decimal_places(data_list, decimal_places=3):
     return [round(num, decimal_places) for num in data_list]
 
@@ -53,6 +62,8 @@ def round_to_decimal_places(data_list, decimal_places=3):
 """
 將數值轉換成float
 """
+
+
 def trans_to_float(data_list):
     return [float(i) for i in data_list]
 
@@ -60,6 +71,8 @@ def trans_to_float(data_list):
 """
 計算車子與目標之間的距離
 """
+
+
 def cal_distance(car_pos, target_pos):
     car_target_distance = (car_pos[0] - target_pos[0]) ** 2 + (
         car_pos[1] - target_pos[1]
