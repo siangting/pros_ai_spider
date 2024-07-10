@@ -1,5 +1,6 @@
 def get_observation(AI_node):
-    while AI_node.get_latest_data() == None:
-        print(AI_node.get_latest_data())
-        pass
-    return AI_node.get_latest_data()
+    data_dict = AI_node.wait_for_data()
+    keys_to_remove = ["cmd_vel_nav", "received_global_plan"]
+    for key in keys_to_remove:
+        data_dict.pop(key, None)
+    return data_dict

@@ -26,10 +26,12 @@ class CustomCarEnv(gym.Env):
         # 0:前進 1:左轉 2:右轉 3:後退
 
         # elapsed_time = time.time() - self.start_time  #  計時
+        action_vel = [action[0], action[1], action[0], action[1]]
+        self.AI_node.publish_to_robot(
+            action_vel, pid_control=True
+        )  #  送出後會等到unity做完動作後
 
-        self.AI_node.publish_to_unity(action)  #  送出後會等到unity做完動作後
-
-        unity_data = self.AI_node.get_latest_data()
+        unity_data = get_observation(self.AI_node)
 
         reward = 1
 
@@ -43,7 +45,7 @@ class CustomCarEnv(gym.Env):
     def reset(self, seed=None, options=None):
         # self.AI_node.publish_to_unity_RESET()  #  送結束訊後給unity
         # self.AI_node.reset()
-        unity_data_reset_state = self.AI_node.get_latest_data()
+        unity_data_reset_state = get_observation(self.AI_node)
         self.state = process_data(unity_data_reset_state)
 
         # self.start_time = time.time()
@@ -54,6 +56,7 @@ class CustomCarEnv(gym.Env):
         return self.state, {}
 
     def get_initial_shape(self):
+        # obs_state = self.AI_node.wait_for_data()
         obs_state = get_observation(self.AI_node)
         obs_state = process_data(obs_state)
         return len(obs_state)

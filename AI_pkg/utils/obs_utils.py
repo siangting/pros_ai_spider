@@ -1,6 +1,6 @@
 import numpy as np
 import math
-
+from geometry_msgs.msg import Twist
 
 """
 data轉成np後給env的observation
@@ -9,13 +9,24 @@ data轉成np後給env的observation
 
 def process_data(unity_data):
     flat_list = []
-    print(unity_data)
-    # for value in unity_data.values():
-    #     if isinstance(value, list):
-    #         flat_list.extend(value)
-    #     else:
-    #         flat_list.append(value)
-    # return np.array(flat_list, dtype=np.float32)
+    for value in unity_data.values():
+        if isinstance(value, list):
+            flat_list.extend(value)
+        elif isinstance(value, Twist):
+            # 将 Twist 对象转换为数值
+            flat_list.extend(
+                [
+                    value.linear.x,
+                    value.linear.y,
+                    value.linear.z,
+                    value.angular.x,
+                    value.angular.y,
+                    value.angular.z,
+                ]
+            )
+        else:
+            flat_list.append(value)
+    return np.array(flat_list, dtype=np.float32)
 
 
 """

@@ -96,10 +96,17 @@ class AI_node(Node):
         """
         publish給前後的esp32驅動車輪
         """
-        self.publisher = self.create_publisher(String, DeviceDataTypeEnum.car_C_rear_wheel, 10)  # 後輪esp32
+        self.publisher = self.create_publisher(
+            String, DeviceDataTypeEnum.car_C_rear_wheel, 10
+        )  # 後輪esp32
 
-        self.publisher_forward = self.create_publisher(String, DeviceDataTypeEnum.car_C_front_wheel, 10)  # 前輪esp32
+        self.publisher_forward = self.create_publisher(
+            String, DeviceDataTypeEnum.car_C_front_wheel, 10
+        )  # 前輪esp32
 
+        self.publisher_unity_reset_signal = self.create_publisher(
+            String, "/reset_signal", 10
+        )
         """
         機械手臂
         """
@@ -208,6 +215,10 @@ class AI_node(Node):
 
     def reset(self):
         self.lastest_data = None
+        self.publish_to_robot("STOP", pid_control=False)
+        msg = String()
+        msg.data = "1"
+        self.publisher_unity_reset_signal.publish(msg)
 
     """
     確定amcl goal lidar其中一個有收到訊號
