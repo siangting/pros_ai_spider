@@ -7,6 +7,7 @@ from utils.rotate_angle import calculate_angle_point
 """
 
 
+# obs 是 AI_node.py  real_car_data 的資料 這個 func 只會出現在 AI_node.py 內使用
 def preprocess_data(obs):
     car_pos = obs["ROS2CarPosition"][:2]
     target_pos = obs["ROS2TargetPosition"][:2]

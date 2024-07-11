@@ -47,7 +47,7 @@ NEXT_POINT_DISTANCE : 距離下一個點的距離
 
 於ros_receive_and_data_processing/ros_AI_node.py使用
 """
-NEXT_POINT_DISTANCE = 0.5
+NEXT_POINT_DISTANCE = 0.5  # 出現在 AI_node.py
 
 """
 TARGET_DISTANCE : 判定為成功到達目標的距離
