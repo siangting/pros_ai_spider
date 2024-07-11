@@ -215,7 +215,13 @@ class AI_node(Node):
 
     def reset(self):
         self.lastest_data = None
-        self.publish_to_robot("STOP", pid_control=False)
+        # self.publish_to_robot("STOP", pid_control=False)
+
+    """
+    傳送給 unity 車子回去到原點的訊號
+    """
+
+    def reset_unity(self):
         msg = String()
         msg.data = "1"
         self.publisher_unity_reset_signal.publish(msg)
