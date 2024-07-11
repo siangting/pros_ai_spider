@@ -55,12 +55,13 @@ class NavigationProcess:
         received_global_plan, car_position, pid_left, pid_right = self.process_car_data(
             car_data
         )
-        # 將數值傳送至PID控制器
+        # 接收到 cmd_vel_nav 的訊號，將以下PID數值傳送至車子的PID控制器
         if stop_signal is not True:
             self.node.publish_to_robot(
                 [pid_left, pid_right, pid_left, pid_right],
                 pid_control=True,
             )
+        # 沒接收到 cmd_vel_nav 訊號，因此改用在 ros_receive_and_data_processing 內 confitg 自訂的 action
         else:
             """
             因為 received_global_plan 有時會讀取到空值的關係, 若讀取到空值就讓車子停止
@@ -76,6 +77,7 @@ class NavigationProcess:
                 angle_to_target = calculate_angle_to_target(
                     car_position, received_global_plan, car_data["car_quaternion"]
                 )
+                # 目前車子的位置與 nav2 提供的下一個目標點之間的偏離程度，可以用來計算車頭的偏差，從而決定下一步的行動
                 action = action_choice(angle_to_target)
                 self.node.publish_to_robot(action, pid_control=False)
 
