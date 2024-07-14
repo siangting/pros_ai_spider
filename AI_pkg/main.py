@@ -20,7 +20,7 @@ def load_or_create_model(env, model_path):
         model = PPO.load(model_path)  #  load model
         model.set_env(env)
     except FileNotFoundError:  #  找不到就重新train一個
-        model = PPO("MlpPolicy", env, verbose=1, learning_rate=0.001)
+        model = PPO("MlpPolicy", env, verbose=1, learning_rate=0.001, device="cuda")
     return model
 
 
@@ -29,7 +29,7 @@ def train_model(env):
         env, "./Model/ppo_custom_car_model_278000_1703457082.884543"
     )
     custom_callback = CustomCallback("./Model/ppo_custom_car_model", save_freq=1000)
-    total_timesteps = 100000  # 訓練回合數
+    total_timesteps = 1000000  # 訓練回合數
     model.learn(
         total_timesteps=total_timesteps, callback=custom_callback
     )  #  進入env開始訓練

@@ -3,6 +3,7 @@ from geometry_msgs.msg import PoseStamped
 from sensor_msgs.msg import LaserScan
 from geometry_msgs.msg import Twist
 from nav_msgs.msg import Path
+from std_msgs.msg import Header
 import json
 from std_msgs.msg import String
 import orjson
@@ -107,6 +108,13 @@ class AI_node(Node):
         self.publisher_unity_reset_signal = self.create_publisher(
             String, "/reset_signal", 10
         )
+        """
+        publish to localization initialpose
+        """
+        self.publisher_localiztion_map_signal = self.create_publisher(
+            PoseWithCovarianceStamped, "/initialpose", 10
+        )
+
         """
         機械手臂
         """
@@ -384,3 +392,64 @@ class AI_node(Node):
                 print("Invalid message format. Missing 'vels' key.")
         except json.JSONDecodeError as e:
             print(f"Error decoding JSON: {e}")
+
+    """
+    專門給 RL 做第一次localization的動作
+    """
+
+    def publisher_localiztion_map(self):
+        msg = PoseWithCovarianceStamped()
+        msg.header.frame_id = "map"
+        msg.pose.pose.position.x = 0.29377966745215334
+        msg.pose.pose.position.y = -0.327070701568549
+        msg.pose.pose.position.z = 0.0
+        msg.pose.pose.orientation.x = 0.0
+        msg.pose.pose.orientation.y = 0.0
+        msg.pose.pose.orientation.z = 0.045576476174623244
+        msg.pose.pose.orientation.w = 0.9989608524959847
+        msg.pose.covariance = [
+            0.25,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.25,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.06853892060437211,
+        ]
+        self.publisher_localiztion_map_signal.publish(msg)
+        self.get_logger().info("Publish initial map position")
+
+    def publisher_localiztion_map(self):
+        empty_msg = PoseWithCovarianceStamped()
+        empty_msg.header.frame_id = "map"
+        self.publisher_localization_map_signal.publish(empty_msg)
+        self.get_logger().info("Cleared initial map position")
