@@ -1,8 +1,7 @@
-from geometry_msgs.msg import PoseWithCovarianceStamped
-from geometry_msgs.msg import PoseStamped
+from geometry_msgs.msg import PoseWithCovarianceStamped, PoseStamped, Twist
 from sensor_msgs.msg import LaserScan
-from geometry_msgs.msg import Twist
-from nav_msgs.msg import Path
+from nav_msgs.msg import Path, OccupancyGrid, MapMetaData
+import random
 from std_msgs.msg import Header
 import json
 from std_msgs.msg import String
@@ -18,6 +17,7 @@ from ros_receive_and_data_processing.config import (
     NEXT_POINT_DISTANCE,
 )
 from trajectory_msgs.msg import JointTrajectoryPoint
+from rclpy.qos import qos_profile_sensor_data
 
 
 class AI_node(Node):
@@ -111,7 +111,7 @@ class AI_node(Node):
         """
         publish to localization initialpose
         """
-        self.publisher_localiztion_map_signal = self.create_publisher(
+        self.publisher_localization_map_signal = self.create_publisher(
             PoseWithCovarianceStamped, "/initialpose", 10
         )
 
@@ -138,6 +138,17 @@ class AI_node(Node):
         self.subscriber_received_global_plan = self.create_subscription(
             Path, "/received_global_plan", self.global_plan_callback, 1
         )
+
+        """
+        Receive map data from foxglove map,
+        publish map position in random,
+        ready to receive data
+        """
+        self.subscription_map = self.create_subscription(
+            OccupancyGrid, "/map", self.map_callback, 10
+        )
+        self.publisher_goal_pose = self.create_publisher(PoseStamped, "/goal_pose", 10)
+        self.map_data = None
 
     """
     檢查所有數據是否更新,
@@ -397,7 +408,8 @@ class AI_node(Node):
     專門給 RL 做第一次localization的動作
     """
 
-    def publisher_localiztion_map(self):
+    def publisher_localization_map(self):
+        self.publisher_clear_localization_map()
         msg = PoseWithCovarianceStamped()
         msg.header.frame_id = "map"
         msg.pose.pose.position.x = 0.29377966745215334
@@ -445,11 +457,63 @@ class AI_node(Node):
             0.0,
             0.06853892060437211,
         ]
-        self.publisher_localiztion_map_signal.publish(msg)
+        self.publisher_localization_map_signal.publish(msg)
         self.get_logger().info("Publish initial map position")
 
-    def publisher_localiztion_map(self):
+    """
+    Reset map localization
+    """
+
+    def publisher_clear_localization_map(self):
         empty_msg = PoseWithCovarianceStamped()
         empty_msg.header.frame_id = "map"
+        empty_msg.pose.pose.position.x = float("nan")
         self.publisher_localization_map_signal.publish(empty_msg)
         self.get_logger().info("Cleared initial map position")
+
+    """
+    Wait for map data
+    """
+
+    def map_callback(self, msg):
+        self.get_logger().info("Received map data")
+        self.map_data = msg
+
+    def publisher_random_goal_pose(self):
+        free_spaces = []
+        if self.map_data is None:
+            self.get_logger().warn("No map data available.")
+            return
+        for y in range(self.map_data.info.height):
+            for x in range(self.map_data.info.width):
+                index = x + y * self.map_data.info.width
+                if self.map_data.data[index] == 0:  # 0 indicates no obstacle
+                    free_spaces.append((x, y))
+
+        if free_spaces:
+            chosen_x, chosen_y = random.choice(free_spaces)
+            self.get_logger().info(f"Chosen free space at: ({chosen_x}, {chosen_y})")
+
+            # Convert map coordinates to world coordinates
+            world_x = (
+                chosen_x * self.map_data.info.resolution
+                + self.map_data.info.origin.position.x
+            )
+            world_y = (
+                chosen_y * self.map_data.info.resolution
+                + self.map_data.info.origin.position.y
+            )
+
+            # Publish the random goal
+            goal = PoseStamped()
+            goal.header.frame_id = "map"
+            # goal.header.stamp = self.get_clock().now().to_msg()
+            goal.pose.position.x = world_x
+            goal.pose.position.y = world_y
+            goal.pose.position.z = 0.0
+            goal.pose.orientation.w = 1.0  # Default orientation
+
+            self.publisher_goal_pose.publish(goal)
+            self.get_logger().info(f"Published goal at: ({world_x}, {world_y})")
+        else:
+            self.get_logger().warn("No free spaces found in the map.")

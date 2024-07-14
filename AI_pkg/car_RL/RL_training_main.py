@@ -21,6 +21,12 @@ class CustomCarEnv(gym.Env):
         # state初始化
         self.AI_node = AI_node
         # self.start_time = time.time()
+        # 這邊只是為了一開始取得state要多長所做的localization和goal_pose
+        self.AI_node.publisher_localization_map()
+
+        # TODO
+        # self.AI_node.publisher_random_goal_pose()
+
         shape_number = self.get_initial_shape()
         self.action_space = spaces.MultiDiscrete([21, 21])
         self.observation_space = spaces.Box(
@@ -53,17 +59,20 @@ class CustomCarEnv(gym.Env):
     def reset(self, seed=None, options=None):
         # self.AI_node.publish_to_unity_RESET()  #  送結束訊後給unity
         # self.AI_node.reset()
-        self.AI_node.publisher_localiztion_map()
-        unity_data_reset_state = get_observation(self.AI_node)
-        self.state = process_data(unity_data_reset_state)
 
         # self.start_time = time.time()
-
         print("Reset Game")
-        self.AI_node.reset()
+        # self.AI_node.reset()
+        self.AI_node.publisher_localization_map()
+        # TODO
+        # publish random /goal_pose
+        # self.AI_node.publisher_random_goal_pose()
         self.AI_node.reset_unity()
+
+        unity_data_reset_state = get_observation(self.AI_node)
+        self.state = process_data(unity_data_reset_state)
         time.sleep(3)
-        self.AI_node.publisher_localiztion_map()
+
         return self.state, {}
 
     def get_initial_shape(self):
