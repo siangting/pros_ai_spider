@@ -3,3 +3,5 @@
 __pycache__/
 /AI_pkg/Model/
 # *.pth
+*.deb
+*.deb.*
