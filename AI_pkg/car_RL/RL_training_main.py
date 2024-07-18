@@ -21,10 +21,13 @@ class CustomCarEnv(gym.Env):
         super(CustomCarEnv, self).__init__()
         # state初始化
         self.AI_node = AI_node
+        self.AI_node.RL_mode_unity()
         # 這邊只是為了一開始取得state要多長所做的localization和goal_pose
 
         # self.AI_node.publisher_localization_map()
-        self.AI_node.reset_amcl()
+
+        # self.AI_node.reset_amcl()
+
         self.lidar_last = None
 
         # # TODO
@@ -71,18 +74,17 @@ class CustomCarEnv(gym.Env):
         # publish random /goal_pose
         self.AI_node.reset_unity()
         self.AI_node.publish_to_robot("STOP", pid_control=False)
-
+        self.AI_node.RL_mode_unity()
         """
         因為 lcoalization 的地圖用到一半會斷線, 而 unity 一直無法自動連線,
         因此該方法目前職暫時棄用,
         不然本來要自動做 localization 和自動 publish 一個隨機random位置
         """
         # self.AI_node.publisher_localization_map()
-        self.AI_node.reset_amcl()
-        self.AI_node.publisher_random_goal_pose()
+        # self.AI_node.reset_amcl()
+        # self.AI_node.publisher_random_goal_pose()
 
         # 發送 unity 跟他說目前是 RL mode
-        self.AI_node.RL_mode_unity()
 
         unity_data_reset_state = get_observation(self.AI_node)
         self.state = process_data_to_npfloat32_array(unity_data_reset_state)

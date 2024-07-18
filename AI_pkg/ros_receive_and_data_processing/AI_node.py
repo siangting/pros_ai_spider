@@ -29,6 +29,7 @@ from PIL import Image
 import yaml
 import os
 from tf2_ros import StaticTransformBroadcaster
+from rclpy.qos import QoSProfile, DurabilityPolicy
 
 
 class AI_node(Node):
@@ -78,7 +79,7 @@ class AI_node(Node):
         接收目標, 車體目前位置, 輪子轉速, lidar的距離和vector
         """
         self.subscriber_amcl = self.create_subscription(
-            PoseWithCovarianceStamped, "/amcl_pose", self.subscribe_callback_amcl, 1
+            PoseWithCovarianceStamped, "/amcl_pose", self.subscribe_callback_amcl, 10
         )
         """
         清空amcl

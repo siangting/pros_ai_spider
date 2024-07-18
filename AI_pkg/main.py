@@ -71,7 +71,7 @@ def train_model_PPO(env):
 
 def train_model_DDPG(env):
     model = load_or_create_model_DDPG(
-        env, "./Model/DDPG_custom_car_model_1000_1721272714.460118"
+        env, "./Model/ddpg_custom_car_model_dsad1000_1721284347.637723"
     )
     custom_callback = CustomCallback("./Model/ddpg_custom_car_model", save_freq=1000)
     total_timesteps = 100000  # 訓練回合數
