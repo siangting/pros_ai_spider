@@ -29,7 +29,6 @@ def preprocess_data(obs):
         received_global_plan = None
 
     # 以下宣告自己要回傳的資料
-
     state_dict = {
         "car_pos": trans_to_float(car_pos),
         "target_pos": trans_to_float(target_pos),
@@ -47,3 +46,7 @@ def preprocess_data(obs):
     }
 
     return state_dict
+
+
+def normalize(value, min_value, max_value):
+    return (value - min_value) / (max_value - min_value)

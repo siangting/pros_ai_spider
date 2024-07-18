@@ -7,7 +7,7 @@ data轉成np後給env的observation
 """
 
 
-def process_data(unity_data):
+def process_data_to_npfloat32_array(unity_data):
     flat_list = []
     for value in unity_data.values():
         if isinstance(value, list):

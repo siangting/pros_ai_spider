@@ -9,27 +9,35 @@ from robot_arm.robot_control import RobotArmControl
 
 # RL
 import gymnasium as gym
-from stable_baselines3 import PPO
+from stable_baselines3 import PPO, DDPG
+from stable_baselines3.common.noise import NormalActionNoise
 from stable_baselines3.common.env_util import make_vec_env
 from car_RL.RL_training_main import CustomCarEnv
 from car_RL.custom_callback import CustomCallback
+from stable_baselines3.common.logger import configure
+from stable_baselines3.common.monitor import Monitor
 
 
 def load_or_create_model(env, model_path):
     try:
         model = PPO.load(model_path)  #  load model
+        env = Monitor(env)
         model.set_env(env)
+        print(f"Model loaded successfully from {model_path}")
+        print(f"Model learning rate: {model.lr_schedule(1.0)}")
+        print(f"Model policy network: {model.policy}")
     except FileNotFoundError:  #  找不到就重新train一個
         model = PPO("MlpPolicy", env, verbose=1, learning_rate=0.001, device="cuda")
+        print("Model not found. Training a new model.")
     return model
 
 
 def train_model(env):
     model = load_or_create_model(
-        env, "./Model/ppo_custom_car_model_278000_1703457082.884543"
+        env, "./Model/ppo_custom_car_model_1000_1721272714.460118"
     )
     custom_callback = CustomCallback("./Model/ppo_custom_car_model", save_freq=1000)
-    total_timesteps = 1000000  # 訓練回合數
+    total_timesteps = 100000  # 訓練回合數
     model.learn(
         total_timesteps=total_timesteps, callback=custom_callback
     )  #  進入env開始訓練

@@ -1,6 +1,11 @@
-from geometry_msgs.msg import PoseWithCovarianceStamped, PoseStamped, Twist
+from geometry_msgs.msg import (
+    PoseWithCovarianceStamped,
+    PoseStamped,
+    Twist,
+    TransformStamped,
+)
 from sensor_msgs.msg import LaserScan
-from nav_msgs.msg import Path, OccupancyGrid, MapMetaData
+from nav_msgs.msg import Path, OccupancyGrid, MapMetaData, Odometry
 import random
 from std_msgs.msg import Header
 import json
@@ -15,9 +20,15 @@ from ros_receive_and_data_processing.config import (
     ACTION_MAPPINGS,
     LIDAR_PER_SECTOR,
     NEXT_POINT_DISTANCE,
+    FRONT_LIDAR_INDICES,
+    LEFT_LIDAR_INDICES,
+    RIGHT_LIDAR_INDICES,
 )
 from trajectory_msgs.msg import JointTrajectoryPoint
-from rclpy.qos import qos_profile_sensor_data
+from PIL import Image
+import yaml
+import os
+from tf2_ros import StaticTransformBroadcaster
 
 
 class AI_node(Node):
@@ -26,8 +37,8 @@ class AI_node(Node):
         self.get_logger().info("Ai start")
         self.real_car_data = {}
         self.data_to_AI = ""
-
         self.lastest_data = None
+
         """
         以下字典是用來定義這個node接收到最新的數值後傳送到UnityAdaptor.py內轉換
         最終轉換格式是UnityAdaptor.py決定 這邊只負責接收最新數值
@@ -70,6 +81,12 @@ class AI_node(Node):
             PoseWithCovarianceStamped, "/amcl_pose", self.subscribe_callback_amcl, 1
         )
         """
+        清空amcl
+        """
+        self.publisher_clear_amcl = self.create_publisher(
+            PoseWithCovarianceStamped, "/amcl_pose", 10
+        )
+        """
         目標座標
         """
         self.subscriber_goal = self.create_subscription(
@@ -93,7 +110,13 @@ class AI_node(Node):
         self.subscriber_forward = self.create_subscription(
             String, DeviceDataTypeEnum.car_C_state_front, self.forward_wheel_callback, 1
         )
+        """
+        publish map position in random,
+        """
+        self.publisher_goal_pose = self.create_publisher(PoseStamped, "/goal_pose", 10)
 
+        self.publisher_odom = self.create_publisher(Odometry, "/odom", 10)
+        self.publisher_scan = self.create_publisher(LaserScan, "/scan", 10)
         """
         publish給前後的esp32驅動車輪
         """
@@ -105,9 +128,17 @@ class AI_node(Node):
             String, DeviceDataTypeEnum.car_C_front_wheel, 10
         )  # 前輪esp32
 
+        """
+        傳送給 unity 通知它做場景 reset 的訊號
+        """
         self.publisher_unity_reset_signal = self.create_publisher(
             String, "/reset_signal", 10
         )
+        """
+        傳送給 unity 通知它目前是 RL mode, 所以 amcl_pose 和 goal_pose 都要從 unity publish amcl_pose 和 goal_pose 的資料
+        (此時不能開 foxglove, 不然兩個地圖資訊會互搶)
+        """
+        self.publisher_unity_RL_signal = self.create_publisher(String, "/RL_signal", 10)
         """
         publish to localization initialpose
         """
@@ -139,23 +170,13 @@ class AI_node(Node):
             Path, "/received_global_plan", self.global_plan_callback, 1
         )
 
-        """
-        Receive map data from foxglove map,
-        publish map position in random,
-        ready to receive data
-        """
-        self.subscription_map = self.create_subscription(
-            OccupancyGrid, "/map", self.map_callback, 10
-        )
-        self.publisher_goal_pose = self.create_publisher(PoseStamped, "/goal_pose", 10)
-        self.map_data = None
-
     """
     檢查所有數據是否更新,
     更新最新車體狀態資料
     """
 
     def check_and_get_lastest_data(self):
+        # print(self.data_updated.values())
         if all(self.data_updated.values()):
             # 確認所有的數據都更新並publish
             self.data_updated["amcl"] = False
@@ -244,6 +265,12 @@ class AI_node(Node):
         msg = String()
         msg.data = "1"
         self.publisher_unity_reset_signal.publish(msg)
+        # self.publisher_unity_reset_signal
+
+    def RL_mode_unity(self):
+        msg = String()
+        msg.data = "1"
+        self.publisher_unity_RL_signal.publish(msg)
 
     """
     確定amcl goal lidar其中一個有收到訊號
@@ -318,7 +345,12 @@ class AI_node(Node):
                 angle_tmp = angle_min + i * angle_increment
                 ranges_180.append(all_ranges[i])
                 direction_180.append([math.cos(angle_tmp), math.sin(angle_tmp), 0])
-        self.real_car_data["ROS2Range"] = ranges_180
+        combined_lidar_data = (
+            [ranges_180[i] for i in FRONT_LIDAR_INDICES]
+            + [ranges_180[i] for i in LEFT_LIDAR_INDICES]
+            + [ranges_180[i] for i in RIGHT_LIDAR_INDICES]
+        )
+        self.real_car_data["ROS2Range"] = combined_lidar_data
         self.real_car_data["ROS2RangePosition"] = direction_180
         self.update_and_check_data("lidar")
 
@@ -404,61 +436,197 @@ class AI_node(Node):
         except json.JSONDecodeError as e:
             print(f"Error decoding JSON: {e}")
 
+    def reset_amcl(self):
+        reset_pose = PoseWithCovarianceStamped()
+        reset_pose.header.stamp = self.get_clock().now().to_msg()
+        reset_pose.header.frame_id = "map"  # 或者你需要的坐标系
+        reset_pose.pose.pose.position.x = float("nan")
+        reset_pose.pose.pose.position.y = float("nan")
+        reset_pose.pose.pose.position.z = float("nan")
+        reset_pose.pose.pose.orientation.x = 0.0
+        reset_pose.pose.pose.orientation.y = 0.0
+        reset_pose.pose.pose.orientation.z = 0.0
+        reset_pose.pose.pose.orientation.w = 1.0
+        reset_pose.pose.covariance = [
+            float("nan"),
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            float("nan"),
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            float("nan"),
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            float("nan"),
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            float("nan"),
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            float("nan"),
+        ]
+        self.publisher_clear_amcl.publish(reset_pose)
+        # self.get_logger().info("Published reset pose to /amcl_pose")
+
+    # 清空scan
+    def reset_laser_scan(self):
+        scan_msg = LaserScan()
+        scan_msg.header.stamp = self.get_clock().now().to_msg()
+        scan_msg.header.frame_id = "laser_frame"  # 根據實際的 frame_id 設置
+        scan_msg.angle_min = -3.14  # 根據實際激光雷達設置
+        scan_msg.angle_max = 3.14
+        scan_msg.angle_increment = 0.01
+        scan_msg.time_increment = 0.0
+        scan_msg.scan_time = 0.1
+        scan_msg.range_min = 0.0
+        scan_msg.range_max = 10.0
+        scan_msg.ranges = [float("inf")] * int(
+            (scan_msg.angle_max - scan_msg.angle_min) / scan_msg.angle_increment
+        )
+        scan_msg.intensities = [0.0] * len(scan_msg.ranges)
+
+        self.publisher_scan.publish(scan_msg)
+        self.get_logger().info("LaserScan has been reset")
+
+    # 清空 base_footprint
+    def reset_base_footprint(self):
+        broadcaster = StaticTransformBroadcaster(self)
+        transform = TransformStamped()
+        transform.header.stamp = self.get_clock().now().to_msg()
+        transform.header.frame_id = "odom"
+        transform.child_frame_id = "base_footprint"
+        transform.transform.translation.x = 0.0
+        transform.transform.translation.y = 0.0
+        transform.transform.translation.z = 0.0
+        transform.transform.rotation.x = 0.0
+        transform.transform.rotation.y = 0.0
+        transform.transform.rotation.z = 0.0
+        transform.transform.rotation.w = 1.0
+        broadcaster.sendTransform(transform)
+        self.get_logger().info("Base footprint has been reset")
+
+    # 清空 odom
+    def reset_odom(self):
+        odom_msg = Odometry()
+        odom_msg.header.stamp = self.get_clock().now().to_msg()
+        odom_msg.header.frame_id = "odom"
+        odom_msg.child_frame_id = "base_footprint"
+        odom_msg.pose.pose.position.x = 0.0
+        odom_msg.pose.pose.position.y = 0.0
+        odom_msg.pose.pose.position.z = 0.0
+        odom_msg.pose.pose.orientation.x = 0.0
+        odom_msg.pose.pose.orientation.y = 0.0
+        odom_msg.pose.pose.orientation.z = 0.0
+        odom_msg.pose.pose.orientation.w = 1.0
+        odom_msg.twist.twist.linear.x = 0.0
+        odom_msg.twist.twist.linear.y = 0.0
+        odom_msg.twist.twist.linear.z = 0.0
+        odom_msg.twist.twist.angular.x = 0.0
+        odom_msg.twist.twist.angular.y = 0.0
+        odom_msg.twist.twist.angular.z = 0.0
+        self.publisher_odom.publish(odom_msg)
+        self.get_logger().info("Odom has been reset")
+
     """
-    專門給 RL 做第一次localization的動作
+    給 publisher_localization_map 用的 func
+    """
+
+    def publish_initial_map_position(self, position, orientation, covariance):
+        msg = PoseWithCovarianceStamped()
+        msg.header.frame_id = "map"
+        msg.header.stamp = self.get_clock().now().to_msg()
+        msg.pose.pose.position.x = position["x"]
+        msg.pose.pose.position.y = position["y"]
+        msg.pose.pose.position.z = position["z"]
+        msg.pose.pose.orientation.x = orientation["x"]
+        msg.pose.pose.orientation.y = orientation["y"]
+        msg.pose.pose.orientation.z = orientation["z"]
+        msg.pose.pose.orientation.w = orientation["w"]
+        msg.pose.covariance = covariance
+        self.publisher_localization_map_signal.publish(msg)
+        self.get_logger().info("Publish initial map position")
+
+    def get_initial_position_and_orientation(self):
+        return (
+            {"x": 0.29377966745215334, "y": -0.327070701568549, "z": 0.0},
+            {"x": 0.0, "y": 0.0, "z": 0.045576476174623244, "w": 0.9989608524959847},
+            [
+                0.25,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.25,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.06853892060437211,
+            ],
+        )
+
+    """
+    先清空所以資料後做 localization
     """
 
     def publisher_localization_map(self):
-        self.publisher_clear_localization_map()
-        msg = PoseWithCovarianceStamped()
-        msg.header.frame_id = "map"
-        msg.pose.pose.position.x = 0.29377966745215334
-        msg.pose.pose.position.y = -0.327070701568549
-        msg.pose.pose.position.z = 0.0
-        msg.pose.pose.orientation.x = 0.0
-        msg.pose.pose.orientation.y = 0.0
-        msg.pose.pose.orientation.z = 0.045576476174623244
-        msg.pose.pose.orientation.w = 0.9989608524959847
-        msg.pose.covariance = [
-            0.25,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.25,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.06853892060437211,
-        ]
-        self.publisher_localization_map_signal.publish(msg)
-        self.get_logger().info("Publish initial map position")
+        # self.publisher_clear_localization_map()
+        # self.reset_all()
+        # time.sleep(0.5)
+
+        # self.reset_odom()
+        # self.reset_base_footprint()
+        # # self.reset_laser_scan()
+        # self.reset_amcl()
+        # self.publisher_clear_localization_map()
+        # time.sleep(1)
+        position, orientation, covariance = self.get_initial_position_and_orientation()
+        self.publish_initial_map_position(position, orientation, covariance)
 
     """
     Reset map localization
@@ -471,49 +639,60 @@ class AI_node(Node):
         self.publisher_localization_map_signal.publish(empty_msg)
         self.get_logger().info("Cleared initial map position")
 
-    """
-    Wait for map data
-    """
+    def read_yaml_pgm_data(self):
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        map_dir = os.path.abspath(os.path.join(script_dir, "../map"))
+        yaml_file_path = os.path.join(map_dir, "map01.yaml")
+        pgm_file_path = os.path.join(map_dir, "map01.pgm")
+        # print("yaml_file_path : ", yaml_file_path)
+        # print("pgm_file_path : ", pgm_file_path)
+        with open(yaml_file_path, "r") as yaml_file:
+            self.map_config = yaml.safe_load(yaml_file)
+        resolution = self.map_config["resolution"]
+        origin = self.map_config["origin"][:2]  # 只需要 x 和 y 座標
+        return resolution, origin, pgm_file_path
 
-    def map_callback(self, msg):
-        self.get_logger().info("Received map data")
-        self.map_data = msg
+    def find_free_coordinates(self, pgm_file_path, resolution, origin):
+        # 打開 .pgm 文件
+        image = Image.open(pgm_file_path)
+        pixels = image.load()
+        width, height = image.size
+
+        free_coordinates = []
+
+        # 找到所有的非障礙物座標（假設障礙物是黑色(0)）
+        for y in range(height):
+            for x in range(width):
+                if pixels[x, y] > 0:  # 非障礙物像素（非黑色）
+                    # 將像素座標轉換為地圖座標
+                    map_x = origin[0] + x * resolution
+                    map_y = origin[1] + y * resolution
+                    free_coordinates.append((map_x, map_y))
+
+        # 隨機選擇一個非障礙物座標
+        if free_coordinates:
+            return random.choice(free_coordinates)
+        else:
+            return None
 
     def publisher_random_goal_pose(self):
-        free_spaces = []
-        if self.map_data is None:
-            self.get_logger().warn("No map data available.")
-            return
-        for y in range(self.map_data.info.height):
-            for x in range(self.map_data.info.width):
-                index = x + y * self.map_data.info.width
-                if self.map_data.data[index] == 0:  # 0 indicates no obstacle
-                    free_spaces.append((x, y))
+        (resolution, origin, pgm_file_path) = self.read_yaml_pgm_data()
+        random_free_coordinate = self.find_free_coordinates(
+            pgm_file_path, resolution, origin
+        )
+        if random_free_coordinate:
+            goal_pose = PoseStamped()
+            goal_pose.header = Header()
+            goal_pose.header.stamp = self.get_clock().now().to_msg()
+            goal_pose.header.frame_id = "map"
+            goal_pose.pose.position.x = random_free_coordinate[0]
+            goal_pose.pose.position.y = random_free_coordinate[1]
+            goal_pose.pose.position.z = 0.0
+            goal_pose.pose.orientation.w = 1.0  # 假設沒有特定的方向需求，設置為默認值
 
-        if free_spaces:
-            chosen_x, chosen_y = random.choice(free_spaces)
-            self.get_logger().info(f"Chosen free space at: ({chosen_x}, {chosen_y})")
-
-            # Convert map coordinates to world coordinates
-            world_x = (
-                chosen_x * self.map_data.info.resolution
-                + self.map_data.info.origin.position.x
+            self.publisher_goal_pose.publish(goal_pose)
+            self.get_logger().info(
+                f"Published random goal pose: {random_free_coordinate}"
             )
-            world_y = (
-                chosen_y * self.map_data.info.resolution
-                + self.map_data.info.origin.position.y
-            )
-
-            # Publish the random goal
-            goal = PoseStamped()
-            goal.header.frame_id = "map"
-            # goal.header.stamp = self.get_clock().now().to_msg()
-            goal.pose.position.x = world_x
-            goal.pose.position.y = world_y
-            goal.pose.position.z = 0.0
-            goal.pose.orientation.w = 1.0  # Default orientation
-
-            self.publisher_goal_pose.publish(goal)
-            self.get_logger().info(f"Published goal at: ({world_x}, {world_y})")
         else:
-            self.get_logger().warn("No free spaces found in the map.")
+            self.get_logger().warn("No free coordinate found to publish")
