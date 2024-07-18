@@ -25,14 +25,25 @@ class CustomCarEnv(gym.Env):
 
         # self.AI_node.publisher_localization_map()
         self.AI_node.reset_amcl()
+        self.lidar_last = None
 
         # # TODO
         self.AI_node.publisher_random_goal_pose()
         shape_number = self.get_initial_shape()
-        self.action_space = spaces.MultiDiscrete([21, 21])
+
+        # ddpg
+        self.action_space = spaces.Box(
+            low=-10.0, high=10.0, shape=(shape_number,), dtype=np.float32
+        )
         self.observation_space = spaces.Box(
             low=-np.inf, high=np.inf, shape=(shape_number,), dtype=np.float32
         )
+
+        # ppo
+        # self.action_space = spaces.MultiDiscrete([21, 21])
+        # self.observation_space = spaces.Box(
+        #     low=-np.inf, high=np.inf, shape=(shape_number,), dtype=np.float32
+        # )
 
     def step(self, action):
         # 0:前進 1:左轉 2:右轉 3:後退
@@ -43,10 +54,11 @@ class CustomCarEnv(gym.Env):
             action_vel, pid_control=True
         )  #  送出後會等到unity做完動作後
         # print("action_vel : ", action_vel)
-        time.sleep(0.5)
+        # time.sleep(0.1)
         unity_data = get_observation(self.AI_node)
         reward = reward_cal(unity_data)  # reward
         self.state = process_data_to_npfloat32_array(unity_data)
+        print("min lidar : ", min(unity_data["lidar_data"]))
         terminated = min(unity_data["lidar_data"]) < 0.2
         return self.state, reward, terminated, False, {}
 

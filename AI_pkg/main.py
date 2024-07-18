@@ -16,9 +16,35 @@ from car_RL.RL_training_main import CustomCarEnv
 from car_RL.custom_callback import CustomCallback
 from stable_baselines3.common.logger import configure
 from stable_baselines3.common.monitor import Monitor
+import numpy as np
 
 
-def load_or_create_model(env, model_path):
+def load_or_create_model_DDPG(env, model_path):
+    n_actions = env.action_space.shape[-1]
+    action_noise = NormalActionNoise(
+        mean=np.zeros(n_actions), sigma=0.1 * np.ones(n_actions)
+    )
+
+    try:
+        model = DDPG.load(model_path)  # Load model
+        model.set_env(env)
+        print(f"Model loaded successfully from {model_path}")
+        print(f"Model learning rate: {model.lr_schedule(1.0)}")
+        print(f"Model policy network: {model.policy}")
+    except FileNotFoundError:  # If not found, train a new one
+        model = DDPG(
+            "MlpPolicy",
+            env,
+            action_noise=action_noise,
+            verbose=1,
+            learning_rate=0.001,
+            device="cuda",
+        )
+        print("Model not found. Training a new model.")
+    return model
+
+
+def load_or_create_model_PPO(env, model_path):
     try:
         model = PPO.load(model_path)  #  load model
         env = Monitor(env)
@@ -32,14 +58,25 @@ def load_or_create_model(env, model_path):
     return model
 
 
-def train_model(env):
-    model = load_or_create_model(
+def train_model_PPO(env):
+    model = load_or_create_model_PPO(
         env, "./Model/ppo_custom_car_model_1000_1721272714.460118"
     )
     custom_callback = CustomCallback("./Model/ppo_custom_car_model", save_freq=1000)
     total_timesteps = 100000  # 訓練回合數
     model.learn(
-        total_timesteps=total_timesteps, callback=custom_callback
+        total_timesteps=total_timesteps, callback=custom_callback, log_interval=1
+    )  #  進入env開始訓練
+
+
+def train_model_DDPG(env):
+    model = load_or_create_model_DDPG(
+        env, "./Model/DDPG_custom_car_model_1000_1721272714.460118"
+    )
+    custom_callback = CustomCallback("./Model/ddpg_custom_car_model", save_freq=1000)
+    total_timesteps = 100000  # 訓練回合數
+    model.learn(
+        total_timesteps=total_timesteps, callback=custom_callback, log_interval=1
     )  #  進入env開始訓練
 
 
@@ -80,7 +117,8 @@ def main(mode):
         robot_controler.action()
     elif mode == "4":
         env = gym_env_register(node)
-        train_model(env)
+        # train_model_PPO(env)
+        train_model_DDPG(env)
 
     else:
         print("Please type the correct numbers.")
