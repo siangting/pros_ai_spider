@@ -17,6 +17,7 @@ def preprocess_data(obs):
     right_front_speed = obs["ROS2WheelAngularVelocityRightFront"]
     left_back_speed = obs["ROS2WheelAngularVelocityLeftBack"]
     right_back_speed = obs["ROS2WheelAngularVelocityRightBack"]
+    arm_target_position = obs["arm_tartget_position"]
 
     angle_diff = calculate_angle_point(  #  輸出面向目標角度
         car_quaternion[0], car_quaternion[1], car_pos, target_pos
@@ -43,6 +44,7 @@ def preprocess_data(obs):
         "angle_diff": angle_diff,
         "cmd_vel_nav": cmd_vel_nav,
         "received_global_plan": received_global_plan,
+        "amr_target_position": arm_target_position,
     }
 
     return state_dict

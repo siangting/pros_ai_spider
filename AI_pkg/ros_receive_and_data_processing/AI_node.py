@@ -3,6 +3,7 @@ from geometry_msgs.msg import (
     PoseStamped,
     Twist,
     TransformStamped,
+    Point,
 )
 from sensor_msgs.msg import LaserScan
 from nav_msgs.msg import Path, OccupancyGrid, MapMetaData, Odometry
@@ -63,6 +64,8 @@ class AI_node(Node):
         self.real_car_data["cmd_vel_nav"] = Twist()
         self.real_car_data["received_global_plan"] = None
 
+        # 目標座標
+        self.real_car_data["arm_tartget_position"] = None
         """
         確定以下資料都有收到 才會在 check_and_get_lastest_data() 更新最新資料
         amcl 追蹤車體目前位置
@@ -110,6 +113,13 @@ class AI_node(Node):
         """
         self.subscriber_forward = self.create_subscription(
             String, DeviceDataTypeEnum.car_C_state_front, self.forward_wheel_callback, 1
+        )
+
+        self.subscriber_target_angle = self.create_subscription(
+            Point,
+            "/relative_position",
+            self.subscriber_target_angle_callback,
+            10,  # 替换为实际的主题名称
         )
         """
         publish map position in random,
@@ -436,6 +446,11 @@ class AI_node(Node):
                 print("Invalid message format. Missing 'vels' key.")
         except json.JSONDecodeError as e:
             print(f"Error decoding JSON: {e}")
+
+    def subscriber_target_angle_callback(self, msg):
+        # self.real_car_data["arm_tartget_position"]
+        point_as_list = [msg.x, msg.y, msg.z]
+        self.real_car_data["arm_tartget_position"] = point_as_list
 
     def reset_amcl(self):
         reset_pose = PoseWithCovarianceStamped()
