@@ -3,6 +3,7 @@ import pybullet_data
 import numpy as np
 import os
 import threading
+import time  # 添加此行
 
 
 class pybulletIK:
@@ -40,18 +41,17 @@ class pybulletIK:
         urdf_angles[3] = actual_angles[3] - np.deg2rad(0)  # 第4轴 0度 对应 URDF 10度
         return urdf_angles
 
-    def world_to_base_link(self, world_position):
+    def relative_to_world(self, relative_position):
         # 获取 base_link 的位置和方向
         base_position, base_orientation = p.getBasePositionAndOrientation(self.robot_id)
         base_orientation_matrix = p.getMatrixFromQuaternion(base_orientation)
         base_orientation_matrix = np.array(base_orientation_matrix).reshape(3, 3)
 
-        # 将世界坐标转换为相对于 base_link 的坐标
-        relative_position = np.dot(
-            np.linalg.inv(base_orientation_matrix),
-            np.array(world_position) - np.array(base_position),
+        # 将相对坐标转换为世界坐标
+        world_position = np.dot(base_orientation_matrix, relative_position) + np.array(
+            base_position
         )
-        return relative_position
+        return world_position
 
     def limit_joint_angles(self, joint_angles):
         # 限制关节角度在0到180度之间
@@ -66,22 +66,23 @@ class pybulletIK:
         return limited_angles
 
     def pybullet_move(self, target, current_joint_angles):
-        # 设置目标位置（以世界坐标系表示）
+        # 设置目标位置（以相对于 base_link 的坐标表示）
         target_position = target
 
+        # 将相对坐标转换为世界坐标
+        world_target_position = self.relative_to_world(target_position)
+
         # 更新目标指示器的位置（仅在位置改变时更新）
-        if target_position != self.target_marker_position:
-            self.target_marker_position = target_position
+        if not np.allclose(
+            world_target_position, self.target_marker_position, atol=1e-3
+        ):
+            self.target_marker_position = world_target_position
             p.resetBasePositionAndOrientation(
-                self.target_marker, target_position, [0, 0, 0, 1]
+                self.target_marker, world_target_position, [0, 0, 0, 1]
             )
 
         urdf_joint_angles = self.convert_to_urdf_angles(current_joint_angles)
 
-        # 转换目标位置为相对于 base_link 的坐标
-        # relative_target_position = self.world_to_base_link(target_position)
-        relative_target_position = target_position
-        print("target : ", relative_target_position)
         # 设置逆运动学的解算参数，包括当前关节角度作为初始值
         ik_solver = 0  # 使用DLS（Damped Least Squares）方法求解
 
@@ -89,7 +90,7 @@ class pybulletIK:
         joint_angles = p.calculateInverseKinematics(
             self.robot_id,
             6,  # 末端执行器的链接索引
-            relative_target_position,
+            world_target_position,
             lowerLimits=[-np.pi] * self.num_joints,
             upperLimits=[np.pi] * self.num_joints,
             jointRanges=[2 * np.pi] * self.num_joints,
@@ -99,7 +100,9 @@ class pybulletIK:
 
         # 提取关节角度
         joint_angles = joint_angles[: self.num_joints]
-        # joint_angles = self.limit_joint_angles(joint_angles)
+        formatted_joint_angles = [round(angle, 1) for angle in joint_angles]
+
+        print("joint_angles : ", formatted_joint_angles)
 
         # 打印优化结果
         # print(f"Joint angles (radians): {joint_angles}")
@@ -127,9 +130,9 @@ def main():
     ik_solver = pybulletIK([0, 0, 0, 0, 0, 0, 0, 0])
 
     while True:
-        user_input = input("Enter target coordinates (x y z): ")
+        user_input = input("Enter target coordinates relative to base_link (x y z): ")
         target_position = [float(coord) for coord in user_input.split()]
-        print(f"Target position: {target_position}")
+        print(f"Target position relative to base_link: {target_position}")
 
         current_joint_angles = [0, 0, 0, 0, 0, 0, 0, 0]  # 根据实际情况设置初始关节角度
         ik_solver.pybullet_move(target_position, current_joint_angles)
