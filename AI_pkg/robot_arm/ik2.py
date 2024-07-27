@@ -3,7 +3,7 @@ import pybullet_data
 import numpy as np
 import os
 import threading
-import time  # 添加此行
+import time
 
 
 class pybulletIK:
@@ -65,6 +65,19 @@ class pybulletIK:
             limited_angles.append(np.radians(angle_deg))
         return limited_angles
 
+    def convert_to_servo_angles(self, joint_angles):
+        # 将关节角度转换为伺服马达角度（0到180度）
+        servo_angles = []
+        for angle in joint_angles:
+            angle_deg = np.degrees(angle)
+            # 将角度限制在0到180度之间
+            if angle_deg < 0:
+                angle_deg = 0
+            elif angle_deg > 180:
+                angle_deg = 180
+            servo_angles.append(angle_deg)
+        return servo_angles
+
     def pybullet_move(self, target, current_joint_angles):
         # 设置目标位置（以相对于 base_link 的坐标表示）
         target_position = target
@@ -81,7 +94,8 @@ class pybulletIK:
                 self.target_marker, world_target_position, [0, 0, 0, 1]
             )
 
-        urdf_joint_angles = self.convert_to_urdf_angles(current_joint_angles)
+        # urdf_joint_angles = self.convert_to_urdf_angles(current_joint_angles)
+        urdf_joint_angles = current_joint_angles
 
         # 设置逆运动学的解算参数，包括当前关节角度作为初始值
         ik_solver = 0  # 使用DLS（Damped Least Squares）方法求解
@@ -100,14 +114,16 @@ class pybulletIK:
 
         # 提取关节角度
         joint_angles = joint_angles[: self.num_joints]
+
+        # joint_angles = self.limit_joint_angles(joint_angles)
+
+        # 将关节角度格式化为只显示小数点后一位
         formatted_joint_angles = [round(angle, 1) for angle in joint_angles]
+        # print("joint_angles (radians) : ", formatted_joint_angles)
 
-        print("joint_angles : ", formatted_joint_angles)
-
-        # 打印优化结果
-        # print(f"Joint angles (radians): {joint_angles}")
-
-        # print(f"Joint angles (degrees): {np.degrees(joint_angles)}")
+        # 将关节角度转换为伺服马达角度
+        servo_angles = self.convert_to_servo_angles(joint_angles)
+        print("servo_angles (degrees) : ", servo_angles)
 
         # 应用关节角度到机器人模型
         for i in range(self.num_joints):
