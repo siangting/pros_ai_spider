@@ -197,6 +197,9 @@ class AI_node(Node):
     def get_latest_data(self):
         return self.lastest_data
 
+    def get_target_pos(self):
+        return self.real_car_data["arm_tartget_position"]
+
     """
     取得經過data_transform處理後的最新資料
 
