@@ -38,7 +38,9 @@ class RobotArmControl:
             radians[1] += np.deg2rad(30)
             radians[2] += np.deg2rad(30)
             # radians[2] -= np.deg2rad(40)
+            radians = radians[0:5]
             self.node.publish_arm(radians)
+            time.sleep(1)
             self.current_angle = radians  # 更新当前角度
 
             # radians = self.degree_to_radians(
