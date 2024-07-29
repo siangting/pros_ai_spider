@@ -10,7 +10,7 @@ class pybulletIK:
     def __init__(self, first_angle):
         self.angle = first_angle
         # 初始化 PyBullet 仿真环境
-        p.connect(p.GUI)  # 使用 GUI 模式，这样你可以看到仿真界面
+        p.connect(p.DIRECT)  # 使用 GUI 模式，这样你可以看到仿真界面
         p.setAdditionalSearchPath(
             pybullet_data.getDataPath()
         )  # 设置搜索路径以找到 URDF 文件
