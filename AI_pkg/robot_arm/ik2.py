@@ -10,7 +10,7 @@ class pybulletIK:
     def __init__(self, first_angle):
         self.angle = first_angle
         # 初始化 PyBullet 仿真环境
-        p.connect(p.DIRECT)  # 使用 GUI 模式，这样你可以看到仿真界面
+        p.connect(p.GUI)  # 使用 GUI 模式，这样你可以看到仿真界面
         p.setAdditionalSearchPath(
             pybullet_data.getDataPath()
         )  # 设置搜索路径以找到 URDF 文件
@@ -20,6 +20,7 @@ class pybulletIK:
         urdf_file_path = os.path.join(
             current_directory, "arm_ver6", "test_abb_4600.urdf"
         )
+        # urdf_file_path = os.path.join(current_directory, "cuka", "target.urdf")
         self.robot_id = p.loadURDF(urdf_file_path, useFixedBase=True)
         self.num_joints = p.getNumJoints(self.robot_id)
         self.base_link_index = 0  # 假设 base_link 是第一个链接
@@ -27,6 +28,10 @@ class pybulletIK:
         # 加载小方块作为目标指示器
         self.target_marker = p.loadURDF("cube_small.urdf", [0, 0, 0])
         self.target_marker_position = [0, 0, 0]
+        # 停止碰撞
+        for i in range(self.num_joints):
+            p.setCollisionFilterPair(self.robot_id, self.target_marker, i, -1, 0)
+
         self.simulation_thread = threading.Thread(target=self.run_simulation)
         self.simulation_thread.start()
 
