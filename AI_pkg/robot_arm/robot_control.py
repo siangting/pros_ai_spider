@@ -10,10 +10,11 @@ from robot_arm.ik2 import pybulletIK
 class RobotArmControl:
     def __init__(self, node):
         self.node = node
-        self.ik_solver = pybulletIK([0] * 8)  # 假设有8个关节，初始角度为0
-        self.current_angle = [90, 0, 160, 50, 10, 0, 0, 0]  # 初始关节角度
-
-        # self.pybullet_correct = PybulletRobotController()
+        self.ik_solver = pybulletIK([0] * 8)
+        self.ik_solver.add_camera_to_link(
+            link_index=6, position=[0, 0, 0.1], orientation=[0, -30, 0]
+        )
+        self.current_angle = [90, 0, 160, 50, 10, 0, 0, 0]
 
     def degree_to_radians(self, data):
         return list(np.radians(data))
@@ -31,8 +32,6 @@ class RobotArmControl:
             target_coord = data
             radians = self.ik_solver.pybullet_move(target_coord, self.current_angle)
 
-            # degree = [90, 0, 160, 50, 10]
-            # radians = self.degree_to_radians(degree)
             radians = list(radians)
             radians[0] += np.deg2rad(270)
             radians[1] += np.deg2rad(30)
@@ -42,16 +41,8 @@ class RobotArmControl:
             self.node.publish_arm(radians)
             time.sleep(1)
             self.current_angle = radians  # 更新当前角度
+            self.ik_solver.update_camera_position()
 
-            # radians = self.degree_to_radians(
-            #     [
-            #         degree[0] + 90,
-            #         degree[1] - 30,
-            #         degree[2] - 40,
-            #         degree[3] - 0,
-            #         degree[4] - 0,
-            #     ]
-            # )
-            # self.pybullet_correct.set_target_joint_angles(radians + [0, 0, 0])
-
-            # self.ik_solver.run_simulation()
+            rgba_image, depth_image = self.ik_solver.get_camera_image(
+                width=640, height=480
+            )
