@@ -117,7 +117,7 @@ class AI_node(Node):
 
         self.subscriber_target_angle = self.create_subscription(
             Point,
-            "/relative_position",
+            "/object_coordinates",
             self.subscriber_target_angle_callback,
             10,  # 替换为实际的主题名称
         )

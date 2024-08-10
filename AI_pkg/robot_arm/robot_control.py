@@ -26,7 +26,9 @@ class RobotArmControl:
     def action(self):
         print("data receiving")
         while True:
-            data = self.node.get_target_pos()
+            data = None
+            while data == None:
+                data = self.node.get_target_pos()
 
             # 获取目标坐标
             target_coord = data
@@ -35,27 +37,7 @@ class RobotArmControl:
             radians = self.ik_solver.pybullet_move(target_coord, self.current_angle)
 
             # 更新相机位置并获取图像
-            self.ik_solver.update_camera_position()
-            rgba_image, depth_image = self.ik_solver.get_camera_image(
-                width=640, height=480
-            )
-
-            # 显示图像
-            cv2.imshow("RGB Image", cv2.cvtColor(rgba_image, cv2.COLOR_RGBA2BGR))
-            cv2.imshow("Depth Image", depth_image)
-            cv2.waitKey(1)
-
-            # 将深度图像转换为世界坐标系中的点云
-            point_cloud = self.ik_solver.depth_to_world(
-                depth_image, self.camera_intrinsics
-            )
-
-            # 检测物体在RGB图像中的位置（例如通过颜色分割）
-            mask = rgba_image[:, :, 0] > 128  # 假设物体是红色的
-
-            # 获取物体的3D位置
-            object_position = self.ik_solver.get_object_position(point_cloud, mask)
-            print(f"Object position in camera frame: {object_position}")
+            # self.ik_solver.update_camera_position()
 
             # 调整关节角度
             radians = list(radians)

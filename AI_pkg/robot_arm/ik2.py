@@ -4,7 +4,6 @@ import numpy as np
 import os
 import threading
 import time
-import cv2
 
 
 class pybulletIK:
@@ -146,8 +145,9 @@ class pybulletIK:
         link_state = p.getLinkState(self.robot_id, self.camera_link_index)
         link_world_position = link_state[0]
         link_world_orientation = link_state[1]
-        link_world_matrix = p.getMatrixFromQuaternion(link_world_orientation)
-        link_world_matrix = np.array(link_world_matrix).reshape(3, 3)
+        link_world_matrix = np.array(
+            p.getMatrixFromQuaternion(link_world_orientation)
+        ).reshape(3, 3)
 
         # 计算相机的世界坐标位置
         camera_world_position = np.dot(
@@ -157,51 +157,35 @@ class pybulletIK:
             self.camera_marker, camera_world_position, link_world_orientation
         )
 
-        # print(f"Camera world position: {camera_world_position}")
+    def transform_camera_to_base(self, camera_position):
+        """将相机坐标系中的位置转换为基座坐标系"""
+        # 获取相机在世界坐标系中的位置和方向
+        link_state = p.getLinkState(self.robot_id, self.camera_link_index)
+        camera_world_position = link_state[0]
+        camera_world_orientation = link_state[1]
 
-    def get_camera_image(self, width, height):
-        # 获取相机的图像
-        view_matrix = p.computeViewMatrixFromYawPitchRoll(
-            cameraTargetPosition=self.camera_position,
-            distance=0.1,
-            yaw=self.camera_orientation[0],
-            pitch=self.camera_orientation[1],
-            roll=self.camera_orientation[2],
-            upAxisIndex=2,
+        # 将相机的四元数转换为旋转矩阵
+        rotation_matrix = np.array(
+            p.getMatrixFromQuaternion(camera_world_orientation)
+        ).reshape(3, 3)
+
+        # 将物体的相机坐标系位置转换到世界坐标系
+        world_position = np.dot(rotation_matrix, camera_position) + np.array(
+            camera_world_position
         )
-        projection_matrix = p.computeProjectionMatrixFOV(
-            fov=86, aspect=float(width) / height, nearVal=0.1, farVal=10.0
+
+        # 获取基座的世界坐标系位置和方向
+        base_position, base_orientation = p.getBasePositionAndOrientation(self.robot_id)
+        base_rotation_matrix = np.array(
+            p.getMatrixFromQuaternion(base_orientation)
+        ).reshape(3, 3)
+
+        # 将世界坐标系位置转换为基座坐标系位置
+        relative_position = np.dot(
+            base_rotation_matrix.T, world_position - np.array(base_position)
         )
-        _, _, rgba_image, depth_image, _ = p.getCameraImage(
-            width=width,
-            height=height,
-            viewMatrix=view_matrix,
-            projectionMatrix=projection_matrix,
-            renderer=p.ER_TINY_RENDERER,
-        )
-        return rgba_image, depth_image
 
-    def depth_to_world(self, depth_image, camera_intrinsics):
-        """将深度图像转换为世界坐标系中的点云"""
-        height, width = depth_image.shape
-        cx, cy, fx, fy = camera_intrinsics
-
-        x = np.linspace(0, width - 1, width)
-        y = np.linspace(0, height - 1, height)
-        xv, yv = np.meshgrid(x, y)
-
-        z = depth_image / 1000.0  # 转换深度图像的单位从毫米到米
-        x = (xv - cx) * z / fx
-        y = (yv - cy) * z / fy
-        point_cloud = np.stack([x, y, z], axis=-1)
-
-        return point_cloud
-
-    def get_object_position(self, point_cloud, mask):
-        """根据掩码获取物体的3D位置"""
-        object_points = point_cloud[mask]
-        object_position = np.mean(object_points, axis=0)
-        return object_position
+        return relative_position
 
 
 def main():
@@ -209,15 +193,8 @@ def main():
 
     # 将相机添加到机器人特定的链接上
     ik_solver.add_camera_to_link(
-        link_index=3, position=[0, 0.1, -0.05], orientation=[0, 0, 0]
-    )
-
-    camera_intrinsics = (
-        320,
-        240,
-        615,
-        615,
-    )  # Realsense D435 的内在参数 (cx, cy, fx, fy)
+        link_index=6, position=[0, 0.05, -0.05], orientation=[0, 0, 0]
+    )  # 确保 link_index 为正确的关节索引
 
     while True:
         user_input = input("Enter target coordinates relative to base_link (x y z): ")
@@ -225,35 +202,4 @@ def main():
         print(f"Target position relative to base_link: {target_position}")
 
         current_joint_angles = [0, 0, 0, 0, 0, 0, 0, 0]  # 根据实际情况设置初始关节角度
-        ik_solver.pybullet_move(target_position, current_joint_angles)
-        ik_solver.update_camera_position()  # 更新相机位置
-        p.stepSimulation()
-        time.sleep(1 / 240)  # 控制仿真步长
-
-        # 获取并显示相机图像
-        rgba_image, depth_image = ik_solver.get_camera_image(width=640, height=480)
-
-        # 显示图像
-        cv2.imshow("RGB Image", rgba_image)
-        cv2.imshow("Depth Image", depth_image)
-
-        # 将深度图像转换为世界坐标系中的点云
-        point_cloud = ik_solver.depth_to_world(depth_image, camera_intrinsics)
-
-        # 检测物体在RGB图像中的位置（例如通过颜色分割）
-        # 这里假设我们有一个简单的颜色掩码
-        mask = rgba_image[:, :, 2] > 128  # 假设物体是蓝色的
-
-        # 获取物体的3D位置
-        object_position = ik_solver.get_object_position(point_cloud, mask)
-        print(f"Object position in camera frame: {object_position}")
-
-        # 按下 'q' 键退出显示
-        if cv2.waitKey(1) & 0xFF == ord("q"):
-            break
-
-    cv2.destroyAllWindows()
-
-
-if __name__ == "__main__":
-    main()
+        ik_solver.py
