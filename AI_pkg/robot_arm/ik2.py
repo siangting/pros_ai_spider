@@ -9,152 +9,111 @@ import time
 class pybulletIK:
     def __init__(self, first_angle):
         self.angle = first_angle
+        # 计算基座位置的偏移量
+        base_position_offset = (
+            -2.989375374043843,
+            -1.1164329046590977,
+            -0.031849440895134605,
+        )
+
         # 初始化 PyBullet 仿真环境
         p.connect(p.GUI)  # 使用 GUI 模式，这样你可以看到仿真界面
         p.setAdditionalSearchPath(
             pybullet_data.getDataPath()
         )  # 设置搜索路径以找到 URDF 文件
-        # 加载平面和机器人 URDF 文件
-        p.loadURDF("plane.urdf")
+        p.loadURDF("plane.urdf")  # 加载平面
+
         current_directory = os.path.dirname(os.path.abspath(__file__))
         urdf_file_path = os.path.join(
             current_directory, "arm_ver6", "test_abb_4600.urdf"
         )
-        self.robot_id = p.loadURDF(urdf_file_path, useFixedBase=True)
+
+        # 使用计算出的偏移量来加载机器人
+        self.robot_id = p.loadURDF(
+            urdf_file_path, basePosition=base_position_offset, useFixedBase=True
+        )
         self.num_joints = p.getNumJoints(self.robot_id)
-        self.base_link_index = 0  # 假设 base_link 是第一个链接
 
-        # 加载小方块作为目标指示器
-        self.target_marker = p.loadURDF("cube_small.urdf", [0, 0, 0])
-        self.target_marker_position = [0, 0, 0]
-        p.changeVisualShape(
-            self.target_marker, -1, rgbaColor=[0, 0, 1, 1]
-        )  # 设置目标方块为蓝色
+        # 关闭手臂的物理碰撞
+        self.disable_collision_for_robot()
 
-        # 停止碰撞
-        for i in range(self.num_joints):
-            p.setCollisionFilterPair(self.robot_id, self.target_marker, i, -1, 0)
+        # 设置初始关节角度
+        self.set_joint_angles(first_angle)
 
-        # 初始化相机
-        self.camera_link_index = None
-        self.camera_position = None
-        self.camera_orientation = None
+        # 初始化相机（固定在第1轴的前方1公分）
+        self.camera_link_index = 0  # 假设第1轴的索引为0
+        self.camera_position = [2, 0, 0]  # 相机在第1轴正前方2公分
+        self.camera_orientation = [0, 0, 0, 1]  # 保持相机方向不变（四元数）
 
-        # 将深度相机的方块变红色
+        # 将红色方块作为深度相机的表示
         visual_shape_id = p.createVisualShape(
             shapeType=p.GEOM_BOX, rgbaColor=[1, 0, 0, 1], halfExtents=[0.02, 0.02, 0.02]
         )
-
-        # 加载方块作为相机指示器
-        self.camera_marker = p.createMultiBody(baseVisualShapeIndex=visual_shape_id)
+        self.camera_marker = p.createMultiBody(
+            baseVisualShapeIndex=visual_shape_id, basePosition=self.camera_position
+        )
         p.setCollisionFilterPair(
             self.robot_id, self.camera_marker, -1, -1, 0
         )  # 停止碰撞
 
+        # 初始化目标物体（绿色方块）
+        self.target_marker = self.create_target_marker()
+
+        # 创建并启动仿真线程
         self.simulation_thread = threading.Thread(target=self.run_simulation)
         self.simulation_thread.start()
 
-    def convert_to_urdf_angles(self, actual_angles):
-        # 进行角度转换
-        urdf_angles = list(actual_angles)
-        urdf_angles[0] = actual_angles[0] + np.deg2rad(90)
-        urdf_angles[1] = actual_angles[1] - np.deg2rad(30)  # 第二轴 0度 对应 URDF -60度
-        urdf_angles[2] = actual_angles[2] - np.deg2rad(
-            -40
-        )  # 第三轴 160度 对应 URDF 140度
-        urdf_angles[3] = actual_angles[3] - np.deg2rad(0)  # 第4轴 0度 对应 URDF 10度
-        return urdf_angles
-
-    def relative_to_world(self, relative_position):
-        # 获取 base_link 的位置和方向
-        base_position, base_orientation = p.getBasePositionAndOrientation(self.robot_id)
-        base_orientation_matrix = p.getMatrixFromQuaternion(base_orientation)
-        base_orientation_matrix = np.array(base_orientation_matrix).reshape(3, 3)
-
-        # 将相对坐标转换为世界坐标
-        world_position = np.dot(base_orientation_matrix, relative_position) + np.array(
-            base_position
-        )
-        return world_position
-
-    def pybullet_move(self, target, current_joint_angles):
-        # 设置目标位置（以相对于 base_link 的坐标表示）
-        target_position = target
-
-        # 将相对坐标转换为世界坐标
-        world_target_position = self.relative_to_world(target_position)
-
-        # 更新目标指示器的位置（仅在位置改变时更新）
-        if not np.allclose(
-            world_target_position, self.target_marker_position, atol=1e-3
-        ):
-            self.target_marker_position = world_target_position
-            p.resetBasePositionAndOrientation(
-                self.target_marker, world_target_position, [0, 0, 0, 1]
-            )
-
-        print(f"Target marker world position: {world_target_position}")
-
-        urdf_joint_angles = current_joint_angles
-        ik_solver = 0  # 使用DLS（Damped Least Squares）方法求解
-
-        # 执行逆运动学计算
-        joint_angles = p.calculateInverseKinematics(
-            self.robot_id,
-            6,  # 末端执行器的链接索引
-            world_target_position,
-            lowerLimits=[-np.pi] * self.num_joints,
-            upperLimits=[np.pi] * self.num_joints,
-            jointRanges=[2 * np.pi] * self.num_joints,
-            restPoses=urdf_joint_angles,
-            solver=ik_solver,
-        )
-
-        # 提取关节角度
-        joint_angles = joint_angles[: self.num_joints]
-
-        # 将关节角度应用到机器人模型
+    def disable_collision_for_robot(self):
+        """关闭机械手臂的物理碰撞"""
         for i in range(self.num_joints):
-            p.setJointMotorControl2(
-                self.robot_id, i, p.POSITION_CONTROL, joint_angles[i]
+            p.setCollisionFilterGroupMask(
+                self.robot_id, i, collisionFilterGroup=0, collisionFilterMask=0
             )
 
-        return joint_angles
+    def set_joint_angles(self, joint_angles):
+        """应用初始关节角度到机器人"""
+        for i in range(self.num_joints):
+            p.resetJointState(self.robot_id, i, joint_angles[i])
+
+    def create_target_marker(self):
+        """创建绿色方块表示目标物体"""
+        visual_shape_id = p.createVisualShape(
+            shapeType=p.GEOM_BOX, rgbaColor=[0, 1, 0, 1], halfExtents=[0.02, 0.02, 0.02]
+        )
+        target_marker = p.createMultiBody(
+            baseVisualShapeIndex=visual_shape_id, basePosition=[0, 0, 0]
+        )
+        p.setCollisionFilterPair(self.robot_id, target_marker, -1, -1, 0)  # 停止碰撞
+        return target_marker
+
+    def print_base_position(self):
+        """打印机械手臂基座的世界坐标"""
+        base_position, base_orientation = p.getBasePositionAndOrientation(self.robot_id)
+        print(f"Base position: {base_position}")
+        print(f"Base orientation (quaternion): {base_orientation}")
 
     def run_simulation(self):
+        """运行仿真"""
         while True:
             p.stepSimulation()
-            if self.camera_link_index is not None:
-                self.update_camera_position()  # 在每个仿真步更新相机位置
+            self.update_camera_marker()  # 更新相机标记位置
             time.sleep(1 / 240)
             p.setTimeStep(1 / 240)
-            p.setGravity(0, 0, 0)
+            p.setGravity(0, 0, -9.81)
 
-    def add_camera_to_link(self, link_index, position, orientation):
-        # 将方块作为相机附加到特定的链接上
-        self.camera_link_index = link_index
-        self.camera_position = position
-        self.camera_orientation = orientation
-        self.update_camera_position()
-
-    def update_camera_position(self):
-        if self.camera_link_index is None:
-            return
-
-        # 获取链接的位置和方向
+    def update_camera_marker(self):
+        """更新深度相机红色方块的位置"""
         link_state = p.getLinkState(self.robot_id, self.camera_link_index)
         link_world_position = link_state[0]
         link_world_orientation = link_state[1]
-        link_world_matrix = np.array(
-            p.getMatrixFromQuaternion(link_world_orientation)
-        ).reshape(3, 3)
-
-        # 计算相机的世界坐标位置
-        camera_world_position = np.dot(
-            link_world_matrix, self.camera_position
-        ) + np.array(link_world_position)
         p.resetBasePositionAndOrientation(
-            self.camera_marker, camera_world_position, link_world_orientation
+            self.camera_marker, link_world_position, link_world_orientation
+        )
+
+    def update_target_marker(self, target_position):
+        """更新目标物体（绿色方块）的世界坐标"""
+        p.resetBasePositionAndOrientation(
+            self.target_marker, target_position, [0, 0, 0, 1]
         )
 
     def transform_camera_to_base(self, camera_position):
@@ -187,19 +146,65 @@ class pybulletIK:
 
         return relative_position
 
+    def pybullet_move(self, target_camera_coords, current_joint_angles):
+        # 确保目标在相机的后方并在机械手臂的可达范围内
+        target_camera_coords[0] = -abs(target_camera_coords[0])  # 反转 X 轴
+        target_camera_coords[0] = -abs(target_camera_coords[0])
+        # target_camera_coords[2] = -abs(target_camera_coords[2])  # 反转 Y 轴
+
+        # 将目标从相机坐标系转换到基座坐标系
+        target_base_coords = self.transform_camera_to_base(target_camera_coords)
+        # 更新目标物体位置
+        self.update_target_marker(target_base_coords)
+
+        # 执行逆运动学计算
+        joint_angles = p.calculateInverseKinematics(
+            self.robot_id,
+            6,  # 末端执行器的链接索引
+            target_base_coords,
+            lowerLimits=[-np.pi] * self.num_joints,
+            upperLimits=[np.pi] * self.num_joints,
+            jointRanges=[2 * np.pi] * self.num_joints,
+            restPoses=current_joint_angles,
+        )
+
+        # 提取关节角度
+        joint_angles = joint_angles[: self.num_joints]
+
+        # 将关节角度应用到机器人模型
+        for i in range(self.num_joints):
+            p.setJointMotorControl2(
+                self.robot_id, i, p.POSITION_CONTROL, joint_angles[i]
+            )
+
+        return joint_angles
+
 
 def main():
-    ik_solver = pybulletIK([0, 0, 0, 0, 0, 0, 0, 0])
+    # 在此处设置你想要的初始关节角度
+    initial_joint_angles = [
+        np.deg2rad(90),  # 第一轴
+        np.deg2rad(0),  # 第二轴
+        np.deg2rad(160),  # 第三轴
+        np.deg2rad(0),  # 第四轴
+        np.deg2rad(0),  # 第五轴
+        np.deg2rad(0),  # 第六轴
+        np.deg2rad(0),  # 第七轴
+        np.deg2rad(0),  # 第八轴
+    ]
 
-    # 将相机添加到机器人特定的链接上
-    ik_solver.add_camera_to_link(
-        link_index=6, position=[0, 0.05, -0.05], orientation=[0, 0, 0]
-    )  # 确保 link_index 为正确的关节索引
+    ik_solver = pybulletIK(initial_joint_angles)
 
     while True:
-        user_input = input("Enter target coordinates relative to base_link (x y z): ")
-        target_position = [float(coord) for coord in user_input.split()]
-        print(f"Target position relative to base_link: {target_position}")
+        user_input = input("Enter target coordinates relative to camera (x y z): ")
+        target_camera_coords = [float(coord) for coord in user_input.split()]
+        print(f"Target position relative to camera: {target_camera_coords}")
 
         current_joint_angles = [0, 0, 0, 0, 0, 0, 0, 0]  # 根据实际情况设置初始关节角度
-        ik_solver.py
+        ik_solver.pybullet_move(target_camera_coords, current_joint_angles)
+        # 每次移动后打印基座位置
+        ik_solver.print_base_position()
+
+
+if __name__ == "__main__":
+    main()

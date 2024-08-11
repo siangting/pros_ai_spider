@@ -30,7 +30,7 @@ from PIL import Image
 import yaml
 import os
 from tf2_ros import StaticTransformBroadcaster
-from rclpy.qos import QoSProfile, DurabilityPolicy
+import roslibpy
 
 
 class AI_node(Node):
@@ -77,6 +77,15 @@ class AI_node(Node):
             "goal": False,
             "lidar": False,
         }
+
+        # ROSBridge client to connect to Jetson
+        self.rosbridge_client = roslibpy.Ros(host="192.168.0.207", port=9090)
+        self.rosbridge_client.run()
+        self.coordinate_topic = roslibpy.Topic(
+            self.rosbridge_client,
+            DeviceDataTypeEnum.robot_arm,
+            "trajectory_msgs/JointTrajectoryPoint",
+        )
 
         """
         接收目標, 車體目前位置, 輪子轉速, lidar的距離和vector
@@ -243,6 +252,17 @@ class AI_node(Node):
         velocities_back = [_vel3, _vel4]  # 後面的esp32
         self.publish_control_signal(velocities_front, self.publisher)
         self.publish_control_signal(velocities_back, self.publisher_forward)
+
+    def publish_arm_jetson(self, joint_pos):
+        roslibpy_joint_msg = roslibpy.Message(
+            {
+                "positions": [
+                    float(angle) for angle in joint_pos[:5]
+                ],  # 只取前5个关节角度
+                "time_from_start": {"secs": 0, "nsecs": 0},
+            }
+        )
+        self.coordinate_topic.publish(roslibpy_joint_msg)
 
     def publish_arm(self, joint_pos):
         msg = JointTrajectoryPoint()

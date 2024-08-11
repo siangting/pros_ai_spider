@@ -9,12 +9,21 @@ import cv2
 class RobotArmControl:
     def __init__(self, node):
         self.node = node
-        self.ik_solver = pybulletIK([0] * 8)
-        self.ik_solver.add_camera_to_link(
-            link_index=3, position=[0, 0.1, -0.05], orientation=[0, 0, 0]
-        )
-        self.current_angle = [0, 0, 0, 0, 0, 0, 0, 0]  # 初始关节角度设置为0
-        self.camera_intrinsics = (320, 240, 320, 240)  # 內外參 fx=fy=320, cx=cy=240
+        self.current_angle = [
+            np.deg2rad(90),
+            np.deg2rad(0),
+            np.deg2rad(160),
+            0,
+            0,
+            0,
+            0,
+            0,
+        ]
+        self.ik_solver = pybulletIK(self.current_angle)
+        # self.ik_solver.add_camera_to_link(
+        #     link_index=3, position=[0, 0.1, -0.05], orientation=[0, 0, 0]
+        # )
+        # self.current_angle = [0, 0, 0, 0, 0, 0, 0, 0]  # 初始关节角度设置为0
 
     def degree_to_radians(self, data):
         return list(np.radians(data))
@@ -36,20 +45,17 @@ class RobotArmControl:
             # 使用逆运动学计算关节角度
             radians = self.ik_solver.pybullet_move(target_coord, self.current_angle)
 
-            # 更新相机位置并获取图像
-            # self.ik_solver.update_camera_position()
-
             # 调整关节角度
-            radians = list(radians)
-            radians[0] += np.deg2rad(270)
-            radians[1] += np.deg2rad(30)
-            radians[2] += np.deg2rad(30)
-            radians = radians[0:5]
+            # radians = list(radians)
+            # radians[0] += np.deg2rad(270)
+            # radians[1] += np.deg2rad(30)
+            # radians[2] += np.deg2rad(30)
+            # radians = radians[0:5]
 
             # 发布关节角度到机械臂
-            self.node.publish_arm(radians)
-            time.sleep(1)
-            self.current_angle = radians  # 更新当前角度
+            # self.node.publish_arm(radians)
+            # time.sleep(1)
+            # self.current_angle = radians  # 更新当前角度
 
 
 def main(args=None):
