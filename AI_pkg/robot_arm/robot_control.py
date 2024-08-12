@@ -4,6 +4,8 @@ import numpy as np
 import time
 from robot_arm.ik2 import pybulletIK
 import cv2
+import roslibpy  # 导入 roslibpy 库
+from ros_receive_and_data_processing.car_models import *
 
 
 class RobotArmControl:
@@ -20,10 +22,17 @@ class RobotArmControl:
             0,
         ]
         self.ik_solver = pybulletIK(self.current_angle)
-        # self.ik_solver.add_camera_to_link(
-        #     link_index=3, position=[0, 0.1, -0.05], orientation=[0, 0, 0]
+
+        # 连接到 ROSBridge
+        # self.rosbridge_client = roslibpy.Ros(host="192.168.0.207", port=9090)
+        # self.rosbridge_client.run()
+
+        # 创建 ROSLib 发布者
+        # self.roslib_publisher = roslibpy.Topic(
+        #     self.rosbridge_client,
+        #     DeviceDataTypeEnum.robot_arm,
+        #     "trajectory_msgs/JointTrajectoryPoint",
         # )
-        # self.current_angle = [0, 0, 0, 0, 0, 0, 0, 0]  # 初始关节角度设置为0
 
     def degree_to_radians(self, data):
         return list(np.radians(data))
@@ -45,15 +54,23 @@ class RobotArmControl:
             # 使用逆运动学计算关节角度
             radians = self.ik_solver.pybullet_move(target_coord, self.current_angle)
 
-            # 调整关节角度
-            # radians = list(radians)
-            # radians[0] += np.deg2rad(270)
-            # radians[1] += np.deg2rad(30)
-            # radians[2] += np.deg2rad(30)
-            # radians = radians[0:5]
-
             # 发布关节角度到机械臂
-            # self.node.publish_arm(radians)
+            self.node.publish_arm(radians)
+
+            # 创建 JointTrajectoryPoint 消息
+            message = roslibpy.Message(
+                {
+                    "positions": radians,
+                    "velocities": [],  # 可以为空，或者填入速度值
+                    "accelerations": [],  # 可以为空，或者填入加速度值
+                    "effort": [],  # 可以为空，或者填入力矩值
+                    "time_from_start": {"secs": 0, "nsecs": 0},  # 可以根据需要设置
+                }
+            )
+
+            # 发布 JointTrajectoryPoint 消息到 ROSBridge
+            # self.roslib_publisher.publish(message)
+
             # time.sleep(1)
             # self.current_angle = radians  # 更新当前角度
 

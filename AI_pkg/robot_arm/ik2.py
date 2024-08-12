@@ -10,11 +10,11 @@ class pybulletIK:
     def __init__(self, first_angle):
         self.angle = first_angle
         # 计算基座位置的偏移量
-        base_position_offset = (
-            -2.989375374043843,
-            -1.1164329046590977,
-            -0.031849440895134605,
-        )
+        # base_position_offset = (
+        #     -2.989375374043843,
+        #     -1.1164329046590977,
+        #     -0.031849440895134605,
+        # )
 
         # 初始化 PyBullet 仿真环境
         p.connect(p.GUI)  # 使用 GUI 模式，这样你可以看到仿真界面
@@ -30,7 +30,10 @@ class pybulletIK:
 
         # 使用计算出的偏移量来加载机器人
         self.robot_id = p.loadURDF(
-            urdf_file_path, basePosition=base_position_offset, useFixedBase=True
+            urdf_file_path,
+            basePosition=(0, 0, 0),
+            baseOrientation=p.getQuaternionFromEuler([0, 0, np.pi / 2]),
+            useFixedBase=True,
         )
         self.num_joints = p.getNumJoints(self.robot_id)
 
@@ -42,7 +45,7 @@ class pybulletIK:
 
         # 初始化相机（固定在第1轴的前方1公分）
         self.camera_link_index = 0  # 假设第1轴的索引为0
-        self.camera_position = [2, 0, 0]  # 相机在第1轴正前方2公分
+        self.camera_position = [0, 0, 0]  # 相机在第1轴正前方2公分
         self.camera_orientation = [0, 0, 0, 1]  # 保持相机方向不变（四元数）
 
         # 将红色方块作为深度相机的表示
@@ -60,6 +63,7 @@ class pybulletIK:
         self.target_marker = self.create_target_marker()
 
         # 创建并启动仿真线程
+        self.update_camera_marker()
         self.simulation_thread = threading.Thread(target=self.run_simulation)
         self.simulation_thread.start()
 
@@ -90,13 +94,12 @@ class pybulletIK:
         """打印机械手臂基座的世界坐标"""
         base_position, base_orientation = p.getBasePositionAndOrientation(self.robot_id)
         print(f"Base position: {base_position}")
-        print(f"Base orientation (quaternion): {base_orientation}")
 
     def run_simulation(self):
         """运行仿真"""
         while True:
             p.stepSimulation()
-            self.update_camera_marker()  # 更新相机标记位置
+            # 更新相机标记位置
             time.sleep(1 / 240)
             p.setTimeStep(1 / 240)
             p.setGravity(0, 0, -9.81)
@@ -120,7 +123,7 @@ class pybulletIK:
         """将相机坐标系中的位置转换为基座坐标系"""
         # 获取相机在世界坐标系中的位置和方向
         link_state = p.getLinkState(self.robot_id, self.camera_link_index)
-        camera_world_position = link_state[0]
+        camera_world_position = np.array(link_state[0])
         camera_world_orientation = link_state[1]
 
         # 将相机的四元数转换为旋转矩阵
@@ -129,31 +132,50 @@ class pybulletIK:
         ).reshape(3, 3)
 
         # 将物体的相机坐标系位置转换到世界坐标系
-        world_position = np.dot(rotation_matrix, camera_position) + np.array(
-            camera_world_position
+        world_position = (
+            np.dot(rotation_matrix, camera_position) + camera_world_position
         )
 
         # 获取基座的世界坐标系位置和方向
         base_position, base_orientation = p.getBasePositionAndOrientation(self.robot_id)
+        base_position = np.array(base_position)
         base_rotation_matrix = np.array(
             p.getMatrixFromQuaternion(base_orientation)
         ).reshape(3, 3)
 
         # 将世界坐标系位置转换为基座坐标系位置
         relative_position = np.dot(
-            base_rotation_matrix.T, world_position - np.array(base_position)
+            base_rotation_matrix.T, world_position - base_position
         )
 
         return relative_position
 
     def pybullet_move(self, target_camera_coords, current_joint_angles):
         # 确保目标在相机的后方并在机械手臂的可达范围内
+        base_link_state = p.getLinkState(self.robot_id, self.camera_link_index)
+        base_link_position = np.array(base_link_state[0])  # 位置
+        base_link_orientation = base_link_state[1]  # 方向
+        rotation_matrix = np.array(
+            p.getMatrixFromQuaternion(base_link_orientation)
+        ).reshape(3, 3)
+        target_camera_coords = np.array(target_camera_coords)
+        # target_world_coords = (
+        #     np.dot(rotation_matrix, target_camera_coords) + base_link_position
+        # )
+        target_world_coords = target_camera_coords + base_link_position
         target_camera_coords[0] = -abs(target_camera_coords[0])  # 反转 X 轴
-        target_camera_coords[0] = -abs(target_camera_coords[0])
+        # target_camera_coords[0] = -abs(target_camera_coords[0])
         # target_camera_coords[2] = -abs(target_camera_coords[2])  # 反转 Y 轴
 
         # 将目标从相机坐标系转换到基座坐标系
-        target_base_coords = self.transform_camera_to_base(target_camera_coords)
+        # target_base_coords = self.transform_camera_to_base(target_camera_coords)
+        target_base_coords = target_world_coords
+        # tmp = target_base_coords[0]
+        # target_base_coords[0] = target_base_coords[1]
+        # target_base_coords[1] = tmp
+        # target_base_coords[2] = 0.1
+        # print(target_base_coords)
+
         # 更新目标物体位置
         self.update_target_marker(target_base_coords)
 
