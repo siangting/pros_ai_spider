@@ -21,19 +21,10 @@ class CustomCarEnv(gym.Env):
         super(CustomCarEnv, self).__init__()
         # state初始化
         self.AI_node = AI_node
-        self.AI_node.RL_mode_unity()
-        # 這邊只是為了一開始取得state要多長所做的localization和goal_pose
 
-        # self.AI_node.publisher_localization_map()
+        self.shape_number = self.get_initial_shape()
 
-        # self.AI_node.reset_amcl()
-
-        self.lidar_last = None
-
-        # # TODO
-        self.AI_node.publisher_random_goal_pose()
-        shape_number = self.get_initial_shape()
-
+        """
         # ddpg
         self.action_space = spaces.Box(
             low=-10.0, high=10.0, shape=(shape_number,), dtype=np.float32
@@ -41,29 +32,25 @@ class CustomCarEnv(gym.Env):
         self.observation_space = spaces.Box(
             low=-np.inf, high=np.inf, shape=(shape_number,), dtype=np.float32
         )
-
-        # ppo
-        # self.action_space = spaces.MultiDiscrete([21, 21])
-        # self.observation_space = spaces.Box(
-        #     low=-np.inf, high=np.inf, shape=(shape_number,), dtype=np.float32
-        # )
+        """
+        
+        self.action_space = spaces.MultiDiscrete([3]*16)
+        self.observation_space = spaces.Box(
+            low=-np.inf, high=np.inf, shape=(self.shape_number,), dtype=np.float32
+        )
 
     def step(self, action):
         # 0:前進 1:左轉 2:右轉 3:後退
         # elapsed_time = time.time() - self.start_time  #  計時
-        self.AI_node.reset_amcl()
-        action_vel = [action[0], action[1], action[0], action[1]]
-        self.AI_node.publish_to_robot(
-            action_vel, pid_control=True
-        )  #  送出後會等到unity做完動作後
+        self.AI_node.publish_to_robot(action)  #  送出後會等到unity做完動作後
         # print("action_vel : ", action_vel)
         # time.sleep(0.1)
-        unity_data = get_observation(self.AI_node)
-        reward = reward_cal(unity_data)  # reward
-        self.state = process_data_to_npfloat32_array(unity_data)
-        print("min lidar : ", min(unity_data["lidar_data"]))
-        terminated = min(unity_data["lidar_data"]) < 0.2
-        return self.state, reward, terminated, False, {}
+        # unity_data = get_observation(self.AI_node)
+        # reward = reward_cal(unity_data)  # reward
+        # self.state = process_data_to_npfloat32_array(unity_data)
+        # print("min lidar : ", min(unity_data["lidar_data"]))
+        # terminated = min(unity_data["lidar_data"]) < 0.2
+        return self.state, 0, False, False, {}
 
     def reset(self, seed=None, options=None):
 
@@ -72,9 +59,9 @@ class CustomCarEnv(gym.Env):
 
         # TODO
         # publish random /goal_pose
-        self.AI_node.reset_unity()
-        self.AI_node.publish_to_robot("STOP", pid_control=False)
-        self.AI_node.RL_mode_unity()
+        # self.AI_node.reset_unity()
+        # self.AI_node.publish_to_robot("STOP", pid_control=False)
+        # self.AI_node.RL_mode_unity()
         """
         因為 lcoalization 的地圖用到一半會斷線, 而 unity 一直無法自動連線,
         因此該方法目前職暫時棄用,

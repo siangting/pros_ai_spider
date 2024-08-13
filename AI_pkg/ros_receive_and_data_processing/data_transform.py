@@ -7,48 +7,23 @@ from utils.rotate_angle import calculate_angle_point
 """
 
 
-# obs 是 AI_node.py  real_car_data 的資料 這個 func 只會出現在 AI_node.py 內使用
+# obs 是 AI_node.py  real_car_data 的字典資料 這個 func 只會出現在 AI_node.py 內使用
 def preprocess_data(obs):
-    car_pos = obs["ROS2CarPosition"][:2]
-    target_pos = obs["ROS2TargetPosition"][:2]
-    car_quaternion = obs["ROS2CarQuaternion"][2:4]
-    lidar_data = obs["ROS2Range"]
-    left_front_speed = obs["ROS2WheelAngularVelocityLeftFront"]
-    right_front_speed = obs["ROS2WheelAngularVelocityRightFront"]
-    left_back_speed = obs["ROS2WheelAngularVelocityLeftBack"]
-    right_back_speed = obs["ROS2WheelAngularVelocityRightBack"]
-    arm_target_position = obs["arm_tartget_position"]
 
-    angle_diff = calculate_angle_point(  #  輸出面向目標角度
-        car_quaternion[0], car_quaternion[1], car_pos, target_pos
-    )
-    car_target_distance = cal_distance(car_pos, target_pos)
-    cmd_vel_nav = obs["cmd_vel_nav"]
-    try:
-        received_global_plan = obs["received_global_plan"]
-    except:
-        received_global_plan = None
+    # 先擷取資料片段
+    spider_center = obs["center_position"]
+
 
     # 以下宣告自己要回傳的資料
     state_dict = {
-        "car_pos": trans_to_float(car_pos),
-        "target_pos": trans_to_float(target_pos),
-        "car_target_distance": float(car_target_distance),
-        "car_quaternion": trans_to_float(car_quaternion),
-        "lidar_data": trans_to_float(lidar_data),
-        "relative_coordinates": trans_to_float(
-            round_to_decimal_places(
-                [target_pos[0] - car_pos[0], target_pos[1] - car_pos[1]]
-            )
-        ),
-        "angle_diff": angle_diff,
-        "cmd_vel_nav": cmd_vel_nav,
-        "received_global_plan": received_global_plan,
-        "amr_target_position": arm_target_position,
+        "spider_center_x": trans_to_float(spider_center)[0],
+        "spider_center_y": trans_to_float(spider_center)[1],
+        "spider_center_z": trans_to_float(spider_center)[2]
     }
 
     return state_dict
 
-
+"""
 def normalize(value, min_value, max_value):
     return (value - min_value) / (max_value - min_value)
+"""

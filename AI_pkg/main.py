@@ -1,21 +1,19 @@
 import rclpy
 import threading
-from ros_receive_and_data_processing.AI_node import AI_node
+from ros_receive_and_data_processing.AI_spider_node import AI_spider_node
 from avoidance_rule.rule_base import RuleBasedController
 
 # from car_supervised.lstm_inference import supervised_inference
-from car_navigation.navigation_main import NavigationController
-from robot_arm.robot_control import RobotArmControl
 
 # RL
-# import gymnasium as gym
-# from stable_baselines3 import PPO, DDPG
+import gymnasium as gym
+from stable_baselines3 import PPO, DDPG
 # from stable_baselines3.common.noise import NormalActionNoise
 # from stable_baselines3.common.env_util import make_vec_env
-# from car_RL.RL_training_main import CustomCarEnv
-# from car_RL.custom_callback import CustomCallback
+from car_RL.RL_training_main import CustomCarEnv
+from car_RL.custom_callback import CustomCallback
 # from stable_baselines3.common.logger import configure
-# from stable_baselines3.common.monitor import Monitor
+from stable_baselines3.common.monitor import Monitor
 # import numpy as np
 
 
@@ -44,29 +42,29 @@ from robot_arm.robot_control import RobotArmControl
 #     return model
 
 
-# def load_or_create_model_PPO(env, model_path):
-#     try:
-#         model = PPO.load(model_path)  #  load model
-#         env = Monitor(env)
-#         model.set_env(env)
-#         print(f"Model loaded successfully from {model_path}")
-#         print(f"Model learning rate: {model.lr_schedule(1.0)}")
-#         print(f"Model policy network: {model.policy}")
-#     except FileNotFoundError:  #  找不到就重新train一個
-#         model = PPO("MlpPolicy", env, verbose=1, learning_rate=0.001, device="cuda")
-#         print("Model not found. Training a new model.")
-#     return model
+def load_or_create_model_PPO(env, model_path):
+    try:
+        model = PPO.load(model_path)  #  load model
+        env = Monitor(env)
+        model.set_env(env)
+        print(f"Model loaded successfully from {model_path}")
+        print(f"Model learning rate: {model.lr_schedule(1.0)}")
+        print(f"Model policy network: {model.policy}")
+    except FileNotFoundError:  #  找不到就重新train一個
+        model = PPO("MlpPolicy", env, verbose=1, learning_rate=0.001, device="cuda")
+        print("Model not found. Training a new model.")
+    return model
 
 
-# def train_model_PPO(env):
-#     model = load_or_create_model_PPO(
-#         env, "./Model/ppo_custom_car_model_1000_1721272714.460118"
-#     )
-#     custom_callback = CustomCallback("./Model/ppo_custom_car_model", save_freq=1000)
-#     total_timesteps = 100000  # 訓練回合數
-#     model.learn(
-#         total_timesteps=total_timesteps, callback=custom_callback, log_interval=1
-#     )  #  進入env開始訓練
+def train_model_PPO(env):
+    model = load_or_create_model_PPO(
+        env, "./Model/ppo_custom_car_model_1000_1721272714.460118"
+    )
+    custom_callback = CustomCallback("./Model/ppo_custom_car_model", save_freq=1000)
+    total_timesteps = 100000  # 訓練回合數
+    model.learn(
+        total_timesteps=total_timesteps, callback=custom_callback, log_interval=1
+    )  #  進入env開始訓練
 
 
 # def train_model_DDPG(env):
@@ -80,18 +78,18 @@ from robot_arm.robot_control import RobotArmControl
 #     )  #  進入env開始訓練
 
 
-# def gym_env_register(AI_node):
-#     gym.register(
-#         id=CustomCarEnv.ENV_NAME,  # 使用自定義環境的名稱
-#         entry_point="car_RL.RL_training_main:CustomCarEnv",  # 模組名稱:類名稱
-#     )
-#     return gym.make("CustomCarEnv-v0", AI_node=AI_node)
+def gym_env_register(AI_node):
+    gym.register(
+        id = CustomCarEnv.ENV_NAME,  # 使用自定義環境的名稱
+        entry_point="car_RL.RL_training_main:CustomCarEnv",  # 模組名稱:類名稱
+    )
+    return gym.make("CustomCarEnv-v0", AI_node=AI_node)
 
 
 def init_ros_node():
     """node初始化並開一個thread跑ros node"""
     rclpy.init()
-    node = AI_node()
+    node = AI_spider_node()
     thread = threading.Thread(target=rclpy.spin, args=(node,))
     thread.start()
     return node, thread
@@ -115,10 +113,10 @@ def main(mode):
             node,
         )
         robot_controler.action()
-    # elif mode == "4":
-    #     env = gym_env_register(node)
-    #     # train_model_PPO(env)
-    #     train_model_DDPG(env)
+    elif mode == "4":
+        env = gym_env_register(node)
+        train_model_PPO(env)
+        #train_model_DDPG(env)
 
     else:
         print("Please type the correct numbers.")
