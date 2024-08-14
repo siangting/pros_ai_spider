@@ -2,55 +2,49 @@ import numpy as np
 import time
 import gymnasium as gym
 from gymnasium import spaces
-
-# from avoidance import refined_obstacle_avoidance_with_target_orientation
 from utils.obs_utils import process_data_to_npfloat32_array
 from utils.RL_utils import get_observation
-from ros_receive_and_data_processing.config import (
-    FRONT_LIDAR_INDICES,
-    LEFT_LIDAR_INDICES,
-    RIGHT_LIDAR_INDICES,
-)
-from car_RL.reward_cal import reward_cal
+from Spider_RL.reward_cal import reward_cal
 
 
-class CustomCarEnv(gym.Env):
-    ENV_NAME = "CustomCarEnv-v0"
+class CustomSpiderEnv(gym.Env):
+    ENV_NAME = "CustomSpiderEnv-v0"
 
     def __init__(self, AI_node):
-        super(CustomCarEnv, self).__init__()
-        # state初始化
+        super(CustomSpiderEnv, self).__init__()
         self.AI_node = AI_node
 
+        # observation的攤平長度
         self.shape_number = self.get_initial_shape()
 
-        """
-        # ddpg
-        self.action_space = spaces.Box(
-            low=-10.0, high=10.0, shape=(shape_number,), dtype=np.float32
-        )
-        self.observation_space = spaces.Box(
-            low=-np.inf, high=np.inf, shape=(shape_number,), dtype=np.float32
-        )
-        """
-        
-        self.action_space = spaces.MultiDiscrete([3]*16)
         self.observation_space = spaces.Box(
             low=-np.inf, high=np.inf, shape=(self.shape_number,), dtype=np.float32
         )
+        # 3: 3個動作選項(正負零) / 16: 16個關節
+        self.action_space = spaces.MultiDiscrete([3]*16) 
+
+
 
     def step(self, action):
-        # 0:前進 1:左轉 2:右轉 3:後退
-        # elapsed_time = time.time() - self.start_time  #  計時
-        self.AI_node.publish_to_robot(action)  #  送出後會等到unity做完動作後
-        # print("action_vel : ", action_vel)
-        # time.sleep(0.1)
-        # unity_data = get_observation(self.AI_node)
-        # reward = reward_cal(unity_data)  # reward
-        # self.state = process_data_to_npfloat32_array(unity_data)
-        # print("min lidar : ", min(unity_data["lidar_data"]))
-        # terminated = min(unity_data["lidar_data"]) < 0.2
-        return self.state, 0, False, False, {}
+        
+        # call AI_spider_node.publish_to_robot
+        self.AI_node.publish_jointpose(action) 
+        print("action : ", action)
+        time.sleep(0.1)
+        unity_data = get_observation(self.AI_node)
+
+        self.state = process_data_to_npfloat32_array(unity_data)
+
+        # TODO reward fuction
+        reward = 0 
+        #reward = reward_cal(unity_data)
+
+        # TODO terminate condition
+        terminated = False
+
+        return self.state, reward, terminated, False, {}
+        # TODO return self.state, reward, terminated, False, {}
+        
 
     def reset(self, seed=None, options=None):
 
@@ -79,7 +73,8 @@ class CustomCarEnv(gym.Env):
 
         return self.state, {}
 
-    def get_initial_shape(self):
+    def get_initial_shape(self) -> int:
+        """data dictionary 攤平成 data array 後，傳回 data array 長度"""
         obs_state = get_observation(self.AI_node)
         obs_state = process_data_to_npfloat32_array(obs_state)
         return len(obs_state)

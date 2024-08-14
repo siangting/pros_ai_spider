@@ -116,7 +116,6 @@ def main(mode):
     elif mode == "4":
         env = gym_env_register(node)
         train_model_PPO(env)
-        #train_model_DDPG(env)
 
     else:
         print("Please type the correct numbers.")
