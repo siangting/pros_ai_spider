@@ -29,7 +29,6 @@ class CustomSpiderEnv(gym.Env):
         
         # call AI_spider_node.publish_to_robot
         self.AI_node.publish_jointpose(action) 
-        print("action : ", action)
         time.sleep(0.1)
         unity_data = get_observation(self.AI_node)
 
