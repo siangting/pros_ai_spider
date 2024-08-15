@@ -29,7 +29,7 @@ class AI_spider_node(Node):
             Float32MultiArray,
             "/spider_center",
             self.spider_center_subscribe_callback,
-            10
+            1
         )
 
         # Recieve 16 current joints angles published by unity SpiderJointCurAnglePublisher.cs
@@ -37,7 +37,7 @@ class AI_spider_node(Node):
             Float32MultiArray,
             "/spider_joint_cur_angle",
             self.spider_joint_cur_angle_subscribe_callback,
-            10
+            1
         )
 
         # 發 spider 的16個關節角度給 unity spiderROSBridgeSubscriber.cs

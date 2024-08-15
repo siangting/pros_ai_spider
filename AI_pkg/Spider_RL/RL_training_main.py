@@ -33,6 +33,7 @@ class CustomSpiderEnv(gym.Env):
         unity_data = get_observation(self.AI_node)
 
         self.state = process_data_to_npfloat32_array(unity_data)
+        print(self.state)
 
         # TODO reward fuction
         reward = 0 
