@@ -38,8 +38,7 @@ class AI_spider_node(Node):
             10
         )
         
-    ## ---------- Subscribe event start ----------
-    def spider_center_subscribe_callback(self, msg : JointTrajectoryPoint) -> None:
+    def spider_center_subscribe_callback(self, msg: Float32MultiArray) -> None:
         """
         Receive the data msg from spider_center_subscriber.
         Store the data in to self.data_updated dictionary
@@ -62,7 +61,6 @@ class AI_spider_node(Node):
                 self.data_updated[key] = False
             #lastest_data is the final preprocessed data
             self.lastest_data = preprocess_data(self.spider_data)
-    ## ---------- Subscribe event end ----------
 
     
     def wait_for_data(self) -> dict[str, float]:
