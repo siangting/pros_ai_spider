@@ -111,22 +111,39 @@ class AI_spider_node(Node):
         """
         msg = JointTrajectoryPoint()
 
-        joint_variation = self.action_to_jointVariation(action)
+        joint_variation = self.action_to_jointVariation(action) # joint_variation --> radians
 
-        joint_target = [a + b for a, b in zip(joint_variation, list(self.lastest_data.values())[3])]
+        #### TODO 
+        print("\n\njoint_variation (degree)")
+        print([math.degrees(radian) for radian in joint_variation])
 
-        msg.positions = list(map(float, joint_target))
-        print(msg.positions)
+        print("\n\nlastest_data (degree)")
+        print(list(self.lastest_data.values())[3]) # list(self.lastest_data.values())[3] --> degrees
+
+        joint_target = [a + math.radians(b) for a, b in zip(joint_variation, list(self.lastest_data.values())[3])]
+        joint_target = [max(min(target, math.radians(28.0)), math.radians(-28.0)) for target in joint_target]
+
+        msg.positions = list(map(float, joint_target)) # msg.positions --> radians
+        print("\n\ntarget position (degree)")
+        print([math.degrees(radian) for radian in msg.positions])
 
 
         msg.velocities = [0.0, 0.0, 0.0, 0.0, 0.0]  
         self.joint_trajectory_publisher_.publish(msg)
 
-    def action_to_jointVariation(self, actions : any) -> list:
+    def action_to_jointVariation(self, actions: any) -> list:
         """
         Transfer discrete action options to joint angle variation.
 
-        params: actions: RL model produce discrete actions.
+        Parameters
+        ----------
+        actions: any
+            RL model produce discrete actions.
+        
+        Returns
+        -------
+        joint_variation: list
+            Trasfer from action option, the deserve variation of joints
         """
         joint_variation = []
         for action in actions:
@@ -137,8 +154,7 @@ class AI_spider_node(Node):
             elif action == 2:
                 joint_variation.append(math.radians(5.0))
         return joint_variation
-    
-        
+            
     # ---------- publish 16 joints target -----------
 
 
