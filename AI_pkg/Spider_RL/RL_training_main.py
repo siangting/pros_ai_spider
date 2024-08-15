@@ -28,7 +28,7 @@ class CustomSpiderEnv(gym.Env):
     def step(self, action):
         
         # call AI_spider_node.publish_to_robot
-        self.AI_node.publish_jointposition(action) 
+        self.AI_node.publish_jointtarget(action) 
         time.sleep(0.1)
         unity_data = get_observation(self.AI_node)
 

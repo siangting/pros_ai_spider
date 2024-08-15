@@ -101,7 +101,7 @@ class AI_spider_node(Node):
 
 
 
-    ## ---------- publish 16 joints position ----------
+    ## ---------- publish 16 joints target ----------
 
     def publish_jointtarget(self, action : any) -> None:
         """
@@ -111,8 +111,13 @@ class AI_spider_node(Node):
         """
         msg = JointTrajectoryPoint()
 
-        joint_pose = self.action_to_jointVariation(action)
-        msg.positions = [float(pose) for pose in joint_pose]
+        joint_variation = self.action_to_jointVariation(action)
+
+        joint_target = [a + b for a, b in zip(joint_variation, list(self.lastest_data.values())[3])]
+
+        msg.positions = list(map(float, joint_target))
+        print(msg.positions)
+
 
         msg.velocities = [0.0, 0.0, 0.0, 0.0, 0.0]  
         self.joint_trajectory_publisher_.publish(msg)
@@ -123,17 +128,18 @@ class AI_spider_node(Node):
 
         params: actions: RL model produce discrete actions.
         """
-        joint_pose = []
+        joint_variation = []
         for action in actions:
             if action == 0:
-                joint_pose.append(math.radians(-5))
+                joint_variation.append(math.radians(-5.0))
             elif action == 1:
-                joint_pose.append(math.radians(0))
+                joint_variation.append(math.radians(0.0))
             elif action == 2:
-                joint_pose.append(math.radians(5))
-        return joint_pose
+                joint_variation.append(math.radians(5.0))
+        return joint_variation
+    
         
-    # ---------- publish 16 joints position -----------
+    # ---------- publish 16 joints target -----------
 
 
     def reset(self) -> None:
