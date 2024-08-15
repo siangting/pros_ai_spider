@@ -68,25 +68,31 @@ class AI_spider_node(Node):
     def wait_for_data(self) -> dict[str, float]:
         """call by RL_utils.get_observation"""
         spider_state = self.lastest_data
-        # 等待收到 until lastest_data
+
+        i = 0 # calculators        
         while spider_state is None:
+            if not (i % 90000000):
+                print("\nwaiting for data ...")
+                print("Info: AI_spider_node")
             spider_state = self.lastest_data
+            i = i + 1
+
         return spider_state
 
 
 
     ## ---------- publish 16 joints position ----------
 
-    def publish_jointpose(self, action : any) -> None:
+    def publish_jointposition(self, action : any) -> None:
         msg = JointTrajectoryPoint()
 
-        joint_pose = self.preprocess_jointpose_publishData(action)
+        joint_pose = self.preprocess_jointposition_publishData(action)
         msg.positions = [float(pose) for pose in joint_pose]
 
         msg.velocities = [0.0, 0.0, 0.0, 0.0, 0.0]  
         self.joint_trajectory_publisher_.publish(msg)
 
-    def preprocess_jointpose_publishData(self, actions : any) -> list:
+    def preprocess_jointposition_publishData(self, actions : any) -> list:
         joint_pose = []
         for action in actions:
             if action == 0:
