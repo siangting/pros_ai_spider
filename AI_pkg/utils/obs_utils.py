@@ -7,6 +7,6 @@ def process_data_to_npfloat32_array(unity_data):
         flat_list.append(value)
     return np.array(flat_list, dtype=np.float32)
 
-def trans_to_float(data_list):
-    return [float(i) for i in data_list]
+def trans_to_float(data: any) -> list:
+    return [float(i) for i in data]
 

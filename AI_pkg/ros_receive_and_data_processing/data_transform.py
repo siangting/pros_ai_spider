@@ -11,13 +11,16 @@ def preprocess_data(obs : dict) -> dict:
     """
     # extract data part
     spider_center = obs["center_position"]
+    spider_cur_angle = obs["joint_cur_angle"]
 
     # declare data form what you want ot return
     state_dict = {
 
         "spider_center_x": trans_to_float(spider_center)[0],
         "spider_center_y": trans_to_float(spider_center)[1],
-        "spider_center_z": trans_to_float(spider_center)[2]
+        "spider_center_z": trans_to_float(spider_center)[2], # float
+        
+        "spider_joint_cur_angle": spider_cur_angle # array[float]
     }
 
     return state_dict

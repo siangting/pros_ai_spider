@@ -20,6 +20,7 @@ class AI_spider_node(Node):
         # data_updated 為確保資料項目有收到的 flag，
         self.data_updated = {
             "center_position": False,
+            "joint_cur_angle": False
         }
 
 
@@ -28,6 +29,14 @@ class AI_spider_node(Node):
             Float32MultiArray,
             "/spider_center",
             self.spider_center_subscribe_callback,
+            10
+        )
+
+        # Recieve 16 current joints angles published by unity SpiderJointCurAnglePublisher.cs
+        self.spider_joint_cur_angle_subscriber = self.create_subscription(
+            Float32MultiArray,
+            "/spider_joint_cur_angle",
+            self.spider_joint_cur_angle_subscribe_callback,
             10
         )
 
@@ -40,7 +49,7 @@ class AI_spider_node(Node):
         
     def spider_center_subscribe_callback(self, msg: Float32MultiArray) -> None:
         """
-        Receive the data msg from spider_center_subscriber.
+        Receive the raw msg from spider_center_subscriber.
         Store the data in to self.data_updated dictionary
         Change the data flag data_updated["center_position"].
 
@@ -49,6 +58,19 @@ class AI_spider_node(Node):
         """
         self.spider_data["center_position"] = msg.data
         self.data_updated["center_position"] = True
+        self.check_and_get_latest_data()
+
+    def spider_joint_cur_angle_subscribe_callback(self, msg: Float32MultiArray) -> None:
+        """
+        Receive the raw msg from spider_joint_cur_angle_subscriber.
+        Store the data in to self.data_updated dictionary
+        Change the data flag data_updated[""].
+
+        :param msg: The raw message receive from  spider_center_subscriber.
+
+        """
+        self.spider_data["joint_cur_angle"] = msg.data
+        self.data_updated["joint_cur_angle"] = True
         self.check_and_get_latest_data()
 
     def check_and_get_latest_data(self) -> None: 
