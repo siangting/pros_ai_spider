@@ -103,24 +103,34 @@ class AI_spider_node(Node):
 
     ## ---------- publish 16 joints position ----------
 
-    def publish_jointposition(self, action : any) -> None:
+    def publish_jointtarget(self, action : any) -> None:
+        """
+        Compute model action to actual joint angle position and publish.
+
+        params: action: RL model produce discrete actions.
+        """
         msg = JointTrajectoryPoint()
 
-        joint_pose = self.preprocess_jointposition_publishData(action)
+        joint_pose = self.action_to_jointVariation(action)
         msg.positions = [float(pose) for pose in joint_pose]
 
         msg.velocities = [0.0, 0.0, 0.0, 0.0, 0.0]  
         self.joint_trajectory_publisher_.publish(msg)
 
-    def preprocess_jointposition_publishData(self, actions : any) -> list:
+    def action_to_jointVariation(self, actions : any) -> list:
+        """
+        Transfer discrete action options to joint angle variation.
+
+        params: actions: RL model produce discrete actions.
+        """
         joint_pose = []
         for action in actions:
             if action == 0:
-                joint_pose.append(math.radians(-30))
+                joint_pose.append(math.radians(-5))
             elif action == 1:
                 joint_pose.append(math.radians(0))
             elif action == 2:
-                joint_pose.append(math.radians(30))
+                joint_pose.append(math.radians(5))
         return joint_pose
         
     # ---------- publish 16 joints position -----------
