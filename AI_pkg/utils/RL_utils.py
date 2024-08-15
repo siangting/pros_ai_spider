@@ -3,13 +3,13 @@
 """
 
 
-def get_observation(AI_spider_node):
+def get_observation(AI_spider_node) -> dict:
     AI_spider_node.reset()
     data_dict = remove_dict_key(AI_spider_node.wait_for_data())
     return data_dict
 
 
-def remove_dict_key(data_dict):
+def remove_dict_key(data_dict: dict) -> dict:
     keys_to_remove = []
     for key in keys_to_remove:
         data_dict.pop(key, None)  # 使用 pop 方法，避免 KeyError
