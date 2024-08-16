@@ -39,7 +39,7 @@ class AI_node(Node):
         self.get_logger().info("Ai start")
         self.real_car_data = {}
         self.data_to_AI = ""
-        self.lastest_data = None
+        self.latest_data = None
 
         """
         以下字典是用來定義這個node接收到最新的數值後傳送到UnityAdaptor.py內轉換
@@ -67,7 +67,7 @@ class AI_node(Node):
         # 目標座標
         self.real_car_data["arm_tartget_position"] = None
         """
-        確定以下資料都有收到 才會在 check_and_get_lastest_data() 更新最新資料
+        確定以下資料都有收到 才會在 check_and_get_latest_data() 更新最新資料
         amcl 追蹤車體目前位置
         goal 目標位置
         lidar lidar資料
@@ -195,16 +195,16 @@ class AI_node(Node):
     更新最新車體狀態資料
     """
 
-    def check_and_get_lastest_data(self):
+    def check_and_get_latest_data(self):
         # print(self.data_updated.values())
         if all(self.data_updated.values()):
             # 確認所有的數據都更新並publish
             self.data_updated["amcl"] = False
             self.data_updated["lidar"] = False
-            self.lastest_data = preprocess_data(self.real_car_data)
+            self.latest_data = preprocess_data(self.real_car_data)
 
     def get_latest_data(self):
-        return self.lastest_data
+        return self.latest_data
 
     def get_target_pos(self):
         return self.real_car_data["arm_tartget_position"]
@@ -284,11 +284,11 @@ class AI_node(Node):
         self.publish_to_robot("STOP", pid_control=False)
 
     """
-    重製lastest_data
+    重製latest_data
     """
 
     def reset(self):
-        self.lastest_data = None
+        self.latest_data = None
         # self.publish_to_robot("STOP", pid_control=False)
 
     """
@@ -313,7 +313,7 @@ class AI_node(Node):
 
     def update_and_check_data(self, data_type):
         self.data_updated[data_type] = True
-        self.check_and_get_lastest_data()
+        self.check_and_get_latest_data()
 
     """
     amcl的subscribe function

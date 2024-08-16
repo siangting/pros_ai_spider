@@ -13,6 +13,8 @@ class CustomSpiderEnv(gym.Env):
     def __init__(self, AI_node):
         super(CustomSpiderEnv, self).__init__()
         self.AI_node = AI_node
+        self.pre_z = 27
+        self.step_counter = 0
 
         # observation的攤平長度
         self.shape_number = self.get_initial_shape()
@@ -29,16 +31,20 @@ class CustomSpiderEnv(gym.Env):
         
         # call AI_spider_node.publish_to_robot
         self.AI_node.publish_jointtarget(action) 
-        time.sleep(0.1)
+        time.sleep(0.02)
         unity_data = get_observation(self.AI_node)
 
         self.state = process_data_to_npfloat32_array(unity_data)
+        # print("Spider Center Z: " + str(unity_data["spider_center_z"]))
+        
+        reward = reward_cal(unity_data, self.pre_z)
 
+        if (self.step_counter % 50 == 0):
+            print("\nreward: " + str(round(reward)) + '\n')
+        self.step_counter = self.step_counter + 1
 
-        # TODO reward fuction
-        reward = 0 
-        #reward = reward_cal(unity_data)
-
+        
+        self.pre_z = unity_data["spider_center_z"]
         # TODO terminate condition
         terminated = False
 

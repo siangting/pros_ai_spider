@@ -9,13 +9,15 @@ class AI_spider_node(Node):
     def __init__(self):
         super().__init__("AI_spider_node")
         self.get_logger().info("Ai spider start")
+
+        self.subscribe_center_counter = 0
         
         
         # spider_data 儲存從 rosbridge 收到的 raw data
         self.spider_data = {}
 
         # 儲存從 ros_receive_and_data_processing.data_transform.preprocess_data 處理好的 data (字典)
-        self.lastest_data = None 
+        self.latest_data = None 
 
         # data_updated 為確保資料項目有收到的 flag，
         self.data_updated = {
@@ -57,6 +59,9 @@ class AI_spider_node(Node):
 
         """
         self.spider_data["center_position"] = msg.data
+
+        self.subscribe_center_counter = self.subscribe_center_counter + 1
+     
         self.data_updated["center_position"] = True
         self.check_and_get_latest_data()
 
@@ -73,6 +78,7 @@ class AI_spider_node(Node):
         self.data_updated["joint_cur_angle"] = True
         self.check_and_get_latest_data()
 
+
     def check_and_get_latest_data(self) -> None: 
         """
         Check if all data is recieved.
@@ -81,22 +87,36 @@ class AI_spider_node(Node):
         if all(self.data_updated.values()):
             for key in self.data_updated:
                 self.data_updated[key] = False
-            #lastest_data is the final preprocessed data
-            self.lastest_data = preprocess_data(self.spider_data)
+            #latest_data is the final preprocessed data
+            self.latest_data = preprocess_data(self.spider_data)
 
     
     def wait_for_data(self) -> dict[str, float]:
-        """call by RL_utils.get_observation"""
-        spider_state = self.lastest_data
+        """
+        Will be call by RL_utils.get_observation.
+        Before system call wait_for_data, self.latest_data will be clear.
+        wait_for_data() will wait util self.latest_data exit.
+
+        Return
+        ----------
+        spider_state : dict[str, float]
+            The newest processed data from ROSBridge.
+        
+        Raise
+        ----------
+        Aware of the endless loop in the function.
+        First 90000000 times waiting while loop will not log imformation.
+        """
+        spider_state = self.latest_data
 
         i = 0 # calculators        
         while spider_state is None:
-            if not (i % 90000000):
+            if (i % 90000000 == 0) and i != 0:
                 print("\nwaiting for data ...")
                 print("Info: AI_spider_node")
-            spider_state = self.lastest_data
+            spider_state = self.latest_data
             i = i + 1
-
+        
         return spider_state
 
 
@@ -145,11 +165,11 @@ class AI_spider_node(Node):
         joint_variation = []
         for action in actions:
             if action == 0:
-                joint_variation.append(math.radians(-5.0))
+                joint_variation.append(math.radians(-20.0))
             elif action == 1:
                 joint_variation.append(math.radians(0.0))
             elif action == 2:
-                joint_variation.append(math.radians(5.0))
+                joint_variation.append(math.radians(20.0))
         return joint_variation
     
     def compute_jointTarget(self, joint_variation: list[float]) -> list[float]:
@@ -172,7 +192,7 @@ class AI_spider_node(Node):
         Be aware of degree and radians transformation.
         """
 
-        joint_target = [a + math.radians(b) for a, b in zip(joint_variation, list(self.lastest_data.values())[3])] # joint_target --> radians
+        joint_target = [a + math.radians(b) for a, b in zip(joint_variation, list(self.latest_data.values())[3])] # joint_target --> radians
 
         for i in range(len(joint_target)): # limits are all less than Unity target limit for 2 degree for safety
             if (i % 2 == 0): # shoulder
@@ -184,14 +204,14 @@ class AI_spider_node(Node):
                 joint_target[i] = max(min(joint_target[i], math.radians(58)), math.radians(-58))
 
 
-        print("\n\njoint_variation (degree)")
-        print([math.degrees(radian) for radian in joint_variation]) # joint_variation --> radians
+        # print("\n\njoint_variation (degree)")
+        # print([math.degrees(radian) for radian in joint_variation]) # joint_variation --> radians
 
-        print("\n\nlastest_data (degree)")
-        print(list(self.lastest_data.values())[3]) # list(self.lastest_data.values())[3] --> degrees
+        # print("\n\nlatest_data (degree)")
+        # print(list(self.latest_data.values())[3]) # list(self.latest_data.values())[3] --> degrees
 
-        print("\n\ntarget position (degree)")
-        print([math.degrees(radian) for radian in joint_target]) # joint_target --> radians
+        # print("\n\ntarget position (degree)")
+        # print([math.degrees(radian) for radian in joint_target]) # joint_target --> radians
 
         return joint_target
             
@@ -199,6 +219,6 @@ class AI_spider_node(Node):
 
 
     def reset(self) -> None:
-        self.lastest_data = None
+        self.latest_data = None
 
 

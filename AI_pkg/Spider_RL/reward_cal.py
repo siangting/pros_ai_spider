@@ -1,14 +1,15 @@
-def reward_cal(data):
+def reward_cal(data : dict, pre_z: float) -> float:
     reward = 0
-    # if data["car_target_distance"] < 0.5:
-    #     reward += 10
-    # elif data["car_target_distance"] < 0.8:
-    #     reward += 5
-    # elif data["car_target_distance"] < 0.2:
-    #     reward += 100
-    # reward 建議設-1到1之間
-    if min(data["lidar_data"]) < 0.5:
-        reward -= 100
-    elif min(data["lidar_data"]) > 0.5:
-        reward += 10
+    x = data["spider_center_x"]
+    z = data["spider_center_z"]
+
+    if z > pre_z:
+        reward = -pow(10, 3) * abs(x - -1.5) + 9 * pow(10, 3) * abs(z - pre_z)
+    else:
+        reward = -pow(10, 3) * abs(x - -1.5) + -2 * pow(10, 3) * abs(z - pre_z)
+
+
+    
+    reward = float(reward)
+
     return reward

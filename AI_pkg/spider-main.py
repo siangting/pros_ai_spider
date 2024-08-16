@@ -43,6 +43,8 @@ def train_model_PPO(env):
     model.learn(
         total_timesteps=total_timesteps, callback=custom_callback, log_interval=1
     )  #  進入env開始訓練
+    
+    # TODO save model
 
 def gym_env_register(node):
     gym.register(
