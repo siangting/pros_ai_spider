@@ -105,33 +105,30 @@ class AI_spider_node(Node):
 
     def publish_jointtarget(self, action : any) -> None:
         """
-        Compute model action to actual joint angle position and publish.
+        The publish event main function.
+        Call functions to compute model action to actual joint angle position and publish.
 
-        params: action: RL model produce discrete actions.
+        Parameters
+        ----------
+        actions: any
+            RL model produce discrete actions.
+
+        Raises
+        ----------
+        Be aware of degree and radians transformation.
         """
         msg = JointTrajectoryPoint()
 
         joint_variation = self.action_to_jointVariation(action) # joint_variation --> radians
 
-        #### TODO 
-        print("\n\njoint_variation (degree)")
-        print([math.degrees(radian) for radian in joint_variation])
-
-        print("\n\nlastest_data (degree)")
-        print(list(self.lastest_data.values())[3]) # list(self.lastest_data.values())[3] --> degrees
-
-        joint_target = [a + math.radians(b) for a, b in zip(joint_variation, list(self.lastest_data.values())[3])]
-        joint_target = [max(min(target, math.radians(28.0)), math.radians(-28.0)) for target in joint_target]
+        joint_target = self.compute_jointTarget(joint_variation) # joint_target --> radians
 
         msg.positions = list(map(float, joint_target)) # msg.positions --> radians
-        print("\n\ntarget position (degree)")
-        print([math.degrees(radian) for radian in msg.positions])
-
 
         msg.velocities = [0.0, 0.0, 0.0, 0.0, 0.0]  
         self.joint_trajectory_publisher_.publish(msg)
 
-    def action_to_jointVariation(self, actions: any) -> list:
+    def action_to_jointVariation(self, actions: any) -> list[float]:
         """
         Transfer discrete action options to joint angle variation.
 
@@ -154,6 +151,49 @@ class AI_spider_node(Node):
             elif action == 2:
                 joint_variation.append(math.radians(5.0))
         return joint_variation
+    
+    def compute_jointTarget(self, joint_variation: list[float]) -> list[float]:
+        """
+        Sum joint variation and lastest joint position
+        Limit the joint targets' degree.
+
+        Parameters:
+        ----------
+        joint_variation: list[float]
+            Trasfer from RL model action in action_to_jointVariation()
+        
+        Returns:
+        ----------
+        joint_target: list[float]
+            The desire joint radians ready to send to unity.
+        
+        Raises:
+        ----------
+        Be aware of degree and radians transformation.
+        """
+
+        joint_target = [a + math.radians(b) for a, b in zip(joint_variation, list(self.lastest_data.values())[3])] # joint_target --> radians
+
+        for i in range(len(joint_target)): # limits are all less than Unity target limit for 2 degree for safety
+            if (i % 2 == 0): # shoulder
+                if i in [0, 2, 12, 14]:
+                    joint_target[i] = max(min(joint_target[i], math.radians(88)), math.radians(-18))
+                else:
+                    joint_target[i] = max(min(joint_target[i], math.radians(18)), math.radians(-88))
+            else: # calf
+                joint_target[i] = max(min(joint_target[i], math.radians(58)), math.radians(-58))
+
+
+        print("\n\njoint_variation (degree)")
+        print([math.degrees(radian) for radian in joint_variation]) # joint_variation --> radians
+
+        print("\n\nlastest_data (degree)")
+        print(list(self.lastest_data.values())[3]) # list(self.lastest_data.values())[3] --> degrees
+
+        print("\n\ntarget position (degree)")
+        print([math.degrees(radian) for radian in joint_target]) # joint_target --> radians
+
+        return joint_target
             
     # ---------- publish 16 joints target -----------
 
