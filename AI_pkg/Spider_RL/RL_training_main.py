@@ -35,8 +35,7 @@ class CustomSpiderEnv(gym.Env):
         unity_data = get_observation(self.AI_node)
 
         self.state = process_data_to_npfloat32_array(unity_data)
-        # print("Spider Center Z: " + str(unity_data["spider_center_z"]))
-        
+
         reward = reward_cal(unity_data, self.pre_z)
 
         if (self.step_counter % 50 == 0):
@@ -80,7 +79,15 @@ class CustomSpiderEnv(gym.Env):
         return self.state, {}
 
     def get_initial_shape(self) -> int:
-        """data dictionary 攤平成 data array 後，傳回 data array 長度"""
+        """
+        Compute the 1D array length of self.state by AI_spider_node lastest_data.
+        And return the array length to initialize the PPO obervation shape.
+
+        Returns
+        ----------
+        int
+            The length of the processed observation state array.
+        """
         obs_state = get_observation(self.AI_node)
         obs_state = process_data_to_npfloat32_array(obs_state)
         return len(obs_state)

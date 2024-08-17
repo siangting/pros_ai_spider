@@ -214,7 +214,7 @@ class AI_spider_node(Node):
         Be aware of degree and radians transformation.
         """
 
-        joint_target = [a + math.radians(b) for a, b in zip(joint_variation, list(self.latest_data.values())[3])] # joint_target --> radians
+        joint_target = [a + math.radians(b) for a, b in zip(joint_variation, list(self.latest_data["spider_joint_cur_angle"]))] # joint_target --> radians
 
         for i in range(len(joint_target)): # limits are all less than Unity target limit for 2 degree for safety
             if (i % 2 == 0): # shoulder
