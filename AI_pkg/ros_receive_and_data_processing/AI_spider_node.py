@@ -10,9 +10,6 @@ class AI_spider_node(Node):
         super().__init__("AI_spider_node")
         self.get_logger().info("Ai spider start")
 
-        self.subscribe_center_counter = 0
-        
-        
         # spider_data 儲存從 rosbridge 收到的 raw data
         self.spider_data = {}
 
@@ -22,15 +19,24 @@ class AI_spider_node(Node):
         # data_updated 為確保資料項目有收到的 flag，
         self.data_updated = {
             "center_position": False,
-            "joint_cur_angle": False
+            "joint_cur_angle": False,
+            "head_position": False
         }
 
 
-        # 收 unity SpiderCenterPublisher.cs 傳的 spider 中點座標 (x, y, z)
+        # Recieve spider center array(x, y, z) from unity SpiderCenterPublisher.cs
         self.spider_center_subscriber = self.create_subscription(
             Float32MultiArray,
             "/spider_center",
             self.spider_center_subscribe_callback,
+            1
+        )
+
+        # Recieve spider head array(x, y, z) from unity SpiderHeadPublisher.cs 
+        self.spider_head_subscriber = self.create_subscription(
+            Float32MultiArray,
+            "/spider_head",
+            self.spider_head_subscribe_callback,
             1
         )
 
@@ -51,20 +57,36 @@ class AI_spider_node(Node):
         
     def spider_center_subscribe_callback(self, msg: Float32MultiArray) -> None:
         """
-        Receive the raw msg from spider_center_subscriber.
+        Receive the raw spider center position msg from spider_center_subscriber.
         Store the data in to self.data_updated dictionary
         Change the data flag data_updated["center_position"].
 
-        :param msg: The raw message receive from  spider_center_subscriber.
-
+        Parameters
+        ----------
+        msg: Float32MultiArray
+            The raw spider center position message (x, y, z) receive from  spider_center_subscriber.
         """
-        self.spider_data["center_position"] = msg.data
-
-        self.subscribe_center_counter = self.subscribe_center_counter + 1
-     
+        self.spider_data["center_position"] = msg.data     
         self.data_updated["center_position"] = True
         self.check_and_get_latest_data()
 
+    def spider_head_subscribe_callback(self, msg: Float32MultiArray) -> None:
+        """
+        Receive the raw spider head position msg from spider_head_subscriber.
+        Store the data in to self.data_updated dictionary
+        Change the data flag data_updated["head_position"].
+
+        Parameters
+        ----------
+        msg: Float32MultiArray
+            The raw spider head position message (x, y, z) receive from  spider_head_subscriber.
+
+        """
+        self.spider_data["head_position"] = msg.data
+        self.data_updated["head_position"] = True
+        self.check_and_get_latest_data()        
+
+    
     def spider_joint_cur_angle_subscribe_callback(self, msg: Float32MultiArray) -> None:
         """
         Receive the raw msg from spider_joint_cur_angle_subscriber.
@@ -88,7 +110,7 @@ class AI_spider_node(Node):
             for key in self.data_updated:
                 self.data_updated[key] = False
             #latest_data is the final preprocessed data
-            self.latest_data = preprocess_data(self.spider_data)
+            self.latest_data = preprocess_data(self.spider_data)  
 
     
     def wait_for_data(self) -> dict[str, float]:
