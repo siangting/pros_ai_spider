@@ -1,6 +1,7 @@
 import numpy as np
 import time
 import gymnasium as gym
+import queue
 from gymnasium import spaces
 from utils.obs_utils import process_data_to_npfloat32_array
 from utils.RL_utils import get_observation
@@ -13,16 +14,20 @@ class CustomSpiderEnv(gym.Env):
     def __init__(self, AI_node):
         super(CustomSpiderEnv, self).__init__()
         self.AI_node = AI_node
-        self.pre_z = 27
+
+        self.pre_z = queue.Queue()
+        self.queue_size = 20
+        for _ in range(self.queue_size):
+            self.pre_z.put(27.0)
         self.step_counter = 0
 
-        # observation的攤平長度
+        # The flatten 1D array length of obervation dictionary
         self.shape_number = self.get_initial_shape()
 
         self.observation_space = spaces.Box(
             low=-np.inf, high=np.inf, shape=(self.shape_number,), dtype=np.float32
         )
-        # 3: 3個動作選項(正負零) / 16: 16個關節
+        # 3 action options and 16 joints
         self.action_space = spaces.MultiDiscrete([3]*16) 
 
 
@@ -36,14 +41,15 @@ class CustomSpiderEnv(gym.Env):
 
         self.state = process_data_to_npfloat32_array(unity_data)
 
-        reward = reward_cal(unity_data, self.pre_z)
+        reward = reward_cal(unity_data, self.pre_z, self.queue_size)
 
         if (self.step_counter % 50 == 0):
             print("\nreward: " + str(round(reward)) + '\n')
         self.step_counter = self.step_counter + 1
 
-        
-        self.pre_z = unity_data["spider_center_z"]
+        self.pre_z.get()
+        self.pre_z.put(unity_data["spider_center_z"])
+
         # TODO terminate condition
         terminated = False
 
