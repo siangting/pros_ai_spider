@@ -1,11 +1,8 @@
 import rclpy
 import threading
 from ros_receive_and_data_processing.AI_spider_node import AI_spider_node
-
-
 import gymnasium as gym
 from stable_baselines3 import PPO
-
 from Spider_RL.RL_training_main import CustomSpiderEnv
 from Spider_RL.custom_callback import CustomCallback
 from stable_baselines3.common.monitor import Monitor
@@ -22,29 +19,27 @@ def init_ros_node():
 
 def load_or_create_model_PPO(env, model_path):
     try:
-        model = PPO.load(model_path)  #  load model
+        model = PPO.load(model_path)
         env = Monitor(env)
         model.set_env(env)
         print(f"Model loaded successfully from {model_path}")
         print(f"Model learning rate: {model.lr_schedule(1.0)}")
         print(f"Model policy network: {model.policy}")
-    except FileNotFoundError:  #  找不到就重新train一個
+    except FileNotFoundError: 
         model = PPO("MlpPolicy", env, verbose=1, learning_rate=0.001, device="cuda")
-        print("Model not found. Training a new model.")
+        print("Model is not found. Train a new model.")
     return model
 
 
 def train_model_PPO(env):
     model = load_or_create_model_PPO(
-        env, "./Model/ppo_custom_car_model_1000_1721272714.460118"
+        env, "./Model/ppo_spider_model"
     )
-    custom_callback = CustomCallback("./Model/ppo_custom_car_model", save_freq=1000)
-    total_timesteps = 100000  # 訓練回合數
+    custom_callback = CustomCallback("./Model/ppo_spider_model", save_freq=10)
+    total_timesteps = 10  # total_training_step
     model.learn(
         total_timesteps=total_timesteps, callback=custom_callback, log_interval=1
-    )  #  進入env開始訓練
-    
-    # TODO save model
+    )  #  Enter env and start training
 
 def gym_env_register(node):
     gym.register(
