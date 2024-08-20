@@ -2,6 +2,7 @@ import math
 from rclpy.node import Node
 from ros_receive_and_data_processing.data_transform import preprocess_data
 from trajectory_msgs.msg import JointTrajectoryPoint
+from std_msgs.msg import Bool
 from std_msgs.msg import Float32MultiArray
 
 
@@ -48,10 +49,17 @@ class AI_spider_node(Node):
             1
         )
 
-        # 發 spider 的16個關節角度給 unity spiderROSBridgeSubscriber.cs
+        # send 16 joints' angles to unity spiderROSBridgeSubscriber.cs
         self.joint_trajectory_publisher_ = self.create_publisher(
             JointTrajectoryPoint,
             'spider_joint_trajectory_point',
+            10
+        )
+
+        # send reset signal to SpiderSceneResetSubscriber.cs
+        self.spider_scene_reset_publisher_ = self.create_publisher(
+            Bool,
+            'reset_unity',
             10
         )
         
@@ -240,7 +248,12 @@ class AI_spider_node(Node):
     # ---------- publish 16 joints target -----------
 
 
-    def reset(self) -> None:
+    def reset_latest_data(self) -> None:
         self.latest_data = None
+
+    def reset_unity(self) -> None:
+        msg = Bool()
+        msg.data = True
+        self.spider_scene_reset_publisher_.publish(msg)
 
 

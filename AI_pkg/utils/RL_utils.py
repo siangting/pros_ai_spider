@@ -5,7 +5,7 @@ Produce state dictionary ready to be flatten and become RL state.
 
 
 def get_observation(AI_spider_node) -> dict:
-    AI_spider_node.reset()
+    AI_spider_node.reset_latest_data()
     data_dict = add_spider_toward_key(AI_spider_node.wait_for_data())
     data_dict = remove_dict_key(data_dict)
     return data_dict

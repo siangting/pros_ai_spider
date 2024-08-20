@@ -37,12 +37,11 @@ class CustomSpiderEnv(gym.Env):
         # call AI_spider_node.publish_to_robot
         self.AI_node.publish_jointtarget(action) 
         time.sleep(0.02)
-        unity_data = get_observation(self.AI_node)
 
+        unity_data = get_observation(self.AI_node)
         self.state = process_data_to_npfloat32_array(unity_data)
 
         reward = reward_cal(unity_data, self.pre_z, self.queue_size)
-
         if (self.step_counter % 50 == 0):
             print("\nreward: " + str(round(reward)) + '\n')
         self.step_counter = self.step_counter + 1
@@ -50,33 +49,22 @@ class CustomSpiderEnv(gym.Env):
         self.pre_z.get()
         self.pre_z.put(unity_data["spider_center_z"])
 
-        # TODO terminate condition
+
+
         terminated = False
+        if (self.step_counter % 200 == 0):
+            terminated = True
+        
 
         return self.state, reward, terminated, False, {}
-        # TODO return self.state, reward, terminated, False, {}
         
 
     def reset(self, seed=None, options=None):
 
         print("Reset Game")
-        # self.AI_node.reset()
-
-        # TODO
-        # publish random /goal_pose
-        # self.AI_node.reset_unity()
-        # self.AI_node.publish_to_robot("STOP", pid_control=False)
-        # self.AI_node.RL_mode_unity()
-        """
-        因為 lcoalization 的地圖用到一半會斷線, 而 unity 一直無法自動連線,
-        因此該方法目前職暫時棄用,
-        不然本來要自動做 localization 和自動 publish 一個隨機random位置
-        """
-        # self.AI_node.publisher_localization_map()
-        # self.AI_node.reset_amcl()
-        # self.AI_node.publisher_random_goal_pose()
-
-        # 發送 unity 跟他說目前是 RL mode
+        self.AI_node.reset_latest_data()
+        self.AI_node.reset_unity()
+        time.sleep(1)
 
         unity_data_reset_state = get_observation(self.AI_node)
         self.state = process_data_to_npfloat32_array(unity_data_reset_state)
