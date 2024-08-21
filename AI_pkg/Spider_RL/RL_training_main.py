@@ -52,7 +52,7 @@ class CustomSpiderEnv(gym.Env):
 
 
         terminated = False
-        if (self.step_counter % 200 == 0):
+        if (self.step_counter % 1024 == 0):
             terminated = True
         
 
@@ -68,7 +68,7 @@ class CustomSpiderEnv(gym.Env):
 
         unity_data_reset_state = get_observation(self.AI_node)
         self.state = process_data_to_npfloat32_array(unity_data_reset_state)
-        time.sleep(1)
+        time.sleep(0.5)
 
         return self.state, {}
 

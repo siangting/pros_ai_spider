@@ -143,7 +143,6 @@ class AI_spider_node(Node):
         while spider_state is None:
             if (i % 90000000 == 0) and i != 0:
                 print("\nwaiting for data ...")
-                print("Info: AI_spider_node")
             spider_state = self.latest_data
             i = i + 1
         

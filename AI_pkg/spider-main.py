@@ -25,18 +25,23 @@ def load_or_create_model_PPO(env, model_path):
         print(f"Model loaded successfully from {model_path}")
         print(f"Model learning rate: {model.lr_schedule(1.0)}")
         print(f"Model policy network: {model.policy}")
+    
     except FileNotFoundError: 
-        model = PPO("MlpPolicy", env, verbose=1, learning_rate=0.001, device="cuda")
+        model = PPO("MlpPolicy", 
+                    env, verbose=1, learning_rate=0.001,
+                    n_steps=1024, batch_size=64, 
+                    n_epochs=10, device="cuda")
+
         print("Model is not found. Train a new model.")
     return model
 
 
 def train_model_PPO(env):
     model = load_or_create_model_PPO(
-        env, "./Model/ppo_spider_model"
+        env, "./Model/PPO_spider_2024-08-21.pt"
     )
-    custom_callback = CustomCallback("./Model/ppo_spider_model", save_freq=10)
-    total_timesteps = 10  # total_training_step
+    custom_callback = CustomCallback("./Model/PPO_spider", save_freq=1024)
+    total_timesteps = 2048 * 32  # total_training_step
     model.learn(
         total_timesteps=total_timesteps, callback=custom_callback, log_interval=1
     )  #  Enter env and start training

@@ -15,9 +15,10 @@ class CustomCallback(BaseCallback):
         Saving function schedually every "save_freq" steps.
         """
         if self.n_calls - self.last_save_step >= self.save_freq:
-            now = datetime.datetime.now()
-            self.time_name = datetime.datetime.timestamp(now)
-            self.model.save(f"{self.save_path}_{self.n_calls}_{self.time_name}")
+            print(f"Run {self.n_calls} steps...")
+            self.date = datetime.date.today()
+            self.model.save(f"{self.save_path}_{self.date}.pt")
+            print(f"Save {self.save_path}_{self.date}.pt\n\n")
             self.last_save_step = self.n_calls
 
         return True
