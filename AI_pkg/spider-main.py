@@ -28,9 +28,9 @@ def load_or_create_model_PPO(env, model_path):
     
     except FileNotFoundError: 
         model = PPO("MlpPolicy", 
-                    env, verbose=1, learning_rate=0.001,
-                    n_steps=1024, batch_size=64, 
-                    n_epochs=10, device="cuda")
+                    env, verbose = 1, learning_rate = 0.001,
+                    n_steps = 256, batch_size = 64, 
+                    n_epochs = 10, device = "cuda")
 
         print("Model is not found. Train a new model.")
     return model
@@ -40,8 +40,8 @@ def train_model_PPO(env):
     model = load_or_create_model_PPO(
         env, "./Model/PPO_spider_2024-08-21.pt"
     )
-    custom_callback = CustomCallback("./Model/PPO_spider", save_freq=1024)
-    total_timesteps = 2048 * 32  # total_training_step
+    custom_callback = CustomCallback("./Model/PPO_spider", save_freq = 1024)
+    total_timesteps = 1024 * 2  # total_training_step
     model.learn(
         total_timesteps=total_timesteps, callback=custom_callback, log_interval=1
     )  #  Enter env and start training
@@ -49,7 +49,7 @@ def train_model_PPO(env):
 def gym_env_register(node):
     gym.register(
         id = CustomSpiderEnv.ENV_NAME,  
-        entry_point="Spider_RL.RL_training_main:CustomSpiderEnv",  # TODO modify
+        entry_point = "Spider_RL.RL_training_main:CustomSpiderEnv",  # TODO modify
     )
     return gym.make("CustomSpiderEnv-v0", AI_node = node)
 

@@ -42,9 +42,10 @@ class CustomSpiderEnv(gym.Env):
         self.state = process_data_to_npfloat32_array(unity_data)
 
         reward = reward_cal(unity_data, self.pre_z, self.queue_size)
-        if (self.step_counter % 50 == 0):
-            print("\nreward: " + str(round(reward)) + '\n')
+
         self.step_counter = self.step_counter + 1
+        if (self.step_counter % 64 == 0):
+            print("\nreward: " + str(round(reward)) + '\n')
 
         self.pre_z.get()
         self.pre_z.put(unity_data["spider_center_z"])
