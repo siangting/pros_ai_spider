@@ -4,6 +4,7 @@ from ros_receive_and_data_processing.data_transform import preprocess_data
 from trajectory_msgs.msg import JointTrajectoryPoint
 from std_msgs.msg import Bool
 from std_msgs.msg import Float32MultiArray
+from ros_receive_and_data_processing.SpiderConfig import SpiderConfig
 
 
 class AI_spider_node(Node):
@@ -194,11 +195,11 @@ class AI_spider_node(Node):
         joint_variation = []
         for action in actions:
             if action == 0:
-                joint_variation.append(math.radians(-20.0))
+                joint_variation.append(math.radians(SpiderConfig.ACTION_DEGREE["0"]))
             elif action == 1:
-                joint_variation.append(math.radians(0.0))
+                joint_variation.append(math.radians(SpiderConfig.ACTION_DEGREE["1"]))
             elif action == 2:
-                joint_variation.append(math.radians(20.0))
+                joint_variation.append(math.radians(SpiderConfig.ACTION_DEGREE["2"]))
         return joint_variation
     
     def compute_jointTarget(self, joint_variation: list[float]) -> list[float]:
@@ -206,17 +207,17 @@ class AI_spider_node(Node):
         Sum joint variation and lastest joint position
         Limit the joint targets' degree.
 
-        Parameters:
+        Parameters
         ----------
         joint_variation: list[float]
             Trasfer from RL model action in action_to_jointVariation()
         
-        Returns:
+        Returns
         ----------
         joint_target: list[float]
             The desire joint radians ready to send to unity.
         
-        Raises:
+        Raises
         ----------
         Be aware of degree and radians transformation.
         """
@@ -226,11 +227,11 @@ class AI_spider_node(Node):
         for i in range(len(joint_target)): # limits are all less than Unity target limit for 2 degree for safety
             if (i % 2 == 0): # shoulder
                 if i in [0, 2, 12, 14]:
-                    joint_target[i] = max(min(joint_target[i], math.radians(88)), math.radians(-18))
+                    joint_target[i] = max(min(joint_target[i], math.radians(SpiderConfig.JOINT_LIMIT["shoulder_abduction"])), math.radians(-SpiderConfig.JOINT_LIMIT["shoulder_adduction"]))
                 else:
-                    joint_target[i] = max(min(joint_target[i], math.radians(18)), math.radians(-88))
+                    joint_target[i] = max(min(joint_target[i], math.radians(SpiderConfig.JOINT_LIMIT["shoulder_adduction"])), math.radians(-SpiderConfig.JOINT_LIMIT["shoulder_abduction"]))
             else: # calf
-                joint_target[i] = max(min(joint_target[i], math.radians(58)), math.radians(-58))
+                joint_target[i] = max(min(joint_target[i], math.radians(SpiderConfig.JOINT_LIMIT["calf"])), math.radians(-SpiderConfig.JOINT_LIMIT["calf"]))
 
 
         # print("\n\njoint_variation (degree)")

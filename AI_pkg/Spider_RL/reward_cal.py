@@ -1,6 +1,23 @@
 from queue import Queue
 
 def reward_cal(data : dict, pre_z: Queue, queue_size: float) -> float:
+    """
+    Calculates the reward based on the given data and configuration.
+
+    Parameters
+    ----------
+        data: dict 
+            Input data used for reward calculation.
+        pre_z: Queue 
+            A queue that stores previous z values.
+        queue_size: float
+            The size of the queue for pre_z.
+
+    Returns
+    ----------
+        reward: float
+            The calculated reward.
+    """
 
     reward = 0
     x = data["spider_center_x"]
@@ -16,9 +33,9 @@ def reward_cal(data : dict, pre_z: Queue, queue_size: float) -> float:
     reward_forward_z = 0
 
     for i in range(queue_size):
-        reward_forward_z += (z - temp_list[i]) * (20 - i)
+        reward_forward_z += (z - temp_list[i]) * (queue_size - i)
     
-    reward_forward_z = round(reward_forward_z * 1.5 * pow(10, 3) / 210)
+    reward_forward_z = round(reward_forward_z * 1.5 * pow(10, 3) / ((1 + queue_size) * queue_size / 2))
 
     reward = reward_offset_x + reward_forward_z
 

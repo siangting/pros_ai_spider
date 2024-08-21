@@ -6,6 +6,7 @@ from gymnasium import spaces
 from utils.obs_utils import process_data_to_npfloat32_array
 from utils.RL_utils import get_observation
 from Spider_RL.reward_cal import reward_cal
+from Spider_RL.PPOConfig import PPOConfig
 
 
 class CustomSpiderEnv(gym.Env):
@@ -14,11 +15,11 @@ class CustomSpiderEnv(gym.Env):
     def __init__(self, AI_node):
         super(CustomSpiderEnv, self).__init__()
         self.AI_node = AI_node
-
         self.pre_z = queue.Queue()
-        self.queue_size = 20
+        self.queue_size = PPOConfig.PRE_Z_QUEUE_SIZE
+
         for _ in range(self.queue_size):
-            self.pre_z.put(27.0)
+            self.pre_z.put(PPOConfig.PRE_Z_INIT_VALUE)
         self.step_counter = 0
 
         # The flatten 1D array length of obervation dictionary
@@ -60,7 +61,7 @@ class CustomSpiderEnv(gym.Env):
         return self.state, reward, terminated, False, {}
         
 
-    def reset(self, seed=None, options=None):
+    def reset(self, seed = None, options = None):
 
         print("Reset Game")
         self.AI_node.reset_latest_data()
