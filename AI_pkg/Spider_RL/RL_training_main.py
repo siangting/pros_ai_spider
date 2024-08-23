@@ -19,7 +19,7 @@ class CustomSpiderEnv(gym.Env):
         self.queue_size = PPOConfig.PRE_Z_QUEUE_SIZE
 
         for _ in range(self.queue_size):
-            self.pre_z.put(PPOConfig.PRE_Z_INIT_VALUE)
+            self.pre_z.put(PPOConfig.Z_INIT_VALUE)
         self.step_counter = 0
 
         # The flatten 1D array length of obervation dictionary
@@ -42,7 +42,7 @@ class CustomSpiderEnv(gym.Env):
         unity_data = get_observation(self.AI_node)
         self.state = process_data_to_npfloat32_array(unity_data)
 
-        reward = reward_cal(unity_data, self.pre_z, self.queue_size)
+        reward = reward_cal(unity_data, self.pre_z)
 
         self.step_counter = self.step_counter + 1
         if (self.step_counter % 64 == 0):

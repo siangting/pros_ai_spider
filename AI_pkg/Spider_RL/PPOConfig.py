@@ -39,7 +39,8 @@ class PPOConfig:
     TOTAL_TIME_STEPS: int = 1024 * 2
 
     # Env setting
-    PRE_Z_INIT_VALUE: float = 27.0
+    X_INIT_VALUE: float = 0.0
+    Z_INIT_VALUE: float = 0.0
     PRE_Z_QUEUE_SIZE: int = 20
 
 
