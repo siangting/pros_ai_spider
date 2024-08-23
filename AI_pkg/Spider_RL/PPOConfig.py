@@ -18,7 +18,13 @@ class PPOConfig:
 
         Z_INIT_VALUE (float): The initial value for the pre-z parameter in the environment.
         Z_QUEUE_SIZE (int): The size of the queue for storing pre-z values. Note that the queue is later used to calculate model reward.
-    
+        PRE_Z_QUEUE_SIZE (int): # The queue size to store init. Note that queue value must be 1 in reward target mode.
+        
+        REWARD_MODE (str):  "target mode" / "no target mode"
+        TARGET_x (float) :  "target mode" parameters.
+        TARGET_Y: float : "target mode" parameters.
+
+
     Note: 
         n_updates = total_timesteps // (n_steps * n_envs)
     
@@ -41,7 +47,12 @@ class PPOConfig:
     # Env setting
     X_INIT_VALUE: float = 0.0
     Z_INIT_VALUE: float = 0.0
-    PRE_Z_QUEUE_SIZE: int = 20
+    PRE_Z_QUEUE_SIZE: int = 20 # PRE_Z_QUEUE_SIZE must be 1 in reward target mode.
+
+    # reward setting
+    REWARD_MODE: str = "no target mode"  # "target mode" / "no target mode"
+    TARGET_x: float = 0.0 # "target mode" parameters.
+    TARGET_Y: float = 70.0 # "target mode" parameters.
 
 
 
