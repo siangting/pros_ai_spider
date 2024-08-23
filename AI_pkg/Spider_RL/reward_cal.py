@@ -2,7 +2,7 @@ from queue import Queue
 from Spider_RL.PPOConfig import PPOConfig
 import os
 
-def reward_cal(data : dict, pre_z: Queue) -> float:
+def reward_cal(data : dict, pre_z: Queue, step_counter: int) -> float:
     """
     Calculates the reward based on the given data and configuration.
     Two modes to choose: "target mode", "no target mode". Choose in PPOConfig.py.
@@ -13,6 +13,8 @@ def reward_cal(data : dict, pre_z: Queue) -> float:
             Input data used for reward calculation.
         pre_z: Queue 
             A queue that stores previous z values.
+        step_counter: int
+            How many steps the training in this game round have done. Reset to zero when reset game.
 
     Returns
     ----------

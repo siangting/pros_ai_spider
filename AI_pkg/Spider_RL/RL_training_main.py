@@ -20,7 +20,7 @@ class CustomSpiderEnv(gym.Env):
 
         for _ in range(self.queue_size):
             self.pre_z.put(PPOConfig.Z_INIT_VALUE)
-        self.step_counter = 0
+        self.step_counter: int = 0 # step_counter will reset to 0 again when reset game.
 
         # The flatten 1D array length of obervation dictionary
         self.shape_number = self.get_initial_shape()
@@ -42,7 +42,7 @@ class CustomSpiderEnv(gym.Env):
         unity_data = get_observation(self.AI_node)
         self.state = process_data_to_npfloat32_array(unity_data)
 
-        reward = reward_cal(unity_data, self.pre_z)
+        reward = reward_cal(unity_data, self.pre_z, self.step_counter)
 
         self.step_counter = self.step_counter + 1
         if (self.step_counter % 64 == 0):
@@ -64,6 +64,7 @@ class CustomSpiderEnv(gym.Env):
     def reset(self, seed = None, options = None):
 
         print("Reset Game")
+        self.step_counter = 0
         self.AI_node.reset_latest_data()
         self.AI_node.reset_unity()
         time.sleep(1)
