@@ -69,7 +69,7 @@ def no_target_reward(x: float, z: float, pre_z: Queue) -> float:
 
 def target_reward(x, z, step_counter) -> float:
     current_spider_tree_dist: float = (PPOConfig.TARGET_Z - z) ** 2 + (PPOConfig.TARGET_X - x) ** 2
-    print("current_spider_tree_dist " +  str(current_spider_tree_dist))
     distance_reward: float = (SPIDER_TREE_INIT_DIST - current_spider_tree_dist) * PPOConfig.DISTANCE_MULTIPLY_PARAM
+    print("Forward distance " +  str(SPIDER_TREE_INIT_DIST - current_spider_tree_dist))
     time_penalty: float = step_counter * PPOConfig.TIME_MULTIPLY_PARAM
     return  distance_reward - time_penalty

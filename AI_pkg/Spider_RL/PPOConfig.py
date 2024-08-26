@@ -38,17 +38,17 @@ class PPOConfig:
     
     # Create PPO model
     LEARNING_RATE: float = 0.001
-    N_STEPS: int = 256
+    N_STEPS: int = 1024
     BATCH_SIZE: int = 64
     N_EPOCHS: int = 10
 
     # Load PPO model
-    MODEL_PATH: str = "./Model/PPO_spider_2024-08-21.pt"
+    MODEL_PATH: str = "./Model/PPO_spider_2024-08-26.pt"
     DEFAULT_MODLE_NAME: str = "./Model/PPO_spider"
 
     # training PPO model
-    SAVE_MODEL_FREQUENCE: int = 1024
-    TOTAL_TIME_STEPS: int = 1024 * 2
+    SAVE_MODEL_FREQUENCE: int = 1024 * 16
+    TOTAL_TIME_STEPS: int = 1024 * 128 * 256
 
     # Env setting
     X_INIT_VALUE: float = 0.0
