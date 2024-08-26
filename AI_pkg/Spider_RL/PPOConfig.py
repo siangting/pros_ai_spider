@@ -22,6 +22,9 @@ class PPOConfig:
         
         REWARD_MODE (str):  "target mode" / "no target mode"
 
+        X_MOTIPLY_PARAM (float) : The penalty multiply parameter of X offset.
+        Z_MOTIPLY_PARAM (float) : The reward multiply parameter of forward z behavior.
+
         TARGET_X (float) : "target mode" parameters.
         TARGET_Z (float) : "target mode" parameters.
 
@@ -50,12 +53,14 @@ class PPOConfig:
     # Env setting
     X_INIT_VALUE: float = 0.0
     Z_INIT_VALUE: float = 0.0
-    PRE_Z_QUEUE_SIZE: int = 20 # PRE_Z_QUEUE_SIZE must be 1 in reward target mode.
+    PRE_Z_QUEUE_SIZE: int = 1 # PRE_Z_QUEUE_SIZE must be 1 in reward target mode.
 
     # reward setting
-    REWARD_MODE: str = "no target mode"  # "target mode" / "no target mode"
+    REWARD_MODE: str = "target mode"  # "target mode" / "no target mode"
     
-    
+    # no target reward mode setting
+    X_MOTIPLY_PARAM: float = -5.0 * pow(10, 2) # The penalty multiply parameter of X offset.
+    Z_MOTIPLY_PARAM: float = 1.5 * pow(10, 3) # The reward multiply parameter of forward z behavior.
     
     # target reward mode setting
     TARGET_X: float = 0.0 # "target mode" parameters.

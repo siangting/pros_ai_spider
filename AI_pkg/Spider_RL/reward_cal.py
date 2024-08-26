@@ -29,9 +29,9 @@ def reward_cal_main(data : dict, pre_z: Queue, step_counter: int) -> float:
         PRE_Z_QUEUE_SIZE must be 1 in "target mode". Otherwise the terminal will raise error.
     """
 
-    reward = 0
-    x = data["spider_center_x"]
-    z = data["spider_center_z"]
+    reward : float = 0.0
+    x: float = data["spider_center_x"]
+    z: float = data["spider_center_z"]
     
     if (PPOConfig.REWARD_MODE == "target mode" and PPOConfig.PRE_Z_QUEUE_SIZE != 1):
         print("Target mode reward now: PRE_Z_QUEUE_SIZE must be 1...\n")
@@ -50,26 +50,26 @@ def reward_cal_main(data : dict, pre_z: Queue, step_counter: int) -> float:
     return reward
 
 def no_target_reward(x: float, z: float, pre_z: Queue) -> float:
-    temp_list = []
+    temp_list: list = []
     for _ in range(PPOConfig.PRE_Z_QUEUE_SIZE):
         temp_z = pre_z.get()  
         temp_list.append(temp_z)
         pre_z.put(temp_z)
 
-    reward_offset_x = round(-5 * pow(10, 2) * abs(x - PPOConfig.X_INIT_VALUE))
-    reward_forward_z = 0
+    reward_offset_x: float = PPOConfig.X_MOTIPLY_PARAM * abs(x - PPOConfig.X_INIT_VALUE)
+    reward_forward_z: float = 0.0
 
     for i in range(PPOConfig.PRE_Z_QUEUE_SIZE):
         reward_forward_z += (z - temp_list[i]) * (PPOConfig.PRE_Z_QUEUE_SIZE - i)  
     
-    reward_forward_z = round(reward_forward_z * 1.5 * pow(10, 3) / ((1 + PPOConfig.PRE_Z_QUEUE_SIZE) * PPOConfig.PRE_Z_QUEUE_SIZE / 2))
+    reward_forward_z = reward_forward_z * PPOConfig.Z_MOTIPLY_PARAM / ((1 + PPOConfig.PRE_Z_QUEUE_SIZE) * PPOConfig.PRE_Z_QUEUE_SIZE / 2)
 
     return reward_offset_x + reward_forward_z
 
 
 def target_reward(x, z, step_counter) -> float:
-    current_spider_tree_dist = (PPOConfig.TARGET_Z - z) ** 2 + (PPOConfig.TARGET_X - x) ** 2
+    current_spider_tree_dist: float = (PPOConfig.TARGET_Z - z) ** 2 + (PPOConfig.TARGET_X - x) ** 2
     print("current_spider_tree_dist " +  str(current_spider_tree_dist))
-    distance_reward = (SPIDER_TREE_INIT_DIST - current_spider_tree_dist) * PPOConfig.DISTANCE_MULTIPLY_PARAM
-    time_penalty = step_counter * PPOConfig.TIME_MULTIPLY_PARAM
+    distance_reward: float = (SPIDER_TREE_INIT_DIST - current_spider_tree_dist) * PPOConfig.DISTANCE_MULTIPLY_PARAM
+    time_penalty: float = step_counter * PPOConfig.TIME_MULTIPLY_PARAM
     return  distance_reward - time_penalty
