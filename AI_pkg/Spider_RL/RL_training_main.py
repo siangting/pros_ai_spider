@@ -5,7 +5,7 @@ import queue
 from gymnasium import spaces
 from utils.obs_utils import process_data_to_npfloat32_array
 from utils.RL_utils import get_observation
-from Spider_RL.reward_cal import reward_cal
+from Spider_RL import reward_cal
 from Spider_RL.PPOConfig import PPOConfig
 
 
@@ -17,10 +17,10 @@ class CustomSpiderEnv(gym.Env):
         self.AI_node = AI_node
         self.pre_z = queue.Queue()
         self.queue_size = PPOConfig.PRE_Z_QUEUE_SIZE
-
+   
         for _ in range(self.queue_size):
             self.pre_z.put(PPOConfig.Z_INIT_VALUE)
-        self.step_counter: int = 0 # step_counter will reset to 0 again when reset game.
+        self.step_counter : int = 0 # step_counter will reset to 0 again when reset game.
 
         # The flatten 1D array length of obervation dictionary
         self.shape_number = self.get_initial_shape()
@@ -42,7 +42,7 @@ class CustomSpiderEnv(gym.Env):
         unity_data = get_observation(self.AI_node)
         self.state = process_data_to_npfloat32_array(unity_data)
 
-        reward = reward_cal(unity_data, self.pre_z, self.step_counter)
+        reward = reward_cal.reward_cal_main(unity_data, self.pre_z, self.step_counter)
 
         self.step_counter = self.step_counter + 1
         if (self.step_counter % 64 == 0):

@@ -21,9 +21,12 @@ class PPOConfig:
         PRE_Z_QUEUE_SIZE (int): # The queue size to store init. Note that queue value must be 1 in reward target mode.
         
         REWARD_MODE (str):  "target mode" / "no target mode"
-        TARGET_x (float) :  "target mode" parameters.
-        TARGET_Y: float : "target mode" parameters.
 
+        TARGET_X (float) : "target mode" parameters.
+        TARGET_Z (float) : "target mode" parameters.
+
+        DISTANCE_MULTIPLY_PARAM (float) : The multiply parameter of calculating distance reward.
+        TIME_MULTIPLY_PARAM (float) : The multiply parameter of calculating time penalty.
 
     Note: 
         n_updates = total_timesteps // (n_steps * n_envs)
@@ -51,8 +54,15 @@ class PPOConfig:
 
     # reward setting
     REWARD_MODE: str = "no target mode"  # "target mode" / "no target mode"
-    TARGET_x: float = 0.0 # "target mode" parameters.
-    TARGET_Y: float = 70.0 # "target mode" parameters.
+    
+    
+    
+    # target reward mode setting
+    TARGET_X: float = 0.0 # "target mode" parameters.
+    TARGET_Z: float = 70.0 # "target mode" parameters.
+
+    DISTANCE_MULTIPLY_PARAM: float = 10.0 # The multiply parameter of calculating distance reward.
+    TIME_MULTIPLY_PARAM: float = 1.0  # The multiply parameter of calculating time penalty.
 
 
 

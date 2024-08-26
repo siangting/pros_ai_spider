@@ -2,7 +2,10 @@ from queue import Queue
 from Spider_RL.PPOConfig import PPOConfig
 import os
 
-def reward_cal(data : dict, pre_z: Queue, step_counter: int) -> float:
+# SPIDER_TREE_INIT_DIST is used by target mode.
+SPIDER_TREE_INIT_DIST: float = (PPOConfig.TARGET_Z - PPOConfig.Z_INIT_VALUE) ** 2 + (PPOConfig.TARGET_X - PPOConfig.X_INIT_VALUE) ** 2
+
+def reward_cal_main(data : dict, pre_z: Queue, step_counter: int) -> float:
     """
     Calculates the reward based on the given data and configuration.
     Two modes to choose: "target mode", "no target mode". Choose in PPOConfig.py.
@@ -29,33 +32,44 @@ def reward_cal(data : dict, pre_z: Queue, step_counter: int) -> float:
     reward = 0
     x = data["spider_center_x"]
     z = data["spider_center_z"]
-
+    
     if (PPOConfig.REWARD_MODE == "target mode" and PPOConfig.PRE_Z_QUEUE_SIZE != 1):
         print("Target mode reward now: PRE_Z_QUEUE_SIZE must be 1...\n")
         os._exit()
 
     if (PPOConfig.REWARD_MODE == "no target mode"):
-        temp_list = []
-        for _ in range(PPOConfig.PRE_Z_QUEUE_SIZE):
-            temp_z = pre_z.get()  
-            temp_list.append(temp_z)
-            pre_z.put(temp_z)
-
-        reward_offset_x = round(-5 * pow(10, 2) * abs(x - PPOConfig.X_INIT_VALUE))
-        reward_forward_z = 0
-
-        for i in range(PPOConfig.PRE_Z_QUEUE_SIZE):
-            reward_forward_z += (z - temp_list[i]) * (PPOConfig.PRE_Z_QUEUE_SIZE - i)
-        
-        reward_forward_z = round(reward_forward_z * 1.5 * pow(10, 3) / ((1 + PPOConfig.PRE_Z_QUEUE_SIZE) * PPOConfig.PRE_Z_QUEUE_SIZE / 2))
-
-        reward = reward_offset_x + reward_forward_z
+        reward = no_target_reward(x, z, pre_z)
 
     elif (PPOConfig.REWARD_MODE == "target mode"):
-        reward = 0
+        reward = target_reward(x, z, step_counter)
 
     else :
         print("Error Reward Mode. Modify in Config.py\n")
         os._exit()
 
     return reward
+
+def no_target_reward(x: float, z: float, pre_z: Queue) -> float:
+    temp_list = []
+    for _ in range(PPOConfig.PRE_Z_QUEUE_SIZE):
+        temp_z = pre_z.get()  
+        temp_list.append(temp_z)
+        pre_z.put(temp_z)
+
+    reward_offset_x = round(-5 * pow(10, 2) * abs(x - PPOConfig.X_INIT_VALUE))
+    reward_forward_z = 0
+
+    for i in range(PPOConfig.PRE_Z_QUEUE_SIZE):
+        reward_forward_z += (z - temp_list[i]) * (PPOConfig.PRE_Z_QUEUE_SIZE - i)  
+    
+    reward_forward_z = round(reward_forward_z * 1.5 * pow(10, 3) / ((1 + PPOConfig.PRE_Z_QUEUE_SIZE) * PPOConfig.PRE_Z_QUEUE_SIZE / 2))
+
+    return reward_offset_x + reward_forward_z
+
+
+def target_reward(x, z, step_counter) -> float:
+    current_spider_tree_dist = (PPOConfig.TARGET_Z - z) ** 2 + (PPOConfig.TARGET_X - x) ** 2
+    print("current_spider_tree_dist " +  str(current_spider_tree_dist))
+    distance_reward = (SPIDER_TREE_INIT_DIST - current_spider_tree_dist) * PPOConfig.DISTANCE_MULTIPLY_PARAM
+    time_penalty = step_counter * PPOConfig.TIME_MULTIPLY_PARAM
+    return  distance_reward - time_penalty
