@@ -54,7 +54,7 @@ class CustomSpiderEnv(gym.Env):
 
 
         terminated = False
-        if (self.step_counter % 1024 == 0):
+        if (self.step_counter % PPOConfig.RESET_SCENE_STEP == 0):
             terminated = True
         
 
