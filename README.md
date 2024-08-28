@@ -14,8 +14,10 @@
 ![RL training main flowchart](https://github.com/roger20415/pros_AI/blob/spider-develop/diagram/RL%20training%20main.drawio.png)
 
 ## PPO model Architechture
-
 ![PPO model Architechture](https://github.com/roger20415/pros_AI/blob/spider-develop/diagram/PPO.drawio.png)
+
+## Multi-PPO Architechture
+![Multi-PPO Architechture](https://github.com/roger20415/pros_AI/blob/spider-develop/diagram/Multi-PPO.drawio.png)
 
 
 The folder `ros` is refer to the [GitHub](https://github.com/dusty-nv/jetson-containers/tree/master/packages/ros) repository.
