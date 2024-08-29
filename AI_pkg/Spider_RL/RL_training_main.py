@@ -87,34 +87,3 @@ class CustomSpiderEnv(gym.Env):
         obs_state = get_observation(self.AI_node)
         obs_state = process_data_to_npfloat32_array(obs_state)
         return len(obs_state)
-
-    def choose_PPO_model(node) -> str:
-        """
-        This function will decide which PPO model to use later base on unity observation.
-        if the angle of spider_vec and front_vec < PPOConfig.ANGLE_THRESHOLD, used "Forward PPO model". Otherwise used "Redirect PPO model". 
-
-        Parameters
-        ----------
-            node: node
-                The node initialized in init_ros_node() function.
-        Returns
-        ----------
-            PPO_choice: str
-                Which PPO model will be used later. 
-        """
-        print("123\n")
-        unity_data: dict = get_observation(node)
-        spider_vec: np.ndarray[float] = np.array([unity_data["spider_toward_vecz"], unity_data["spider_toward_vecx"]]) # (z, x)
-
-        # The dot_product of spider_vec and front_vec will always be unity_data["spider_toward_vecz"] because front_vec is (1, 0).
-        dot_product: float = unity_data["spider_toward_vecz"]  
-
-        norm_spider_vec: float = np.linalg.norm(spider_vec)
-        # norm_front_vec will always be 1 because front_vec is (1, 0).
-        norm_front_vec: float = 1.0
-
-        cos_theta: float = dot_product / (norm_spider_vec * norm_front_vec)
-        theta_degrees: float = np.degrees(np.arccos(cos_theta))
-
-        print("degree: "+ str(theta_degrees))
-        return "None"
