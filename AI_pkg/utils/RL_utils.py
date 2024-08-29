@@ -5,6 +5,19 @@ Produce state dictionary ready to be flatten and become RL state.
 
 
 def get_observation(AI_spider_node) -> dict:
+    """
+    Get neweset Unity data and return processed data dict.
+
+    Parameters
+    ----------
+        AI_spider_node: node
+            Node that communicates with Unity.
+    
+    Returns
+    ----------
+        data_dict: dict
+            Processed observation data, including spider vecz, vecx, centerz, centerx, 16 joints angles.
+    """
     AI_spider_node.reset_latest_data()
     data_dict = add_spider_toward_key(AI_spider_node.wait_for_data())
     data_dict = remove_dict_key(data_dict)
@@ -28,12 +41,12 @@ def add_spider_toward_key(data_dict: dict) -> dict:
 
     Parameters
     ----------
-    data_dict: dict:
+    data_dict: dict
         Spider state data from AI_spider_node.py lastest_data. 
 
     Returns
     ----------
-    data_dict: dict:
+    data_dict: dict
         State Observation next send to remove dict key. 
     """
     data_dict["spider_toward_vecx"] = data_dict["spider_head_x"] - data_dict["spider_center_x"]
