@@ -17,7 +17,7 @@
 ![PPO model Architechture](https://github.com/roger20415/pros_AI/blob/spider-develop/diagram/PPO.drawio.png)
 
 ## Multi-PPO Predict flowchart
-![Multi-PPO Predict flowchart](https://github.com/roger20415/pros_AI/blob/spider-develop/diagram/Multi-PPO.drawio.png)
+![Multi-PPO Predict flowchart](https://github.com/roger20415/pros_AI/blob/spider-develop/diagram/Multi-PPO_predict.drawio.png)
 
 
 The folder `ros` is refer to the [GitHub](https://github.com/dusty-nv/jetson-containers/tree/master/packages/ros) repository.
