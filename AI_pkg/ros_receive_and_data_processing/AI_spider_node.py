@@ -253,7 +253,7 @@ class AI_spider_node(Node):
 
     def reset_unity(self) -> None:
         msg = Bool()
-        msg.data = True
+        msg.data = True # True: reset Unity/ False: Do not reset Unity
         self.spider_scene_reset_publisher_.publish(msg)
 
 
