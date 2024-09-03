@@ -7,6 +7,7 @@ from utils.obs_utils import process_data_to_npfloat32_array
 from utils.RL_utils import get_observation
 from Spider_RL import reward_cal
 from Spider_RL.PPOConfig import PPOConfig
+import math
 
 
 class CustomSpiderEnv(gym.Env):
@@ -51,10 +52,8 @@ class CustomSpiderEnv(gym.Env):
         self.pre_z.get()
         self.pre_z.put(unity_data["spider_center_z"])
 
-
-
         terminated = False
-        if (self.step_counter % PPOConfig.RESET_SCENE_STEP == 0):
+        if (self.angle_with_z_axis(unity_data) >= PPOConfig.RESET_TOWARD_ANGLE):
             terminated = True
         
 
@@ -87,3 +86,35 @@ class CustomSpiderEnv(gym.Env):
         obs_state = get_observation(self.AI_node)
         obs_state = process_data_to_npfloat32_array(obs_state)
         return len(obs_state)
+    
+    def angle_with_z_axis(self, data_dict: dict) -> float:
+        """
+        Calculate the angle of the torward vector in data_dict with (1.0, 0.0).
+        Note that the vector is (z, x) as the spider in Unity moves forward along z axis.
+
+        Parameter
+        ----------
+            data_dict: dict
+                The observation dictionary from Unity.
+        
+        Return
+        ----------
+            angle_degree: float
+                The angle between torward vector and (1.0, 0.0) in degree.
+        """
+        # Calculate the dot product of the vector with (1.0, 0.0)
+        dot_product = data_dict["spider_toward_vecz"] * 1.0 + data_dict["spider_toward_vecx"] * 0.0
+        
+        # Calculate the magnitude (length) of the given vector
+        vector_magnitude = math.sqrt(data_dict["spider_toward_vecz"]**2 + data_dict["spider_toward_vecx"]**2)
+        
+        # Calculate the cosine of the angle
+        cos_angle = dot_product / vector_magnitude
+        
+        # Calculate the angle in radians using arccos (inverse cosine)
+        angle_radians = math.acos(cos_angle)
+        
+        # Convert the angle from radians to degrees
+        angle_degree = math.degrees(angle_radians)
+        
+        return angle_degree

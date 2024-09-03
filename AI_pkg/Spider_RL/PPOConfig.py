@@ -16,10 +16,11 @@ class PPOConfig:
         SAVE_MODEL_FREQUENCE (int): The frequency (in timesteps) at which the model is saved during training.
         TOTAL_TIME_STEPS (int): The total number of timesteps for training the PPO model. 
         RESET_SCENE_STEP (int): The step numbers PPO training terminate per time and unity scene reset.
+        RESET_TOWARD_ANGLE (float) : The training step terminated threshold for training forward PPO. Represent the MAX angle tolarence between spider toward vector and z axis.
 
         Z_INIT_VALUE (float): The initial value for the pre-z parameter in the environment.
         Z_QUEUE_SIZE (int): The size of the queue for storing pre-z values. Note that the queue is later used to calculate model reward.
-        PRE_Z_QUEUE_SIZE (int): # The queue size to store init. Note that queue value must be 1 in reward target mode.
+        PRE_Z_QUEUE_SIZE (int): # The queue size to store previous z values. Note that queue value must be 1 in reward target mode.
         
         REWARD_MODE (str):  "target mode" / "no target mode"
 
@@ -51,6 +52,7 @@ class PPOConfig:
     SAVE_MODEL_FREQUENCE: int = 1024 * 16
     TOTAL_TIME_STEPS: int = 1024 * 128 * 256
     RESET_SCENE_STEP: int = 1024 * 8
+    RESET_TOWARD_ANGLE: float = 20 # degrees
 
     # Env setting
     X_INIT_VALUE: float = 0.0
