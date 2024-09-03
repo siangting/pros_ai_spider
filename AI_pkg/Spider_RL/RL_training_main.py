@@ -3,8 +3,7 @@ import time
 import gymnasium as gym
 import queue
 from gymnasium import spaces
-from utils.utils import process_data_to_npfloat32_array
-from utils.utils import get_observation
+from utils import utils
 from Spider_RL import reward_cal
 from Spider_RL.PPOConfig import PPOConfig
 import math
@@ -40,8 +39,8 @@ class CustomSpiderEnv(gym.Env):
         self.AI_node.publish_jointtarget(action) 
         time.sleep(0.02)
 
-        unity_data = get_observation(self.AI_node)
-        self.state = process_data_to_npfloat32_array(unity_data)
+        unity_data = utils.get_observation(self.AI_node)
+        self.state = utils.process_data_to_npfloat32_array(unity_data)
 
         reward = reward_cal.reward_cal_main(unity_data, self.pre_z, self.step_counter)
 
@@ -67,8 +66,8 @@ class CustomSpiderEnv(gym.Env):
         self.AI_node.reset_unity()
         time.sleep(1)
 
-        unity_data_reset_state = get_observation(self.AI_node)
-        self.state = process_data_to_npfloat32_array(unity_data_reset_state)
+        unity_data_reset_state = utils.get_observation(self.AI_node)
+        self.state = utils.process_data_to_npfloat32_array(unity_data_reset_state)
         time.sleep(0.5)
 
         return self.state, {}
@@ -83,8 +82,8 @@ class CustomSpiderEnv(gym.Env):
         int
             The length of the processed observation state array.
         """
-        obs_state = get_observation(self.AI_node)
-        obs_state = process_data_to_npfloat32_array(obs_state)
+        obs_state = utils.get_observation(self.AI_node)
+        obs_state = utils.process_data_to_npfloat32_array(obs_state)
         return len(obs_state)
     
     def angle_with_z_axis(self, data_dict: dict) -> float:
