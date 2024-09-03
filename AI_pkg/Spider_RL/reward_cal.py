@@ -2,13 +2,13 @@ from queue import Queue
 from Spider_RL.PPOConfig import PPOConfig
 import os
 
-# SPIDER_TREE_INIT_DIST is used by target mode.
+# SPIDER_TREE_INIT_DIST is used by TARGET_MODE.
 SPIDER_TREE_INIT_DIST: float = (PPOConfig.TARGET_Z - PPOConfig.Z_INIT_VALUE) ** 2 + (PPOConfig.TARGET_X - PPOConfig.X_INIT_VALUE) ** 2
 
 def reward_cal_main(data : dict, pre_z: Queue, step_counter: int) -> float:
     """
     Calculates the reward based on the given data and configuration.
-    Two modes to choose: "target mode", "no target mode". Choose in PPOConfig.py.
+    Two modes to choose: "TARGET_MODE", "NO_TARGET_MODE". Choose in PPOConfig.py.
 
     Parameters
     ----------
@@ -26,21 +26,21 @@ def reward_cal_main(data : dict, pre_z: Queue, step_counter: int) -> float:
     
     Raises
     ----------
-        PRE_Z_QUEUE_SIZE must be 1 in "target mode". Otherwise the terminal will raise error.
+        PRE_Z_QUEUE_SIZE must be 1 in "TARGET_MODE". Otherwise the terminal will raise error.
     """
 
     reward : float = 0.0
     x: float = data["spider_center_x"]
     z: float = data["spider_center_z"]
     
-    if (PPOConfig.REWARD_MODE == "target mode" and PPOConfig.PRE_Z_QUEUE_SIZE != 1):
-        print("Target mode reward now: PRE_Z_QUEUE_SIZE must be 1...\n")
+    if (PPOConfig.REWARD_MODE == "TARGET_MODE" and PPOConfig.PRE_Z_QUEUE_SIZE != 1):
+        print("TARGET_MODE reward now: PRE_Z_QUEUE_SIZE must be 1...\n")
         os._exit()
 
-    if (PPOConfig.REWARD_MODE == "no target mode"):
+    if (PPOConfig.REWARD_MODE == "NO_TARGET_MODE"):
         reward = no_target_reward(x, z, pre_z)
 
-    elif (PPOConfig.REWARD_MODE == "target mode"):
+    elif (PPOConfig.REWARD_MODE == "TARGET_MODE"):
         reward = target_reward(x, z, step_counter)
 
     else :

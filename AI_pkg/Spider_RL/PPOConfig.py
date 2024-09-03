@@ -20,15 +20,15 @@ class PPOConfig:
 
         Z_INIT_VALUE (float): The initial value for the pre-z parameter in the environment.
         Z_QUEUE_SIZE (int): The size of the queue for storing pre-z values. Note that the queue is later used to calculate model reward.
-        PRE_Z_QUEUE_SIZE (int): # The queue size to store previous z values. Note that queue value must be 1 in reward target mode.
+        PRE_Z_QUEUE_SIZE (int): # The queue size to store previous z values. Note that queue value must be 1 in reward TARGET_MODE.
         
-        REWARD_MODE (str):  "target mode" / "no target mode"
+        REWARD_MODE (str):  "TARGET_MODE" / "NO_TARGET_MODE"
 
         X_MOTIPLY_PARAM (float) : The penalty multiply parameter of X offset.
         Z_MOTIPLY_PARAM (float) : The reward multiply parameter of forward z behavior.
 
-        TARGET_X (float) : "target mode" parameters.
-        TARGET_Z (float) : "target mode" parameters.
+        TARGET_X (float) : "TARGET_MODE" parameters.
+        TARGET_Z (float) : "TARGET_MODE" parameters.
 
         DISTANCE_MULTIPLY_PARAM (float) : The multiply parameter of calculating distance reward.
         TIME_MULTIPLY_PARAM (float) : The multiply parameter of calculating time penalty.
@@ -57,18 +57,18 @@ class PPOConfig:
     # Env setting
     X_INIT_VALUE: float = 0.0
     Z_INIT_VALUE: float = 0.0
-    PRE_Z_QUEUE_SIZE: int = 1 # PRE_Z_QUEUE_SIZE must be 1 in reward target mode.
+    PRE_Z_QUEUE_SIZE: int = 1 # PRE_Z_QUEUE_SIZE must be 1 in reward TARGET_MODE.
 
     # reward setting
-    REWARD_MODE: str = "target mode"  # "target mode" / "no target mode"
+    REWARD_MODE: str = "TARGET_MODE"  # "TARGET_MODE" / "NO_TARGET_MODE"
     
     # no target reward mode setting
     X_MOTIPLY_PARAM: float = -5.0 * pow(10, 2) # The penalty multiply parameter of X offset.
     Z_MOTIPLY_PARAM: float = 1.5 * pow(10, 3) # The reward multiply parameter of forward z behavior.
     
     # target reward mode setting
-    TARGET_X: float = 0.0 # "target mode" parameters.
-    TARGET_Z: float = 70.0 # "target mode" parameters.
+    TARGET_X: float = 0.0 # "TARGET_MODE" parameters.
+    TARGET_Z: float = 70.0 # "TARGET_MODE" parameters.
 
     DISTANCE_MULTIPLY_PARAM: float = 10.0 # The multiply parameter of calculating distance reward.
     TIME_MULTIPLY_PARAM: float = 1.0  # The multiply parameter of calculating time penalty.
