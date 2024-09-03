@@ -5,7 +5,7 @@ from trajectory_msgs.msg import JointTrajectoryPoint
 from std_msgs.msg import Bool
 from std_msgs.msg import Float32MultiArray
 from ros_receive_and_data_processing.SpiderConfig import SpiderConfig
-from utils import obs_utils
+from utils import utils
 import numpy as np
 
 
@@ -126,7 +126,7 @@ class AI_spider_node(Node):
     
     def wait_for_data(self) -> dict[str, float]:
         """
-        Will be call by RL_utils.get_observation.
+        Will be call by utils.get_observation.
         Before system call wait_for_data, self.latest_data will be clear.
         wait_for_data() will wait util self.latest_data exit.
 
@@ -172,7 +172,7 @@ class AI_spider_node(Node):
         msg = JointTrajectoryPoint()
 
         joint_target: list[float] = self.actions_to_joint_targets(action) # joint_target --> degrees
-        joint_target = obs_utils.radians_degree_transfer(joint_target, "degree2radian")
+        joint_target = utils.radians_degree_transfer(joint_target, "degree2radian")
         msg.positions = self.limit_joint_targets(joint_target)
         msg.velocities = [0.0, 0.0, 0.0, 0.0, 0.0]  
         self.joint_trajectory_publisher_.publish(msg)

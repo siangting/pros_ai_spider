@@ -3,8 +3,8 @@ import time
 import gymnasium as gym
 import queue
 from gymnasium import spaces
-from utils.obs_utils import process_data_to_npfloat32_array
-from utils.RL_utils import get_observation
+from utils.utils import process_data_to_npfloat32_array
+from utils.utils import get_observation
 from Spider_RL import reward_cal
 from Spider_RL.PPOConfig import PPOConfig
 import math
