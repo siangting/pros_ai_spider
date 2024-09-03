@@ -5,6 +5,8 @@ from trajectory_msgs.msg import JointTrajectoryPoint
 from std_msgs.msg import Bool
 from std_msgs.msg import Float32MultiArray
 from ros_receive_and_data_processing.SpiderConfig import SpiderConfig
+from utils import obs_utils
+import numpy as np
 
 
 class AI_spider_node(Node):
@@ -153,14 +155,14 @@ class AI_spider_node(Node):
 
     ## ---------- publish 16 joints target ----------
 
-    def publish_jointtarget(self, action : any) -> None:
+    def publish_jointtarget(self, action : np.ndarray) -> None:
         """
         The publish event main function.
         Call functions to compute model action to actual joint angle position and publish.
 
         Parameters
         ----------
-        actions: any
+        actions: np.ndarray
             RL model produce discrete actions.
 
         Raises
@@ -169,18 +171,15 @@ class AI_spider_node(Node):
         """
         msg = JointTrajectoryPoint()
 
-        joint_variation = self.action_to_jointVariation(action) # joint_variation --> radians
-
-        joint_target = self.compute_jointTarget(joint_variation) # joint_target --> radians
-
-        msg.positions = list(map(float, joint_target)) # msg.positions --> radians
-
+        joint_target: list[float] = self.actions_to_joint_targets(action) # joint_target --> degrees
+        joint_target = obs_utils.radians_degree_transfer(joint_target, "degree2radian")
+        msg.positions = self.limit_joint_targets(joint_target)
         msg.velocities = [0.0, 0.0, 0.0, 0.0, 0.0]  
         self.joint_trajectory_publisher_.publish(msg)
 
-    def action_to_jointVariation(self, actions: any) -> list[float]:
+    def actions_to_joint_targets(self, actions: any) -> list[float]:
         """
-        Transfer discrete action options to joint angle variation.
+        Transfer discrete action options to joint target (degrees).
 
         Parameters
         ----------
@@ -189,28 +188,26 @@ class AI_spider_node(Node):
         
         Returns
         -------
-        joint_variation: list
-            Trasfer from action option, the deserve variation of joints
+        joint_target: list[float]
+            Trasfer from action option, the deserve target degrees of joints
         """
-        joint_variation = []
         for action in actions:
             if action == 0:
-                joint_variation.append(math.radians(SpiderConfig.ACTION_DEGREE["0"]))
+                joint_target: list[float] = SpiderConfig.ACTION["0"]
             elif action == 1:
-                joint_variation.append(math.radians(SpiderConfig.ACTION_DEGREE["1"]))
+                joint_target: list[float] = SpiderConfig.ACTION["1"]
             elif action == 2:
-                joint_variation.append(math.radians(SpiderConfig.ACTION_DEGREE["2"]))
-        return joint_variation
+                joint_target: list[float] = SpiderConfig.ACTION["2"]
+        return joint_target
     
-    def compute_jointTarget(self, joint_variation: list[float]) -> list[float]:
+    def limit_joint_targets(self, joint_target: list[float]) -> list[float]:
         """
-        Sum joint variation and lastest joint position
         Limit the joint targets' degree.
 
         Parameters
         ----------
-        joint_variation: list[float]
-            Trasfer from RL model action in action_to_jointVariation()
+        joint_target: list[float]
+            Trasfer from RL model action in action_to_joint_target()
         
         Returns
         ----------
@@ -222,8 +219,6 @@ class AI_spider_node(Node):
         Be aware of degree and radians transformation.
         """
 
-        joint_target = [a + math.radians(b) for a, b in zip(joint_variation, list(self.latest_data["spider_joint_cur_angle"]))] # joint_target --> radians
-
         for i in range(len(joint_target)): # limits are all less than Unity target limit for 2 degree for safety
             if (i % 2 == 0): # shoulder
                 if i in [0, 2, 12, 14]:
@@ -233,18 +228,7 @@ class AI_spider_node(Node):
             else: # calf
                 joint_target[i] = max(min(joint_target[i], math.radians(SpiderConfig.JOINT_LIMIT["calf"])), math.radians(-SpiderConfig.JOINT_LIMIT["calf"]))
 
-
-        # print("\n\njoint_variation (degree)")
-        # print([math.degrees(radian) for radian in joint_variation]) # joint_variation --> radians
-
-        # print("\n\nlatest_data (degree)")
-        # print(list(self.latest_data.values())[3]) # list(self.latest_data.values())[3] --> degrees
-
-        # print("\n\ntarget position (degree)")
-        # print([math.degrees(radian) for radian in joint_target]) # joint_target --> radians
-
         return joint_target
-            
     # ---------- publish 16 joints target -----------
 
 

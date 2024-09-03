@@ -30,7 +30,7 @@ class CustomSpiderEnv(gym.Env):
             low=-np.inf, high=np.inf, shape=(self.shape_number,), dtype=np.float32
         )
         # 3 action options and 16 joints
-        self.action_space = spaces.MultiDiscrete([3]*16) 
+        self.action_space = spaces.MultiDiscrete([3]) 
 
 
 
