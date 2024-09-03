@@ -4,6 +4,7 @@ from ros_receive_and_data_processing.AI_spider_node import AI_spider_node
 import gymnasium as gym
 from stable_baselines3 import PPO
 from Spider_RL.RL_training_main import CustomSpiderEnv
+from Spider_RL.RL_training_redirect import CustomSpiderRedirectEnv
 from Spider_RL.custom_callback import CustomCallback
 from stable_baselines3.common.monitor import Monitor
 from Spider_RL.PPOConfig import PPOConfig
@@ -44,12 +45,28 @@ def train_model_PPO(env):
         total_timesteps = PPOConfig.TOTAL_TIME_STEPS, callback = custom_callback, log_interval = 1
     )  #  Enter env and start training
 
+def train_redirect_PPO(env):
+    model = load_or_create_model_PPO(
+        env, PPOConfig.MODEL_PATH
+    )
+    custom_callback = CustomCallback(PPOConfig.DEFAULT_MODLE_NAME, PPOConfig.SAVE_MODEL_FREQUENCE)
+    model.learn(
+        total_timesteps = PPOConfig.TOTAL_TIME_STEPS, callback = custom_callback, log_interval = 1
+    )  #  Enter env and start training
+
 def gym_env_register(node):
     gym.register(
         id = CustomSpiderEnv.ENV_NAME,  
         entry_point = "Spider_RL.RL_training_main:CustomSpiderEnv",
     )
     return gym.make("CustomSpiderEnv-v0", AI_node = node)
+
+def gym_redirect_env_register(node):
+    gym.register(
+        id = CustomSpiderRedirectEnv.ENV_NAME,  
+        entry_point = "Spider_RL.RL_training_redirect:CustomSpiderRedirectEnv",
+    )
+    return gym.make("CustomSpiderRedirectEnv-v0", AI_node = node)
 
     
 def print_usage():
@@ -65,7 +82,8 @@ def main(mode):
         env = gym_env_register(node)
         train_model_PPO(env)
     elif mode == "2":
-        print("2")
+        env = gym_redirect_env_register(node)
+        train_redirect_PPO(env)
     else:
         print("Please type the correct numbers.")
 
