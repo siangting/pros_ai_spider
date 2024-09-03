@@ -54,7 +54,8 @@ def gym_env_register(node):
     
 def print_usage():
     print("modes:")
-    print(" 1 -- PPO")
+    print(" 1 -- Train forward PPO")
+    print(" 2 -- Train redirect PPO")
 
 
 def main(mode):
@@ -63,6 +64,8 @@ def main(mode):
     if mode == "1":
         env = gym_env_register(node)
         train_model_PPO(env)
+    elif mode == "2":
+        print("2")
     else:
         print("Please type the correct numbers.")
 
