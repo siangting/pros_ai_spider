@@ -6,4 +6,5 @@ __pycache__/
 *.deb
 *.deb.*
 Model/
+redirect_Model/
 /AI_pkg/Spider_RL/PPOConfig.py

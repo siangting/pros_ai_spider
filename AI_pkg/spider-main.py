@@ -8,6 +8,8 @@ from Spider_RL.RL_training_redirect import CustomSpiderRedirectEnv
 from Spider_RL.custom_callback import CustomCallback
 from stable_baselines3.common.monitor import Monitor
 from Spider_RL.PPOConfig import PPOConfig
+from Spider_RL.redirect_PPOConfig import redirect_PPOConfig
+import sys
 
 def init_ros_node():
     rclpy.init()
@@ -17,42 +19,72 @@ def init_ros_node():
     return node, thread
 
 
-def load_or_create_model_PPO(env, model_path):
-    try:
-        model = PPO.load(model_path)
-        env = Monitor(env)
-        model.set_env(env)
-        print(f"Model loaded successfully from {model_path}")
-        print(f"Model learning rate: {model.lr_schedule(1.0)}")
-        print(f"Model policy network: {model.policy}")
+def load_or_create_model_PPO(env, PPO_Mode: str):
     
-    except FileNotFoundError: 
-        model = PPO("MlpPolicy", 
-                    env, verbose = 1, learning_rate = PPOConfig.LEARNING_RATE,
-                    n_steps = PPOConfig.N_STEPS, batch_size = PPOConfig.BATCH_SIZE, 
-                    n_epochs = PPOConfig.N_EPOCHS, device = "cuda")
+    if (PPO_Mode == "forwawrd"):
+        try:
+            model = PPO.load(PPOConfig.MODEL_PATH)
+            env = Monitor(env)
+            model.set_env(env)
+            print(f"Model loaded successfully from {PPOConfig.MODEL_PATH}")
+            print(f"Model learning rate: {model.lr_schedule(1.0)}")
+            print(f"Model policy network: {model.policy}")
+        
+        except FileNotFoundError: 
 
-        print("Model is not found. Train a new model.")
+
+            model = PPO("MlpPolicy", 
+                        env, verbose = 1, learning_rate = PPOConfig.LEARNING_RATE,
+                        n_steps = PPOConfig.N_STEPS, batch_size = PPOConfig.BATCH_SIZE, 
+                        n_epochs = PPOConfig.N_EPOCHS, device = "cuda")
+
+            print("Model is not found. Train a new model.")
+
+    elif (PPO_Mode == "redirect"):
+        try:
+            model = PPO.load(redirect_PPOConfig.MODEL_PATH)
+            env = Monitor(env)
+            model.set_env(env)
+            print(f"Model loaded successfully from {redirect_PPOConfig.MODEL_PATH}")
+            print(f"Model learning rate: {model.lr_schedule(1.0)}")
+            print(f"Model policy network: {model.policy}")
+        
+        except FileNotFoundError: 
+
+
+            model = PPO("MlpPolicy", 
+                        env, verbose = 1, learning_rate = redirect_PPOConfig.LEARNING_RATE,
+                        n_steps = redirect_PPOConfig.N_STEPS, batch_size = redirect_PPOConfig.BATCH_SIZE, 
+                        n_epochs = redirect_PPOConfig.N_EPOCHS, device = "cuda")
+
+            print("Model is not found. Train a new model.")   
+    
+    else:
+        print("PPO_Mode not exist...")
+        sys.exit()   
+    
+
     return model
 
 
 def train_model_PPO(env):
     model = load_or_create_model_PPO(
-        env, PPOConfig.MODEL_PATH
+        env, PPO_Mode = "forward"
     )
     custom_callback = CustomCallback(PPOConfig.DEFAULT_MODLE_NAME, PPOConfig.SAVE_MODEL_FREQUENCE)
     model.learn(
         total_timesteps = PPOConfig.TOTAL_TIME_STEPS, callback = custom_callback, log_interval = 1
-    )  #  Enter env and start training
+    )  #  Enter forward env and start forward training
 
 def train_redirect_PPO(env):
     model = load_or_create_model_PPO(
-        env, PPOConfig.MODEL_PATH
+        env, PPO_Mode = "redirect"
     )
-    custom_callback = CustomCallback(PPOConfig.DEFAULT_MODLE_NAME, PPOConfig.SAVE_MODEL_FREQUENCE)
+    custom_callback = CustomCallback(redirect_PPOConfig.DEFAULT_MODLE_NAME, redirect_PPOConfig.SAVE_MODEL_FREQUENCE)
     model.learn(
-        total_timesteps = PPOConfig.TOTAL_TIME_STEPS, callback = custom_callback, log_interval = 1
-    )  #  Enter env and start training
+        total_timesteps = redirect_PPOConfig.TOTAL_TIME_STEPS, callback = custom_callback, log_interval = 1
+    )  #  Enter redirect env and start redirect training
+
 
 def gym_env_register(node):
     gym.register(
