@@ -21,7 +21,7 @@ def init_ros_node():
 
 def load_or_create_model_PPO(env, PPO_Mode: str):
     
-    if (PPO_Mode == "forwawrd"):
+    if (PPO_Mode == "forward"):
         try:
             model = PPO.load(PPOConfig.MODEL_PATH)
             env = Monitor(env)
@@ -31,8 +31,6 @@ def load_or_create_model_PPO(env, PPO_Mode: str):
             print(f"Model policy network: {model.policy}")
         
         except FileNotFoundError: 
-
-
             model = PPO("MlpPolicy", 
                         env, verbose = 1, learning_rate = PPOConfig.LEARNING_RATE,
                         n_steps = PPOConfig.N_STEPS, batch_size = PPOConfig.BATCH_SIZE, 
@@ -50,8 +48,6 @@ def load_or_create_model_PPO(env, PPO_Mode: str):
             print(f"Model policy network: {model.policy}")
         
         except FileNotFoundError: 
-
-
             model = PPO("MlpPolicy", 
                         env, verbose = 1, learning_rate = redirect_PPOConfig.LEARNING_RATE,
                         n_steps = redirect_PPOConfig.N_STEPS, batch_size = redirect_PPOConfig.BATCH_SIZE, 

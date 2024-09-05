@@ -4,7 +4,7 @@ import gymnasium as gym
 import queue
 from gymnasium import spaces
 from utils import utils
-from Spider_RL import reward_cal
+from Spider_RL import redirect_reward_cal
 from Spider_RL.PPOConfig import PPOConfig
 import math
 
@@ -15,11 +15,6 @@ class CustomSpiderRedirectEnv(gym.Env):
     def __init__(self, AI_node):
         super(CustomSpiderRedirectEnv, self).__init__()
         self.AI_node = AI_node
-        self.pre_z = queue.Queue()
-        self.queue_size = PPOConfig.PRE_Z_QUEUE_SIZE
-   
-        for _ in range(self.queue_size):
-            self.pre_z.put(PPOConfig.Z_INIT_VALUE)
         self.step_counter : int = 0 # step_counter will reset to 0 again when reset game.
 
         # The flatten 1D array length of obervation dictionary
@@ -42,17 +37,15 @@ class CustomSpiderRedirectEnv(gym.Env):
         unity_data = utils.get_observation(self.AI_node)
         self.state = utils.process_data_to_npfloat32_array(unity_data)
 
-        reward = reward_cal.reward_cal_main(unity_data, self.pre_z, self.step_counter)
+        reward = redirect_reward_cal.reward_cal_main(unity_data, self.step_counter)
 
         self.step_counter = self.step_counter + 1
         if (self.step_counter % 64 == 0):
             print("\nreward: " + str(round(reward)) + '\n')
 
-        self.pre_z.get()
-        self.pre_z.put(unity_data["spider_center_z"])
-
         terminated = False
-        if (self.angle_with_z_axis(unity_data) >= PPOConfig.RESET_TOWARD_ANGLE):
+        print("angle = " + str(self.angle_with_z_axis(unity_data)))
+        if (self.angle_with_z_axis(unity_data) < PPOConfig.RESET_TOWARD_ANGLE):
             terminated = True
         
 
@@ -99,7 +92,7 @@ class CustomSpiderRedirectEnv(gym.Env):
         Return
         ----------
             angle_degree: float
-                The angle between torward vector and (1.0, 0.0) in degree.
+                The angle between torward vector and (1.0, 0.0) in degree [0, 180].
         """
         # Calculate the dot product of the vector with (1.0, 0.0)
         dot_product = data_dict["spider_toward_vecz"] * 1.0 + data_dict["spider_toward_vecx"] * 0.0
