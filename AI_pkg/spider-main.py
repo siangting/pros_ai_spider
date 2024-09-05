@@ -4,11 +4,11 @@ from ros_receive_and_data_processing.AI_spider_node import AI_spider_node
 import gymnasium as gym
 from stable_baselines3 import PPO
 from Spider_RL.RL_training_main import CustomSpiderEnv
-from Spider_RL.RL_training_redirect import CustomSpiderRedirectEnv
+from Spider_redirect_RL.RL_training_redirect import CustomSpiderRedirectEnv
 from Spider_RL.custom_callback import CustomCallback
 from stable_baselines3.common.monitor import Monitor
 from Spider_RL.PPOConfig import PPOConfig
-from Spider_RL.redirect_PPOConfig import redirect_PPOConfig
+from Spider_redirect_RL.redirect_PPOConfig import redirect_PPOConfig
 import sys
 
 def init_ros_node():
@@ -92,7 +92,7 @@ def gym_env_register(node):
 def gym_redirect_env_register(node):
     gym.register(
         id = CustomSpiderRedirectEnv.ENV_NAME,  
-        entry_point = "Spider_RL.RL_training_redirect:CustomSpiderRedirectEnv",
+        entry_point = "Spider_redirect_RL.RL_training_redirect:CustomSpiderRedirectEnv",
     )
     return gym.make("CustomSpiderRedirectEnv-v0", AI_node = node)
 

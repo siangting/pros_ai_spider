@@ -1,4 +1,4 @@
-from Spider_RL.redirect_PPOConfig import redirect_PPOConfig
+from Spider_redirect_RL.redirect_PPOConfig import redirect_PPOConfig
 
 def reward_cal_main(data : dict, step_counter: int) -> float:
     """

@@ -4,7 +4,7 @@ import gymnasium as gym
 import queue
 from gymnasium import spaces
 from utils import utils
-from Spider_RL import redirect_reward_cal
+from Spider_redirect_RL import redirect_reward_cal
 from Spider_RL.PPOConfig import PPOConfig
 import math
 
