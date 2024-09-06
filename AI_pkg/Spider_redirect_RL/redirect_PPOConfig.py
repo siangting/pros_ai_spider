@@ -25,9 +25,6 @@ class redirect_PPOConfig:
         X_MOTIPLY_PARAM (float) : The penalty multiply parameter of X offset.
         Z_MOTIPLY_PARAM (float) : The reward multiply parameter of forward z behavior.
 
-        TARGET_X (float) : "TARGET_MODE" parameters.
-        TARGET_Z (float) : "TARGET_MODE" parameters.
-
         DISTANCE_MULTIPLY_PARAM (float) : The multiply parameter of calculating distance reward.
         TIME_MULTIPLY_PARAM (float) : The multiply parameter of calculating time penalty.
 
@@ -62,10 +59,6 @@ class redirect_PPOConfig:
     X_MOTIPLY_PARAM: float = -5.0 * pow(10, 2) # The penalty multiply parameter of X offset.
     Z_MOTIPLY_PARAM: float = 1.5 * pow(10, 3) # The reward multiply parameter of forward z behavior.
     
-    # target reward mode setting
-    TARGET_X: float = 0.0 # "TARGET_MODE" parameters.
-    TARGET_Z: float = 70.0 # "TARGET_MODE" parameters.
-
     DISTANCE_MULTIPLY_PARAM: float = 10.0 # The multiply parameter of calculating distance reward.
     TIME_MULTIPLY_PARAM: float = 1.0  # The multiply parameter of calculating time penalty.
 

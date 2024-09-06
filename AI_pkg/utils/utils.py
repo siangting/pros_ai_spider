@@ -119,3 +119,39 @@ def radians_degree_transfer(data: list[float] , mode: str) -> list[float]:
         sys.exit()
 
     return data
+
+def two_vecs_to_angle(vec1: tuple[float, float], vec2: tuple[float, float]) -> float:
+    """
+    Calculate the angle of two vectors.
+
+    Parameter
+    ----------
+        vec1: tuple[float, float]
+            vector1
+        vec2: tuple[float, float]
+            vector2
+    Return
+    ----------
+        angle_degree: float
+            The angle between two vectors.
+    """
+    # Calculate the dot product of the two vectors.
+    dot_product = vec1[0] * vec2[0] + vec1[1] * vec2[1]
+    
+    # Calculate the magnitude (length) of the given vectors.
+    vec1_magnitude = math.sqrt(vec1[0]**2 + vec1[1]**2)
+    vec2_magnitude = math.sqrt(vec2[0]**2 + vec2[1]**2)
+
+    # Calculate the cosine of the angle.
+    cos_angle = dot_product / (vec1_magnitude * vec2_magnitude)
+
+    # Ensure the cosine value is between -1 and 1 to avoid math domain errors due to floating-point precision issues
+    cos_angle = max(min(cos_angle, 1), -1)
+    
+    # Calculate the angle in radians using arccos (inverse cosine).
+    angle_radians = math.acos(cos_angle)
+    
+    # Convert the angle from radians to degrees.
+    angle_degree = math.degrees(angle_radians)
+    
+    return angle_degree

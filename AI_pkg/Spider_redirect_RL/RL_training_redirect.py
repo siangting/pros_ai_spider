@@ -5,7 +5,8 @@ import queue
 from gymnasium import spaces
 from utils import utils
 from Spider_redirect_RL import redirect_reward_cal
-from Spider_RL.PPOConfig import PPOConfig
+# In RL_training_redirect, use PPOConfig, not use redirect_PPOConfig.
+from Spider_RL.PPOConfig import PPOConfig  
 import math
 
 
@@ -29,13 +30,18 @@ class CustomSpiderRedirectEnv(gym.Env):
 
 
     def step(self, action):
-        
+
         # call AI_spider_node.publish_to_robot
         self.AI_node.publish_jointtarget(action) 
         time.sleep(0.02)
 
         unity_data = utils.get_observation(self.AI_node)
         self.state = utils.process_data_to_npfloat32_array(unity_data)
+        
+        # toward_vector(z, x): spider_head - spider_center
+        toward_vector: tuple = (unity_data["spider_toward_vecz"], unity_data["spider_toward_vecx"])
+        # spider_target_vector(z, x): target - spider_center
+        spider_target_vector: tuple = (PPOConfig.TARGET_Z - unity_data["spider_center_z"], PPOConfig.TARGET_X - unity_data["spider_center_x"])
 
         reward = redirect_reward_cal.reward_cal_main(unity_data, self.step_counter)
 
@@ -44,8 +50,8 @@ class CustomSpiderRedirectEnv(gym.Env):
             print("\nreward: " + str(round(reward)) + '\n')
 
         terminated = False
-        print("angle = " + str(self.angle_with_z_axis(unity_data)))
-        if (self.angle_with_z_axis(unity_data) < PPOConfig.RESET_TOWARD_ANGLE):
+        print("angle = " + str(utils.two_vecs_to_angle(toward_vector, spider_target_vector)))
+        if (utils.two_vecs_to_angle(toward_vector, spider_target_vector) < PPOConfig.RESET_TOWARD_ANGLE):
             terminated = True
         
 
@@ -78,35 +84,3 @@ class CustomSpiderRedirectEnv(gym.Env):
         obs_state = utils.get_observation(self.AI_node)
         obs_state = utils.process_data_to_npfloat32_array(obs_state)
         return len(obs_state)
-    
-    def angle_with_z_axis(self, data_dict: dict) -> float:
-        """
-        Calculate the angle of the torward vector in data_dict with (1.0, 0.0).
-        Note that the vector is (z, x) as the spider in Unity moves forward along z axis.
-
-        Parameter
-        ----------
-            data_dict: dict
-                The observation dictionary from Unity.
-        
-        Return
-        ----------
-            angle_degree: float
-                The angle between torward vector and (1.0, 0.0) in degree [0, 180].
-        """
-        # Calculate the dot product of the vector with (1.0, 0.0)
-        dot_product = data_dict["spider_toward_vecz"] * 1.0 + data_dict["spider_toward_vecx"] * 0.0
-        
-        # Calculate the magnitude (length) of the given vector
-        vector_magnitude = math.sqrt(data_dict["spider_toward_vecz"]**2 + data_dict["spider_toward_vecx"]**2)
-        
-        # Calculate the cosine of the angle
-        cos_angle = dot_product / vector_magnitude
-        
-        # Calculate the angle in radians using arccos (inverse cosine)
-        angle_radians = math.acos(cos_angle)
-        
-        # Convert the angle from radians to degrees
-        angle_degree = math.degrees(angle_radians)
-        
-        return angle_degree
