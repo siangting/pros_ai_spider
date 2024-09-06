@@ -37,13 +37,16 @@ class CustomSpiderRedirectEnv(gym.Env):
 
         unity_data = utils.get_observation(self.AI_node)
         self.state = utils.process_data_to_npfloat32_array(unity_data)
-        
+
         # toward_vector(z, x): spider_head - spider_center
         toward_vector: tuple = (unity_data["spider_toward_vecz"], unity_data["spider_toward_vecx"])
         # spider_target_vector(z, x): target - spider_center
         spider_target_vector: tuple = (PPOConfig.TARGET_Z - unity_data["spider_center_z"], PPOConfig.TARGET_X - unity_data["spider_center_x"])
 
-        reward = redirect_reward_cal.reward_cal_main(unity_data, self.step_counter)
+        # offset_angle: The angular difference between the toward_vector and spider_target_vector.
+        offset_angle: float = utils.two_vecs_to_angle(toward_vector, spider_target_vector)
+
+        reward = redirect_reward_cal.reward_cal_main(offset_angle, self.step_counter)
 
         self.step_counter = self.step_counter + 1
         if (self.step_counter % 64 == 0):

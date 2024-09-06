@@ -1,7 +1,7 @@
 class redirect_PPOConfig:
     """
     The redirect_PPOConfig class encapsulates all configuration parameters for training a redirect PPO model
-    for a spider robot. 
+    for the spider robot. 
     This includes settings related to model creation, loading, training, and environment configuration.
 
     Attributes:
@@ -17,16 +17,9 @@ class redirect_PPOConfig:
         TOTAL_TIME_STEPS (int): The total number of timesteps for training the PPO model. 
         RESET_SCENE_STEP (int): The step numbers PPO training terminate per time and unity scene reset.
 
-        Z_INIT_VALUE (float): The initial value for the pre-z parameter in the environment.
-        Z_QUEUE_SIZE (int): The size of the queue for storing pre-z values. Note that the queue is later used to calculate model reward.
-        
-        REWARD_MODE (str):  "TARGET_MODE" / "NO_TARGET_MODE"
-
-        X_MOTIPLY_PARAM (float) : The penalty multiply parameter of X offset.
-        Z_MOTIPLY_PARAM (float) : The reward multiply parameter of forward z behavior.
-
-        DISTANCE_MULTIPLY_PARAM (float) : The multiply parameter of calculating distance reward.
-        TIME_MULTIPLY_PARAM (float) : The multiply parameter of calculating time penalty.
+        REWARD_CAL_ANGLE_BASELINE (float): The positive and negative threshold for calculating angle reward. When the offset angle is smaller than baseline, angle_reward will be positive and vice versa.
+        ANGLE_REWARD_WEIGHT (float): The weight of angle reward.
+        TIME_PENALTY_WEIGHT (float): The weight of time penalty.
 
     Note: 
         n_updates = total_timesteps // (n_steps * n_envs)
@@ -48,19 +41,11 @@ class redirect_PPOConfig:
     TOTAL_TIME_STEPS: int = 1024 * 128 * 256
     RESET_SCENE_STEP: int = 1024 * 8
 
-    # Env setting
-    X_INIT_VALUE: float = 0.0
-    Z_INIT_VALUE: float = 0.0
+    # reward parameters
+    REWARD_CAL_ANGLE_BASELINE: float = 100.0 # in degrees
+    ANGLE_REWARD_WEIGHT: float = 5.0
+    TIME_PENALTY_WEIGHT: float = 0.5
 
-    # reward setting
-    REWARD_MODE: str = "TARGET_MODE"  # "TARGET_MODE" / "NO_TARGET_MODE"
-    
-    # no target reward mode setting
-    X_MOTIPLY_PARAM: float = -5.0 * pow(10, 2) # The penalty multiply parameter of X offset.
-    Z_MOTIPLY_PARAM: float = 1.5 * pow(10, 3) # The reward multiply parameter of forward z behavior.
-    
-    DISTANCE_MULTIPLY_PARAM: float = 10.0 # The multiply parameter of calculating distance reward.
-    TIME_MULTIPLY_PARAM: float = 1.0  # The multiply parameter of calculating time penalty.
 
 
 
