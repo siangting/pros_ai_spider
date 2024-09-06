@@ -32,6 +32,7 @@ class PPOConfig:
 
         DISTANCE_MULTIPLY_PARAM (float) : The multiply parameter of calculating distance reward.
         TIME_MULTIPLY_PARAM (float) : The multiply parameter of calculating time penalty.
+        ANGLE_REWARD_WEIGHT (float) : The calculate weight of angle offset.
 
     Note: 
         n_updates = total_timesteps // (n_steps * n_envs)
@@ -72,6 +73,7 @@ class PPOConfig:
 
     DISTANCE_MULTIPLY_PARAM: float = 10.0 # The multiply parameter of calculating distance reward.
     TIME_MULTIPLY_PARAM: float = 1.0  # The multiply parameter of calculating time penalty.
+    ANGLE_REWARD_WEIGHT: float = 0.5 
 
 
 
