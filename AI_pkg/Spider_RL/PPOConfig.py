@@ -20,7 +20,7 @@ class PPOConfig:
 
         Z_INIT_VALUE (float): The initial value for the pre-z parameter in the environment.
         Z_QUEUE_SIZE (int): The size of the queue for storing pre-z values. Note that the queue is later used to calculate model reward.
-        PRE_Z_QUEUE_SIZE (int): # The queue size to store previous z values. Note that queue value must be 1 in reward TARGET_MODE.
+        PRE_Z_QUEUE_SIZE (int): The queue size to store previous z values. Note that queue value must be 1 in reward TARGET_MODE.
         
         REWARD_MODE (str):  "TARGET_MODE" / "NO_TARGET_MODE"
 
@@ -30,9 +30,9 @@ class PPOConfig:
         TARGET_X (float) : "TARGET_MODE" parameters.
         TARGET_Z (float) : "TARGET_MODE" parameters.
 
-        DISTANCE_MULTIPLY_PARAM (float) : The multiply parameter of calculating distance reward.
-        TIME_MULTIPLY_PARAM (float) : The multiply parameter of calculating time penalty.
-        ANGLE_REWARD_WEIGHT (float) : The calculate weight of angle offset.
+        DISTANCE_REWARD_WEIGHT (float) : The weight for calculating distance reward.
+        TIME_PENALTY_WEIGHT (float) : The weight for calculating time penalty.
+        ANGLE_REWARD_WEIGHT (float) : The weight for calculating angle offset penalty.
 
     Note: 
         n_updates = total_timesteps // (n_steps * n_envs)
@@ -71,9 +71,9 @@ class PPOConfig:
     TARGET_X: float = 0.0 # "TARGET_MODE" parameters.
     TARGET_Z: float = 70.0 # "TARGET_MODE" parameters.
 
-    DISTANCE_MULTIPLY_PARAM: float = 10.0 # The multiply parameter of calculating distance reward.
-    TIME_MULTIPLY_PARAM: float = 1.0  # The multiply parameter of calculating time penalty.
-    ANGLE_REWARD_WEIGHT: float = 0.5 
+    DISTANCE_REWARD_WEIGHT: float = 10.0 # The weight for calculating distance reward.
+    TIME_PENALTY_WEIGHT: float = 1.0  # The weight for calculating time penalty.
+    ANGLE_REWARD_WEIGHT: float = 0.5 # The weight for calculating angle offset penalty.
 
 
 

@@ -88,11 +88,10 @@ def target_reward(x: float, z: float, step_counter: int, offset_angle: float) ->
             The reward of forward PPO training.
     """
     current_spider_tree_dist: float = (PPOConfig.TARGET_Z - z) ** 2 + (PPOConfig.TARGET_X - x) ** 2
-    distance_reward: float = (SPIDER_TREE_INIT_DIST - current_spider_tree_dist) * PPOConfig.DISTANCE_MULTIPLY_PARAM
-    print("Forward distance " +  str(SPIDER_TREE_INIT_DIST - current_spider_tree_dist))
-    time_penalty: float = step_counter * PPOConfig.TIME_MULTIPLY_PARAM
+    distance_reward: float = (SPIDER_TREE_INIT_DIST - current_spider_tree_dist) * PPOConfig.DISTANCE_REWARD_WEIGHT
+    time_penalty: float = step_counter * PPOConfig.TIME_PENALTY_WEIGHT
     angle_penalty: float = offset_angle * PPOConfig.ANGLE_REWARD_WEIGHT
-    print("angle_penalty" + str(angle_penalty))
 
+    print("Forward distance " +  str(SPIDER_TREE_INIT_DIST - current_spider_tree_dist))
     reward: float = distance_reward - time_penalty - angle_penalty
     return  reward
