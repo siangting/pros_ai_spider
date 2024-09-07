@@ -46,12 +46,12 @@ class PPOConfig:
     N_EPOCHS: int = 10
 
     # Load PPO model
-    MODEL_PATH: str = "./Model/PPO_spider_2024-08-26.pt"
+    MODEL_PATH: str = "./Model/PPO_spider_2024-09-07.pt"
     DEFAULT_MODLE_NAME: str = "./Model/PPO_spider"
 
     # training PPO model
     SAVE_MODEL_FREQUENCE: int = 1024 * 16
-    TOTAL_TIME_STEPS: int = 1024 * 128 * 256
+    TOTAL_TIME_STEPS: int = 1024 * 128 * 256 * 8
     RESET_SCENE_STEP: int = 1024 * 8
     RESET_TOWARD_ANGLE_THRESHOLD: float = 25 # degrees
 
@@ -71,9 +71,9 @@ class PPOConfig:
     TARGET_X: float = 0.0 # "TARGET_MODE" parameters.
     TARGET_Z: float = 70.0 # "TARGET_MODE" parameters.
 
-    DISTANCE_REWARD_WEIGHT: float = 10.0 # The weight for calculating distance reward.
-    TIME_PENALTY_WEIGHT: float = 1.0  # The weight for calculating time penalty.
-    ANGLE_REWARD_WEIGHT: float = 0.5 # The weight for calculating angle offset penalty.
+    DISTANCE_REWARD_WEIGHT: float = 25.0 # The weight for calculating distance reward.
+    TIME_PENALTY_WEIGHT: float = 0.15  # The weight for calculating time penalty.
+    ANGLE_REWARD_WEIGHT: float = 1 # The weight for calculating angle offset penalty.
 
 
 

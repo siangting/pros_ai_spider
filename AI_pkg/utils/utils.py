@@ -20,6 +20,12 @@ def get_observation(AI_spider_node) -> dict:
     ----------
         data_dict: dict
             Processed observation data, including spider vecz, vecx, centerz, centerx, 16 joints angles.
+
+            - spider_toward_vecz: float
+            - spider_toward_vecx: float
+            - spider_center_z: float
+            - spider_center_x: float
+            - spider_joint_cur_angle: float
     """
     AI_spider_node.reset_latest_data()
     data_dict = add_spider_toward_key(AI_spider_node.wait_for_data())
