@@ -172,6 +172,7 @@ class AI_spider_node(Node):
         msg = JointTrajectoryPoint()
 
         joint_target: list[float] = self.actions_to_joint_targets(action) # joint_target --> degrees
+        joint_target = utils.convert_human_to_unity_spider_joint_angles(joint_target)
         joint_target = utils.radians_degree_transfer(joint_target, "degree2radian")
         msg.positions = self.limit_joint_targets(joint_target)
         msg.velocities = [0.0, 0.0, 0.0, 0.0, 0.0]  
@@ -189,15 +190,18 @@ class AI_spider_node(Node):
         Returns
         -------
         joint_target: list[float]
-            Trasfer from action option, the deserve target degrees of joints
+            Trasfer from action option, the deserve target degrees of joints in human orientation.
         """
         for action in actions:
             if action == 0:
-                joint_target: list[float] = SpiderConfig.ACTION["0"]
+                joint_target: list[float] = SpiderConfig.FORWARD_ACTION["0"]
             elif action == 1:
-                joint_target: list[float] = SpiderConfig.ACTION["1"]
+                joint_target: list[float] = SpiderConfig.FORWARD_ACTION["1"]
             elif action == 2:
-                joint_target: list[float] = SpiderConfig.ACTION["2"]
+                joint_target: list[float] = SpiderConfig.FORWARD_ACTION["2"]
+            elif action == 3:
+                joint_target: list[float] = SpiderConfig.FORWARD_ACTION["3"]
+            
         return joint_target
     
     def limit_joint_targets(self, joint_target: list[float]) -> list[float]:
@@ -207,7 +211,7 @@ class AI_spider_node(Node):
         Parameters
         ----------
         joint_target: list[float]
-            Trasfer from RL model action in action_to_joint_target()
+            Trasfer from RL model action in action_to_joint_target(). In Unity orientation.
         
         Returns
         ----------
