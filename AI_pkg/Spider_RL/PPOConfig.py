@@ -29,6 +29,7 @@ class PPOConfig:
 
         TARGET_X (float) : "TARGET_MODE" parameters.
         TARGET_Z (float) : "TARGET_MODE" parameters.
+        SPIDER_TARGET_INIT_DIST (float) : The init distance between spider and target.
 
         DISTANCE_REWARD_WEIGHT (float) : The weight for calculating distance reward.
         TIME_PENALTY_WEIGHT (float) : The weight for calculating time penalty.
@@ -70,6 +71,8 @@ class PPOConfig:
     # target reward mode setting
     TARGET_X: float = 0.0 # "TARGET_MODE" parameters.
     TARGET_Z: float = 70.0 # "TARGET_MODE" parameters.
+    # SPIDER_TREE_INIT_DIST is used by TARGET_MODE.
+    SPIDER_TARGET_INIT_DIST: float = (TARGET_Z - Z_INIT_VALUE) ** 2 + (TARGET_X - X_INIT_VALUE) ** 2
 
     DISTANCE_REWARD_WEIGHT: float = 25.0 # The weight for calculating distance reward.
     TIME_PENALTY_WEIGHT: float = 0.15  # The weight for calculating time penalty.

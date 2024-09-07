@@ -2,9 +2,6 @@ from queue import Queue
 from Spider_RL.PPOConfig import PPOConfig
 import os
 
-# SPIDER_TREE_INIT_DIST is used by TARGET_MODE.
-SPIDER_TREE_INIT_DIST: float = (PPOConfig.TARGET_Z - PPOConfig.Z_INIT_VALUE) ** 2 + (PPOConfig.TARGET_X - PPOConfig.X_INIT_VALUE) ** 2
-
 def reward_cal_main(data : dict, pre_z: Queue, step_counter: int, offset_angle: float) -> float:
     """
     Calculates the reward based on the given data and configuration.
@@ -88,10 +85,10 @@ def target_reward(x: float, z: float, step_counter: int, offset_angle: float) ->
             The reward of forward PPO training.
     """
     current_spider_tree_dist: float = (PPOConfig.TARGET_Z - z) ** 2 + (PPOConfig.TARGET_X - x) ** 2
-    distance_reward: float = (SPIDER_TREE_INIT_DIST - current_spider_tree_dist) * PPOConfig.DISTANCE_REWARD_WEIGHT
+    distance_reward: float = (PPOConfig.SPIDER_TARGET_INIT_DIST - current_spider_tree_dist) * PPOConfig.DISTANCE_REWARD_WEIGHT
     time_penalty: float = step_counter * PPOConfig.TIME_PENALTY_WEIGHT
     angle_penalty: float = offset_angle * PPOConfig.ANGLE_REWARD_WEIGHT
 
-    print("Forward distance " +  str(SPIDER_TREE_INIT_DIST - current_spider_tree_dist))
+    print("Forward distance " +  str(PPOConfig.SPIDER_TARGET_INIT_DIST - current_spider_tree_dist))
     reward: float = distance_reward - time_penalty - angle_penalty
     return  reward
