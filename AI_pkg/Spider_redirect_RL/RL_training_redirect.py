@@ -54,7 +54,7 @@ class CustomSpiderRedirectEnv(gym.Env):
 
         terminated = False
         print("angle = " + str(utils.two_vecs_to_angle(toward_vector, spider_target_vector)))
-        if (utils.two_vecs_to_angle(toward_vector, spider_target_vector) < PPOConfig.RESET_TOWARD_ANGLE):
+        if (utils.two_vecs_to_angle(toward_vector, spider_target_vector) < PPOConfig.RESET_TOWARD_ANGLE_THRESHOLD):
             terminated = True
         
 

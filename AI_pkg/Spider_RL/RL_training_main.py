@@ -60,7 +60,7 @@ class CustomSpiderEnv(gym.Env):
         self.pre_z.put(unity_data["spider_center_z"])
 
         terminated = False
-        if (offset_angle >= PPOConfig.RESET_TOWARD_ANGLE):
+        if (offset_angle >= PPOConfig.RESET_TOWARD_ANGLE_THRESHOLD):
             terminated = True
         
 
