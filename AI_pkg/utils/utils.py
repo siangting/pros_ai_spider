@@ -104,7 +104,7 @@ def process_data_to_npfloat32_array(unity_data: dict) -> dict:
     flat_array = np.array(flat_list, dtype=np.float32)
     return flat_array
 
-def trans_to_float(data: any) -> list:
+def trans_to_float(data: any) -> list[float]:
     return [float(i) for i in data]
 
 def radians_degree_transfer(data: list[float] , mode: str) -> list[float]:

@@ -1,4 +1,5 @@
 import math
+from typing import Any
 from rclpy.node import Node
 from ros_receive_and_data_processing.data_transform import preprocess_data
 from trajectory_msgs.msg import JointTrajectoryPoint
@@ -9,19 +10,29 @@ from utils import utils
 import numpy as np
 
 
+
 class AI_spider_node(Node):
+    """
+    AI_spider_node is a ROS2 node responsible for communicating with Unity.
+    
+    It performs the following tasks:
+
+        - Subscribes to data from Unity side.
+        - Organizes the data into the latest_data dictionary.
+        - Publishes control information for the robot to Unity.
+    """
     def __init__(self):
         super().__init__("AI_spider_node")
         self.get_logger().info("Ai spider start")
 
-        # spider_data 儲存從 rosbridge 收到的 raw data
-        self.spider_data = {}
+        # spider_data stores the data subscribe from Unity.
+        self.spider_data: dict = {}
 
-        # 儲存從 ros_receive_and_data_processing.data_transform.preprocess_data 處理好的 data (字典)
-        self.latest_data = None 
+        # Save the data (dictionary) processed by ros_receive_and_data_processing.data_transform.preprocess_data.
+        self.latest_data: bool = None 
 
-        # data_updated 為確保資料項目有收到的 flag，
-        self.data_updated = {
+        # data_updated is a flag dict to ensure that the data items have been received.
+        self.data_updated: dict[str, bool] = {
             "center_position": False,
             "joint_cur_angle": False,
             "head_position": False
@@ -100,15 +111,26 @@ class AI_spider_node(Node):
     
     def spider_joint_cur_angle_subscribe_callback(self, msg: Float32MultiArray) -> None:
         """
-        Receive the raw msg from spider_joint_cur_angle_subscriber.
-        Store the data in to self.data_updated dictionary
-        Change the data flag data_updated[""].
+        Callback function to handle messages from the spider_joint_cur_angle_subscriber.
+        Updates the stored joint angles and sets the corresponding flag in the data_updated dictionary.
+        Also triggers the process to check and retrieve the latest data.
 
-        :param msg: The raw message receive from  spider_center_subscriber.
+        Parameters
+        ----------
+            msg : Float32MultiArray
+                The raw message received from the spider_joint_cur_angle_subscriber, containing the joint angles data.
 
+        Returns
+        ----------
+            None
         """
+        # Store the received joint angles data in self.spider_data
         self.spider_data["joint_cur_angle"] = msg.data
+
+        # Update the data_updated flag to indicate that joint_cur_angle data has been received
         self.data_updated["joint_cur_angle"] = True
+
+        # Check and get the latest data
         self.check_and_get_latest_data()
 
 
@@ -124,21 +146,27 @@ class AI_spider_node(Node):
             self.latest_data = preprocess_data(self.spider_data)  
 
     
-    def wait_for_data(self) -> dict[str, float]:
+    def wait_for_data(self) -> dict[str, Any]:
         """
-        Will be call by utils.get_observation.
-        Before system call wait_for_data, self.latest_data will be clear.
-        wait_for_data() will wait util self.latest_data exit.
+        Waits for the latest processed data from ROSBridge to become available.
 
-        Return
-        ----------
-        spider_state : dict[str, float]
-            The newest processed data from ROSBridge.
+        This function will be called by `utils.get_observation`. 
         
-        Raise
+        Before calling this function, `self.latest_data` will be cleared. `wait_for_data` will continue to wait until 
+        `self.latest_data` is not `None`.
+
+        Returns
         ----------
-        Aware of the endless loop in the function.
-        First 90000000 times waiting while loop will not log imformation.
+        spider_state : dict[str, Any]
+            The most recent processed data from ROSBridge.
+
+        Raises
+        ------
+        Warning about the potential for an endless loop:
+            This function contains a while loop that will repeatedly check the status of
+            `self.latest_data`. Every N iterations, a message will be printed to
+            indicate that the system is still waiting for data. Be cautious of the performance
+            impact and ensure the function is properly managed to avoid indefinite waiting.
         """
         spider_state = self.latest_data
 
