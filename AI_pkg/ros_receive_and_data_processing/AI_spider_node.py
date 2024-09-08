@@ -155,14 +155,14 @@ class AI_spider_node(Node):
 
     ## ---------- publish 16 joints target ----------
 
-    def publish_jointtarget(self, action : np.ndarray) -> None:
+    def publish_jointtarget(self, action : np.ndarray[int]) -> None:
         """
         The publish event main function.
         Call functions to compute model action to actual joint angle position and publish.
 
         Parameters
         ----------
-        actions: np.ndarray
+        actions: np.ndarray[int]
             RL model produce discrete actions.
 
         Raises
@@ -178,13 +178,13 @@ class AI_spider_node(Node):
         msg.velocities = [0.0, 0.0, 0.0, 0.0, 0.0]  
         self.joint_trajectory_publisher_.publish(msg)
 
-    def actions_to_joint_targets(self, actions: any) -> list[float]:
+    def actions_to_joint_targets(self, actions: np.ndarray[int]) -> list[float]:
         """
         Transfer discrete action options to joint target (degrees).
 
         Parameters
         ----------
-        actions: any
+        actions: np.ndarray[int]
             RL model produce discrete actions.
         
         Returns

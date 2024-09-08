@@ -18,14 +18,9 @@ class PPOConfig:
         RESET_SCENE_STEP (int): The step numbers PPO training terminate per time and unity scene reset.
         RESET_TOWARD_ANGLE_THRESHOLD (float) : The training step terminated threshold for training forward PPO. Represent the MAX angle tolarence between spider toward vector and z axis.
 
-        Z_INIT_VALUE (float): The initial value for the pre-z parameter in the environment.
-        Z_QUEUE_SIZE (int): The size of the queue for storing pre-z values. Note that the queue is later used to calculate model reward.
-        PRE_Z_QUEUE_SIZE (int): The queue size to store previous z values. Note that queue value must be 1 in reward TARGET_MODE.
         
-        REWARD_MODE (str):  "TARGET_MODE" / "NO_TARGET_MODE"
-
-        X_MOTIPLY_PARAM (float) : The penalty multiply parameter of X offset.
-        Z_MOTIPLY_PARAM (float) : The reward multiply parameter of forward z behavior.
+        _Z_INIT_VALUE (float): The initial z-coordination of the spider center.
+        _X_INIT_VALUE (float): The initial x-coordination of the spider center.
 
         TARGET_X (float) : "TARGET_MODE" parameters.
         TARGET_Z (float) : "TARGET_MODE" parameters.
@@ -36,7 +31,7 @@ class PPOConfig:
         ANGLE_REWARD_WEIGHT (float) : The weight for calculating angle offset penalty.
 
     Note: 
-        n_updates = total_timesteps // (n_steps * n_envs)
+        - n_updates = total_timesteps // (n_steps * n_envs)
     
     """
     
@@ -56,27 +51,18 @@ class PPOConfig:
     RESET_SCENE_STEP: int = 1024 * 8
     RESET_TOWARD_ANGLE_THRESHOLD: float = 25 # degrees
 
-    # Env setting
-    X_INIT_VALUE: float = 0.0
-    Z_INIT_VALUE: float = 0.0
-    PRE_Z_QUEUE_SIZE: int = 1 # PRE_Z_QUEUE_SIZE must be 1 in reward TARGET_MODE.
 
-    # reward setting
-    REWARD_MODE: str = "TARGET_MODE"  # "TARGET_MODE" / "NO_TARGET_MODE"
-    
-    # no target reward mode setting
-    X_MOTIPLY_PARAM: float = -5.0 * pow(10, 2) # The penalty multiply parameter of X offset.
-    Z_MOTIPLY_PARAM: float = 1.5 * pow(10, 3) # The reward multiply parameter of forward z behavior.
-    
-    # target reward mode setting
+    # Reward calculation
+    _Z_INIT_VALUE: float = 0.0
+    _X_INIT_VALUE: float = 0.0
     TARGET_X: float = 0.0 # "TARGET_MODE" parameters.
     TARGET_Z: float = 70.0 # "TARGET_MODE" parameters.
     # SPIDER_TREE_INIT_DIST is used by TARGET_MODE.
-    SPIDER_TARGET_INIT_DIST: float = (TARGET_Z - Z_INIT_VALUE) ** 2 + (TARGET_X - X_INIT_VALUE) ** 2
+    SPIDER_TARGET_INIT_DIST: float = (TARGET_Z - _Z_INIT_VALUE) ** 2 + (TARGET_X - _X_INIT_VALUE) ** 2
 
     DISTANCE_REWARD_WEIGHT: float = 25.0 # The weight for calculating distance reward.
     TIME_PENALTY_WEIGHT: float = 0.15  # The weight for calculating time penalty.
-    ANGLE_REWARD_WEIGHT: float = 1 # The weight for calculating angle offset penalty.
+    ANGLE_REWARD_WEIGHT: float = 1.0 # The weight for calculating angle offset penalty.
 
 
 

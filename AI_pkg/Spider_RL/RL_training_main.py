@@ -1,12 +1,10 @@
 import numpy as np
 import time
 import gymnasium as gym
-import queue
 from gymnasium import spaces
 from utils import utils
 from Spider_RL import reward_cal
 from Spider_RL.PPOConfig import PPOConfig
-import math
 
 
 class CustomSpiderEnv(gym.Env):
@@ -15,11 +13,6 @@ class CustomSpiderEnv(gym.Env):
     def __init__(self, AI_node):
         super(CustomSpiderEnv, self).__init__()
         self.AI_node = AI_node
-        self.pre_z = queue.Queue()
-        self.queue_size = PPOConfig.PRE_Z_QUEUE_SIZE
-   
-        for _ in range(self.queue_size):
-            self.pre_z.put(PPOConfig.Z_INIT_VALUE)
         self.step_counter : int = 0 # step_counter will reset to 0 again when reset game.
 
         # The flatten 1D array length of obervation dictionary
@@ -41,15 +34,12 @@ class CustomSpiderEnv(gym.Env):
 
         unity_data = utils.get_observation(self.AI_node)
         self.state = utils.process_data_to_npfloat32_array(unity_data)
-        
-        reward = reward_cal.reward_cal_main(unity_data, self.pre_z, self.step_counter)
+
+        reward = reward_cal.reward_cal_main(unity_data, self.step_counter)
 
         self.step_counter = self.step_counter + 1
         if (self.step_counter % 64 == 0):
             print("\nreward: " + str(round(reward)) + '\n')
-
-        self.pre_z.get()
-        self.pre_z.put(unity_data["spider_center_z"])
 
         terminated = False
         if (unity_data["offset_angle"] >= PPOConfig.RESET_TOWARD_ANGLE_THRESHOLD):
