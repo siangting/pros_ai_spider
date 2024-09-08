@@ -2,7 +2,7 @@ from queue import Queue
 from Spider_RL.PPOConfig import PPOConfig
 import os
 
-def reward_cal_main(data : dict, pre_z: Queue, step_counter: int, offset_angle: float) -> float:
+def reward_cal_main(data : dict, pre_z: Queue, step_counter: int) -> float:
     """
     Calculates the reward based on the given data and configuration.
     Two modes to choose: "TARGET_MODE", "NO_TARGET_MODE". Choose in PPOConfig.py.
@@ -37,7 +37,7 @@ def reward_cal_main(data : dict, pre_z: Queue, step_counter: int, offset_angle: 
         #reward = no_target_reward(x, z, pre_z)
 
     elif (PPOConfig.REWARD_MODE == "TARGET_MODE"):
-        reward = target_reward(data, step_counter, offset_angle)
+        reward = target_reward(data, step_counter)
 
     else :
         print("Error Reward Mode. Modify in Config.py\n")
@@ -63,7 +63,7 @@ def no_target_reward(x: float, z: float, pre_z: Queue) -> float:
     return reward_offset_x + reward_forward_z
 
 
-def target_reward(data: dict, step_counter: int, offset_angle: float) -> float:
+def target_reward(data: dict, step_counter: int) -> float:
     """
     Calculate reward for forward PPO training.
     target_reward consists of "distance_reward", "time_penalty", and "angle_penalty" 
@@ -76,17 +76,16 @@ def target_reward(data: dict, step_counter: int, offset_angle: float) -> float:
         step_counter: int
             The steps number counter. When the training resets, the step_counter will reset to 0.
 
-        offset_angle: float
-            The angular difference between the toward_vector and spider_target_vector.
     Returns
     ----------
         reward: float
             The reward of forward PPO training.
     """
     current_spider_tree_dist: float = (data["spider_target_vecz"]) ** 2 + (data["spider_target_vecx"]) ** 2
+    
     distance_reward: float = (PPOConfig.SPIDER_TARGET_INIT_DIST - current_spider_tree_dist) * PPOConfig.DISTANCE_REWARD_WEIGHT
     time_penalty: float = step_counter * PPOConfig.TIME_PENALTY_WEIGHT
-    angle_penalty: float = offset_angle * PPOConfig.ANGLE_REWARD_WEIGHT
+    angle_penalty: float = data["offset_angle"] * PPOConfig.ANGLE_REWARD_WEIGHT
 
     print("Forward distance " +  str(PPOConfig.SPIDER_TARGET_INIT_DIST - current_spider_tree_dist))
     reward: float = distance_reward - time_penalty - angle_penalty

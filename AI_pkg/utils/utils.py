@@ -2,11 +2,10 @@
 This python file aims to process AI_spider_node latest data.
 Produce state dictionary ready to be flatten and become RL state.
 """
-from Spider_RL.PPOConfig import PPOConfig
 import numpy as np
 import math
 import sys
-
+from Spider_RL.PPOConfig import PPOConfig
 
 def get_observation(AI_spider_node) -> dict:
     """
@@ -27,6 +26,7 @@ def get_observation(AI_spider_node) -> dict:
             - spider_toward_vecx: float
             - spider_target_vecz: float
             - spider_target_vecx: float
+            - offset_angle: float
             - spider_joint_cur_angle: list[float]
     """
     AI_spider_node.reset_latest_data()
@@ -53,6 +53,12 @@ def add_spider_toward_key(data_dict: dict) -> dict:
 
     data_dict["spider_target_vecx"] = PPOConfig.TARGET_X - data_dict["spider_center_x"]
     data_dict["spider_target_vecz"] = PPOConfig.TARGET_Z - data_dict["spider_center_z"]
+
+    # offset_angle: The angular difference between the toward_vector and spider_target_vector.
+    data_dict["offset_angle"] = two_vecs_to_angle(
+        (data_dict["spider_toward_vecz"], data_dict["spider_toward_vecx"]),
+        (data_dict["spider_target_vecz"], data_dict["spider_target_vecx"])
+        )
 
     return data_dict
 
