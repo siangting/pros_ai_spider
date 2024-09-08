@@ -2,6 +2,7 @@
 This python file aims to process AI_spider_node latest data.
 Produce state dictionary ready to be flatten and become RL state.
 """
+from Spider_RL.PPOConfig import PPOConfig
 import numpy as np
 import math
 import sys
@@ -21,32 +22,21 @@ def get_observation(AI_spider_node) -> dict:
         data_dict: dict
             Processed observation data, including spider vecz, vecx, centerz, centerx, 16 joints angles.
 
+            - spider_center_z: float
             - spider_toward_vecz: float
             - spider_toward_vecx: float
-            - spider_center_z: float
-            - spider_center_x: float
-            - spider_joint_cur_angle: float
+            - spider_target_vecz: float
+            - spider_target_vecx: float
+            - spider_joint_cur_angle: list[float]
     """
     AI_spider_node.reset_latest_data()
     data_dict = add_spider_toward_key(AI_spider_node.wait_for_data())
     data_dict = remove_dict_key(data_dict)
     return data_dict
 
-
-def remove_dict_key(data_dict: dict) -> dict:
-    keys_to_remove = ["spider_center_y",
-                      "spider_head_y",
-                      "spider_head_x",
-                      "spider_head_z"]
-    for key in keys_to_remove:
-        data_dict.pop(key, None)
-    return data_dict
-
 def add_spider_toward_key(data_dict: dict) -> dict:
     """
-    spider_toward_vec = spider_head - spider_center 
-    Add spider_toward in observation dictionary.
-    Delete spider_head in observation dictionary.
+    Add key in observation dictionary.
 
     Parameters
     ----------
@@ -61,7 +51,24 @@ def add_spider_toward_key(data_dict: dict) -> dict:
     data_dict["spider_toward_vecx"] = data_dict["spider_head_x"] - data_dict["spider_center_x"]
     data_dict["spider_toward_vecz"] = data_dict["spider_head_z"] - data_dict["spider_center_z"]
 
+    data_dict["spider_target_vecx"] = PPOConfig.TARGET_X - data_dict["spider_center_x"]
+    data_dict["spider_target_vecz"] = PPOConfig.TARGET_Z - data_dict["spider_center_z"]
+
     return data_dict
+
+
+
+def remove_dict_key(data_dict: dict) -> dict:
+    keys_to_remove = ["spider_center_x",
+                      "spider_center_y",
+                      
+                      "spider_head_x",
+                      "spider_head_y",
+                      "spider_head_z"]
+    for key in keys_to_remove:
+        data_dict.pop(key, None)
+    return data_dict
+
 
 def process_data_to_npfloat32_array(unity_data: dict) -> dict:
     """

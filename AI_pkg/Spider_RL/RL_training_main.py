@@ -45,7 +45,7 @@ class CustomSpiderEnv(gym.Env):
         # toward_vector(z, x): spider_head - spider_center
         toward_vector: tuple = (unity_data["spider_toward_vecz"], unity_data["spider_toward_vecx"])
         # spider_target_vector(z, x): target - spider_center
-        spider_target_vector: tuple = (PPOConfig.TARGET_Z - unity_data["spider_center_z"], PPOConfig.TARGET_X - unity_data["spider_center_x"])
+        spider_target_vector: tuple = (unity_data["spider_target_vecz"], unity_data["spider_target_vecx"])
         
         # offset_angle: The angular difference between the toward_vector and spider_target_vector.
         offset_angle: float = utils.two_vecs_to_angle(toward_vector, spider_target_vector)
