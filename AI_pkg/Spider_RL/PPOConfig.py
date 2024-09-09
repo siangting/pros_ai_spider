@@ -10,8 +10,8 @@ class PPOConfig:
         BATCH_SIZE (int): The mini-batch size for each gradient update.
         N_EPOCHS (int): The number of epochs for optimizing the PPO model.
 
-        MODEL_PATH (str): The file path for saving and loading the PPO model.
-        DEFAULT_MODLE_NAME (str): The default model name used when saving the PPO model.
+        LOAD_MODEL_PATH (str): The file path for loading the PPO model.
+        SAVE_MODEL_PATH (str): The file path for saving the PPO model.
 
         SAVE_MODEL_FREQUENCE (int): The frequency (in timesteps) at which the model is saved during training.
         TOTAL_TIME_STEPS (int): The total number of timesteps for training the PPO model. 
@@ -42,8 +42,8 @@ class PPOConfig:
     N_EPOCHS: int = 10
 
     # Load PPO model
-    MODEL_PATH: str = "./Model/PPO_spider_2024-09-07.pt"
-    DEFAULT_MODLE_NAME: str = "./Model/PPO_spider"
+    LOAD_MODEL_PATH: str = "./Model/PPO_spider_2024-09-09.pt"
+    SAVE_MODEL_PATH: str = "./Model/PPO_spider_2024-09-09.pt"
 
     # training PPO model
     SAVE_MODEL_FREQUENCE: int = 1024 * 16

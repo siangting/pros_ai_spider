@@ -1,5 +1,4 @@
 from stable_baselines3.common.callbacks import BaseCallback
-import datetime
 
 
 # Save model
@@ -16,9 +15,8 @@ class CustomCallback(BaseCallback):
         """
         if self.n_calls - self.last_save_step >= self.save_freq:
             print(f"Run {self.n_calls} steps...")
-            self.date = datetime.date.today()
-            self.model.save(f"{self.save_path}_{self.date}.pt")
-            print(f"Save {self.save_path}_{self.date}.pt\n\n")
+            self.model.save(self.save_path)
+            print("Save " + self.save_path + "\n\n")
             self.last_save_step = self.n_calls
 
         return True
