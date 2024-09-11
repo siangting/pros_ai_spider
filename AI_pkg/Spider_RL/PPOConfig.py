@@ -19,7 +19,7 @@ class PPOConfig:
 
         DISTANCE_REWARD_WEIGHT (float) : The weight for calculating distance reward.
         TIME_PENALTY_WEIGHT (float) : The weight for calculating time penalty.
-        ANGLE_REWARD_WEIGHT (float) : The weight for calculating angle offset penalty.
+        ANGLE_PENALTY_WEIGHT (float) : The weight for calculating angle offset penalty.
 
     Note: 
         - n_updates = total_timesteps // (n_steps * n_envs)
@@ -43,7 +43,7 @@ class PPOConfig:
 
     DISTANCE_REWARD_WEIGHT: float = 25.0 # The weight for calculating distance reward.
     TIME_PENALTY_WEIGHT: float = 0.15  # The weight for calculating time penalty.
-    ANGLE_REWARD_WEIGHT: float = 1.0 # The weight for calculating angle offset penalty.
+    ANGLE_PENALTY_WEIGHT: float = 1.0 # The weight for calculating angle offset penalty.
 
 
 

@@ -18,7 +18,9 @@ class redirect_PPOConfig:
         RESET_REDIRECT_ANGLE_THRESHOLD (float) : The training step terminated threshold for training redirect PPO.
         
         REWARD_CAL_ANGLE_BASELINE (float): The positive and negative threshold for calculating angle reward. When the offset angle is smaller than baseline, angle_reward will be positive and vice versa.
-        ANGLE_REWARD_WEIGHT (float): The weight of angle reward.
+        
+        DISTANCE_REWARD_WEIGHT (float) : The weight for calculating distance reward.
+        ANGLE_PENALTY_WEIGHT (float): The weight of angle reward.
         TIME_PENALTY_WEIGHT (float): The weight of time penalty.
 
     Note: 
@@ -43,7 +45,9 @@ class redirect_PPOConfig:
 
     # reward parameters
     REWARD_CAL_ANGLE_BASELINE: float = 100.0 # in degrees
-    ANGLE_REWARD_WEIGHT: float = 5.0
+
+    DISTANCE_REWARD_WEIGHT: float = 1.0 # The weight for calculating distance reward.
+    ANGLE_PENALTY_WEIGHT: float = 30.0
     TIME_PENALTY_WEIGHT: float = 0.5
 
 
