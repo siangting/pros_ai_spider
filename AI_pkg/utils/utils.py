@@ -107,6 +107,21 @@ def process_data_to_npfloat32_array(unity_data: dict) -> dict:
 def trans_to_float(data: any) -> list[float]:
     return [float(i) for i in data]
 
+
+def get_initial_shape(AI_node) -> int:
+    """
+    Compute the 1D array length of self.state by AI_spider_node lastest_data.
+    And return the array length to initialize the PPO obervation shape.
+
+    Returns
+    ----------
+    int
+        The length of the processed observation state array.
+    """
+    obs_state = get_observation(AI_node)
+    obs_state = process_data_to_npfloat32_array(obs_state)
+    return len(obs_state)
+
 def radians_degree_transfer(data: list[float] , mode: str) -> list[float]:
     """
     Transfer a list from degrees to radians or radians to degree.

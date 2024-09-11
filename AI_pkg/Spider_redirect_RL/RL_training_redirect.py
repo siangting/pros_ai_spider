@@ -17,7 +17,7 @@ class CustomSpiderRedirectEnv(gym.Env):
         self.step_counter : int = 0 # step_counter will reset to 0 again when reset game.
 
         # The flatten 1D array length of obervation dictionary
-        self.shape_number = self.get_initial_shape()
+        self.shape_number = utils.get_initial_shape(self.AI_node)
 
         self.observation_space = spaces.Box(
             low=-np.inf, high=np.inf, shape=(self.shape_number,), dtype=np.float32
@@ -63,17 +63,3 @@ class CustomSpiderRedirectEnv(gym.Env):
         time.sleep(0.5)
 
         return self.state, {}
-
-    def get_initial_shape(self) -> int:
-        """
-        Compute the 1D array length of self.state by AI_spider_node lastest_data.
-        And return the array length to initialize the PPO obervation shape.
-
-        Returns
-        ----------
-        int
-            The length of the processed observation state array.
-        """
-        obs_state = utils.get_observation(self.AI_node)
-        obs_state = utils.process_data_to_npfloat32_array(obs_state)
-        return len(obs_state)
