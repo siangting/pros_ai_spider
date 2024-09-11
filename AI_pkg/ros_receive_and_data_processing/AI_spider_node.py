@@ -183,7 +183,7 @@ class AI_spider_node(Node):
 
     ## ---------- publish 16 joints target ----------
 
-    def publish_jointtarget(self, action : np.ndarray[int]) -> None:
+    def publish_jointtarget(self, action : np.ndarray[int], is_redirect: bool = False) -> None:
         """
         The publish event main function.
         Call functions to compute model action to actual joint angle position and publish.
@@ -192,23 +192,56 @@ class AI_spider_node(Node):
         ----------
         actions: np.ndarray[int]
             RL model produce discrete actions.
+        
+        is_redirect: bool
+            The publish mode is redirect or forward.
 
         Raises
         ----------
         Be aware of degree and radians transformation.
         """
         msg = JointTrajectoryPoint()
-
-        joint_target: list[float] = self.actions_to_joint_targets(action) # joint_target --> degrees
+        
+        if is_redirect:
+            joint_target: list[float] = self.redirect_actions_to_joint_targets(action) # joint_target --> degrees
+        else:
+            joint_target: list[float] = self.forward_actions_to_joint_targets(action) # joint_target --> degrees
+    
         joint_target = utils.convert_human_to_unity_spider_joint_angles(joint_target)
         joint_target = utils.radians_degree_transfer(joint_target, "degree2radian")
         msg.positions = self.limit_joint_targets(joint_target)
         msg.velocities = [0.0, 0.0, 0.0, 0.0, 0.0]  
         self.joint_trajectory_publisher_.publish(msg)
 
-    def actions_to_joint_targets(self, actions: np.ndarray[int]) -> list[float]:
+    def forward_actions_to_joint_targets(self, actions: np.ndarray[int]) -> list[float]:
         """
-        Transfer discrete action options to joint target (degrees).
+        Transfer discrete action options to joint target (degrees) for forward PPO.
+
+        Parameters
+        ----------
+        actions: np.ndarray[int]
+            RL model produce discrete actions.
+        
+        Returns
+        -------
+        joint_target: list[float]
+            Trasfer from action option, the deserve target degrees of joints in human orientation.
+        """
+        for action in actions:
+            if action == 0:
+                joint_target: list[float] = SpiderConfig.FORWARD_ACTION["0"]
+            elif action == 1:
+                joint_target: list[float] = SpiderConfig.FORWARD_ACTION["1"]
+            elif action == 2:
+                joint_target: list[float] = SpiderConfig.FORWARD_ACTION["2"]
+            elif action == 3:
+                joint_target: list[float] = SpiderConfig.FORWARD_ACTION["3"]
+            
+        return joint_target
+    
+    def redirect_actions_to_joint_targets(self, actions: np.ndarray[int]) -> list[float]:
+        """
+        Transfer discrete action options to joint target (degrees) for redirect PPO.
 
         Parameters
         ----------

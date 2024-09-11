@@ -30,7 +30,7 @@ class CustomSpiderRedirectEnv(gym.Env):
     def step(self, action):
 
         # call AI_spider_node.publish_to_robot
-        self.AI_node.publish_jointtarget(action) 
+        self.AI_node.publish_jointtarget(action, is_redirect = True) 
         time.sleep(0.1)
 
         unity_data = utils.get_observation(self.AI_node)
