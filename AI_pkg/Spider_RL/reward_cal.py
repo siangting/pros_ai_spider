@@ -3,7 +3,7 @@ from Spider_RL.PPOConfig import PPOConfig
 def reward_cal_main(data: dict, step_counter: int) -> float:
     """
     Calculate reward for forward PPO training.
-    target_reward consists of "distance_reward", "time_penalty", and "angle_penalty" 
+    Reward consists of "distance_reward", "time_penalty", and "angle_penalty" 
 
     Parameters
     ----------
