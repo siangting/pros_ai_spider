@@ -1,13 +1,11 @@
 import numpy as np
 import time
 import gymnasium as gym
-import queue
 from gymnasium import spaces
 from utils import utils
 from Spider_redirect_RL import redirect_reward_cal
 # In RL_training_redirect, use PPOConfig, not use redirect_PPOConfig.
-from Spider_RL.PPOConfig import PPOConfig  
-import math
+from Spider_RL.PPOConfig import PPOConfig
 
 
 class CustomSpiderRedirectEnv(gym.Env):
@@ -25,7 +23,7 @@ class CustomSpiderRedirectEnv(gym.Env):
             low=-np.inf, high=np.inf, shape=(self.shape_number,), dtype=np.float32
         )
         # 3 action options and 16 joints
-        self.action_space = spaces.MultiDiscrete([3]) 
+        self.action_space = spaces.MultiDiscrete([4]) 
 
 
 
@@ -33,20 +31,12 @@ class CustomSpiderRedirectEnv(gym.Env):
 
         # call AI_spider_node.publish_to_robot
         self.AI_node.publish_jointtarget(action) 
-        time.sleep(0.02)
+        time.sleep(0.1)
 
         unity_data = utils.get_observation(self.AI_node)
         self.state = utils.process_data_to_npfloat32_array(unity_data)
 
-        # toward_vector(z, x): spider_head - spider_center
-        toward_vector: tuple = (unity_data["spider_toward_vecz"], unity_data["spider_toward_vecx"])
-        # spider_target_vector(z, x): target - spider_center
-        spider_target_vector: tuple = (PPOConfig.TARGET_Z - unity_data["spider_center_z"], PPOConfig.TARGET_X - unity_data["spider_center_x"])
-
-        # offset_angle: The angular difference between the toward_vector and spider_target_vector.
-        offset_angle: float = utils.two_vecs_to_angle(toward_vector, spider_target_vector)
-
-        reward = redirect_reward_cal.reward_cal_main(offset_angle, self.step_counter)
+        reward = redirect_reward_cal.reward_cal_main(unity_data, self.step_counter)
 
         self.step_counter = self.step_counter + 1
         if (self.step_counter % 64 == 0):
