@@ -5,7 +5,7 @@ Produce state dictionary ready to be flatten and become RL state.
 import numpy as np
 import math
 import sys
-from Spider_RL.PPOConfig import PPOConfig
+from ros_receive_and_data_processing.SpiderConfig import SpiderConfig
 
 def get_observation(AI_spider_node) -> dict:
     """
@@ -51,8 +51,8 @@ def add_spider_toward_key(data_dict: dict) -> dict:
     data_dict["spider_toward_vecx"] = data_dict["spider_head_x"] - data_dict["spider_center_x"]
     data_dict["spider_toward_vecz"] = data_dict["spider_head_z"] - data_dict["spider_center_z"]
 
-    data_dict["spider_target_vecx"] = PPOConfig.TARGET_X - data_dict["spider_center_x"]
-    data_dict["spider_target_vecz"] = PPOConfig.TARGET_Z - data_dict["spider_center_z"]
+    data_dict["spider_target_vecx"] = SpiderConfig.TARGET_X - data_dict["spider_center_x"]
+    data_dict["spider_target_vecz"] = SpiderConfig.TARGET_Z - data_dict["spider_center_z"]
 
     # offset_angle: The angular difference between the toward_vector and spider_target_vector.
     data_dict["offset_angle"] = two_vecs_to_angle(

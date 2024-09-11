@@ -17,14 +17,6 @@ class PPOConfig:
         TOTAL_TIME_STEPS (int): The total number of timesteps for training the PPO model. 
         RESET_TOWARD_ANGLE_THRESHOLD (float) : The training step terminated threshold for training forward PPO. Represent the MAX angle tolarence between spider toward vector and z axis.
 
-        
-        _Z_INIT_VALUE (float): The initial z-coordination of the spider center.
-        _X_INIT_VALUE (float): The initial x-coordination of the spider center.
-
-        TARGET_X (float) : "TARGET_MODE" parameters.
-        TARGET_Z (float) : "TARGET_MODE" parameters.
-        SPIDER_TARGET_INIT_DIST (float) : The init distance between spider and target.
-
         DISTANCE_REWARD_WEIGHT (float) : The weight for calculating distance reward.
         TIME_PENALTY_WEIGHT (float) : The weight for calculating time penalty.
         ANGLE_REWARD_WEIGHT (float) : The weight for calculating angle offset penalty.
@@ -48,15 +40,6 @@ class PPOConfig:
     SAVE_MODEL_FREQUENCE: int = 1024 * 16
     TOTAL_TIME_STEPS: int = 1024 * 128 * 256 * 8
     RESET_TOWARD_ANGLE_THRESHOLD: float = 25 # degrees
-
-
-    # Reward calculation
-    _Z_INIT_VALUE: float = 0.0
-    _X_INIT_VALUE: float = 0.0
-    TARGET_X: float = 0.0 # "TARGET_MODE" parameters.
-    TARGET_Z: float = 70.0 # "TARGET_MODE" parameters.
-    # SPIDER_TREE_INIT_DIST is used by TARGET_MODE.
-    SPIDER_TARGET_INIT_DIST: float = (TARGET_Z - _Z_INIT_VALUE) ** 2 + (TARGET_X - _X_INIT_VALUE) ** 2
 
     DISTANCE_REWARD_WEIGHT: float = 25.0 # The weight for calculating distance reward.
     TIME_PENALTY_WEIGHT: float = 0.15  # The weight for calculating time penalty.

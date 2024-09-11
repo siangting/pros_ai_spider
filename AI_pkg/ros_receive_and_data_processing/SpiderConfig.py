@@ -1,8 +1,8 @@
 class SpiderConfig:
     """
     SpiderConfig class holds configuration parameters for the spider robot, 
-    including action degrees and joint limits.
-    
+    including action degrees, joint limits, initial pose and target position.
+     
     Attributes
     ----------
     _forward_routine_angles: dict[str, float]
@@ -15,6 +15,14 @@ class SpiderConfig:
         
     JOINT_LIMIT: dict[str, float]
         A dictionary specifying the maximum and minimum angle limits for the spider robot's joints.
+
+    _Z_INIT_VALUE (float): The initial z-coordination of the spider center.
+    _X_INIT_VALUE (float): The initial x-coordination of the spider center.
+
+    TARGET_X (float) : The x-coordination of target in Unity.
+    TARGET_Z (float) : The z-coordination of target in Unity.
+    SPIDER_TARGET_INIT_DIST (float) : The init distance between spider and target.
+        
     """
 
     _FORWARD_ROUTINE_ANGLES: dict[str, float] = {
@@ -90,3 +98,10 @@ class SpiderConfig:
         "shoulder_adduction": 18.0,  # Maximum allowable adduction angle for the shoulder joints
         "calf": 58.0           # Maximum allowable extension angle for the calf joints
     }
+
+
+    _Z_INIT_VALUE: float = 0.0
+    _X_INIT_VALUE: float = 0.0
+    TARGET_X: float = 0.0
+    TARGET_Z: float = 70.0
+    SPIDER_TARGET_INIT_DIST: float = (TARGET_Z - _Z_INIT_VALUE) ** 2 + (TARGET_X - _X_INIT_VALUE) ** 2

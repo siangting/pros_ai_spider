@@ -1,4 +1,5 @@
 from Spider_RL.PPOConfig import PPOConfig
+from ros_receive_and_data_processing.SpiderConfig import SpiderConfig
 
 def reward_cal_main(data: dict, step_counter: int) -> float:
     """
@@ -20,12 +21,12 @@ def reward_cal_main(data: dict, step_counter: int) -> float:
     """
     current_spider_tree_dist: float = (data["spider_target_vecz"]) ** 2 + (data["spider_target_vecx"]) ** 2
        
-    distance_reward: float = (PPOConfig.SPIDER_TARGET_INIT_DIST - current_spider_tree_dist) * PPOConfig.DISTANCE_REWARD_WEIGHT
+    distance_reward: float = (SpiderConfig.SPIDER_TARGET_INIT_DIST - current_spider_tree_dist) * PPOConfig.DISTANCE_REWARD_WEIGHT
     time_penalty: float = step_counter * PPOConfig.TIME_PENALTY_WEIGHT
     angle_penalty: float = data["offset_angle"] * PPOConfig.ANGLE_REWARD_WEIGHT
 
     reward: float = distance_reward - time_penalty - angle_penalty
 
-    print("Forward distance " +  str(PPOConfig.SPIDER_TARGET_INIT_DIST - current_spider_tree_dist))
+    print("Forward distance " +  str(SpiderConfig.SPIDER_TARGET_INIT_DIST - current_spider_tree_dist))
     
     return  reward
