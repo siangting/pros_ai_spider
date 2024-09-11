@@ -15,7 +15,6 @@ class PPOConfig:
 
         SAVE_MODEL_FREQUENCE (int): The frequency (in timesteps) at which the model is saved during training.
         TOTAL_TIME_STEPS (int): The total number of timesteps for training the PPO model. 
-        RESET_SCENE_STEP (int): The step numbers PPO training terminate per time and unity scene reset.
         RESET_TOWARD_ANGLE_THRESHOLD (float) : The training step terminated threshold for training forward PPO. Represent the MAX angle tolarence between spider toward vector and z axis.
 
         
@@ -48,7 +47,6 @@ class PPOConfig:
     # training PPO model
     SAVE_MODEL_FREQUENCE: int = 1024 * 16
     TOTAL_TIME_STEPS: int = 1024 * 128 * 256 * 8
-    RESET_SCENE_STEP: int = 1024 * 8
     RESET_TOWARD_ANGLE_THRESHOLD: float = 25 # degrees
 
 

@@ -40,10 +40,10 @@ def load_or_create_model_PPO(env, PPO_Mode: str):
 
     elif (PPO_Mode == "redirect"):
         try:
-            model = PPO.load(redirect_PPOConfig.MODEL_PATH)
+            model = PPO.load(redirect_PPOConfig.LOAD_MODEL_PATH)
             env = Monitor(env)
             model.set_env(env)
-            print(f"Model loaded successfully from {redirect_PPOConfig.MODEL_PATH}")
+            print(f"Model loaded successfully from {redirect_PPOConfig.LOAD_MODEL_PATH}")
             print(f"Model learning rate: {model.lr_schedule(1.0)}")
             print(f"Model policy network: {model.policy}")
         
@@ -76,7 +76,7 @@ def train_redirect_PPO(env):
     model = load_or_create_model_PPO(
         env, PPO_Mode = "redirect"
     )
-    custom_callback = CustomCallback(redirect_PPOConfig.MODEL_PATH, redirect_PPOConfig.SAVE_MODEL_FREQUENCE)
+    custom_callback = CustomCallback(redirect_PPOConfig.SAVE_MODEL_PATH, redirect_PPOConfig.SAVE_MODEL_FREQUENCE)
     model.learn(
         total_timesteps = redirect_PPOConfig.TOTAL_TIME_STEPS, callback = custom_callback, log_interval = 1
     )  #  Enter redirect env and start redirect training
