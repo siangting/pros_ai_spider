@@ -189,7 +189,7 @@ def two_vecs_to_angle(vec1: tuple[float, float], vec2: tuple[float, float]) -> f
     angle_degree = math.degrees(angle_radians)
 
     # Calculate the cross product to determine the direction of the angle.
-    cross_product = vec1[0] * vec2[1] - vec1[1] * vec2[0]
+    cross_product = vec1[1] * vec2[0] - vec1[0] * vec2[1]
 
     # If cross product is negative, the angle is clockwise (negative).
     if cross_product < 0:
