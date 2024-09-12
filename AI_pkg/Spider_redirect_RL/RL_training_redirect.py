@@ -4,7 +4,7 @@ import gymnasium as gym
 from gymnasium import spaces
 from utils import utils
 from Spider_redirect_RL import redirect_reward_cal
-from redirect_PPOConfig import redirect_PPOConfig
+from Spider_redirect_RL.redirect_PPOConfig import redirect_PPOConfig
 
 
 class CustomSpiderRedirectEnv(gym.Env):
@@ -33,6 +33,7 @@ class CustomSpiderRedirectEnv(gym.Env):
         time.sleep(0.12)
 
         unity_data = utils.get_observation(self.AI_node)
+        print("unity_data: "+ str(unity_data))
         self.state = utils.process_data_to_npfloat32_array(unity_data)
 
         reward = redirect_reward_cal.reward_cal_main(unity_data, self.step_counter)

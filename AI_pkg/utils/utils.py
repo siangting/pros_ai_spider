@@ -30,11 +30,11 @@ def get_observation(AI_spider_node) -> dict:
             - spider_joint_cur_angle: list[float]
     """
     AI_spider_node.reset_latest_data()
-    data_dict = add_spider_toward_key(AI_spider_node.wait_for_data())
-    data_dict = remove_dict_key(data_dict)
+    data_dict = add_key(AI_spider_node.wait_for_data())
+    data_dict = remove_key(data_dict)
     return data_dict
 
-def add_spider_toward_key(data_dict: dict) -> dict:
+def add_key(data_dict: dict) -> dict:
     """
     Add key in observation dictionary.
 
@@ -56,15 +56,15 @@ def add_spider_toward_key(data_dict: dict) -> dict:
 
     # offset_angle: The angular difference between the toward_vector and spider_target_vector.
     data_dict["offset_angle"] = two_vecs_to_angle(
-        (data_dict["spider_toward_vecz"], data_dict["spider_toward_vecx"]),
-        (data_dict["spider_target_vecz"], data_dict["spider_target_vecx"])
+        (data_dict["spider_target_vecz"], data_dict["spider_target_vecx"]),
+        (data_dict["spider_toward_vecz"], data_dict["spider_toward_vecx"])
         )
 
     return data_dict
 
 
 
-def remove_dict_key(data_dict: dict) -> dict:
+def remove_key(data_dict: dict) -> dict:
     keys_to_remove = ["spider_center_x",
                       "spider_center_y",
                       
@@ -156,18 +156,18 @@ def radians_degree_transfer(data: list[float] , mode: str) -> list[float]:
 
 def two_vecs_to_angle(vec1: tuple[float, float], vec2: tuple[float, float]) -> float:
     """
-    Calculate the angle of two vectors.
+    Calculate the angle of two vectors. It will distinguish between clockwise and counterclockwise.
 
     Parameter
     ----------
         vec1: tuple[float, float]
-            vector1
+            The base vector.
         vec2: tuple[float, float]
             vector2
     Return
     ----------
         angle_degree: float
-            The angle between two vectors.
+            The angle between two vectors. Positive number represents "vec2 is counterclockwise relative to vec1".
     """
     # Calculate the dot product of the two vectors.
     dot_product = vec1[0] * vec2[0] + vec1[1] * vec2[1]
@@ -187,6 +187,13 @@ def two_vecs_to_angle(vec1: tuple[float, float], vec2: tuple[float, float]) -> f
     
     # Convert the angle from radians to degrees.
     angle_degree = math.degrees(angle_radians)
+
+    # Calculate the cross product to determine the direction of the angle.
+    cross_product = vec1[0] * vec2[1] - vec1[1] * vec2[0]
+
+    # If cross product is negative, the angle is clockwise (negative).
+    if cross_product < 0:
+        angle_degree = -angle_degree
     
     return angle_degree
 

@@ -47,7 +47,7 @@ class redirect_PPOConfig:
     REWARD_CAL_ANGLE_BASELINE: float = 100.0 # in degrees
 
     DISTANCE_REWARD_WEIGHT: float = 1.0 # The weight for calculating distance reward.
-    ANGLE_PENALTY_WEIGHT: float = 30.0
+    ANGLE_PENALTY_WEIGHT: float = 35.0
     TIME_PENALTY_WEIGHT: float = 0.5
 
 
