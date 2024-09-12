@@ -42,7 +42,7 @@ class CustomSpiderEnv(gym.Env):
             print("\nreward: " + str(round(reward)) + '\n')
 
         terminated = False
-        if (unity_data["offset_angle"] >= PPOConfig.RESET_TOWARD_ANGLE_THRESHOLD):
+        if (abs(unity_data["offset_angle"]) >= PPOConfig.RESET_TOWARD_ANGLE_THRESHOLD):
             terminated = True
         
 

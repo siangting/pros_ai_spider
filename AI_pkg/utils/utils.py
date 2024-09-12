@@ -156,7 +156,9 @@ def radians_degree_transfer(data: list[float] , mode: str) -> list[float]:
 
 def two_vecs_to_angle(vec1: tuple[float, float], vec2: tuple[float, float]) -> float:
     """
-    Calculate the angle of two vectors. It will distinguish between clockwise and counterclockwise.
+    Calculate the angle of two vectors. Positive angle represents "vec2 is counterclockwise relative to vec1".
+
+    Note that the CCW and CCW angle sign is different from Unity. In Unity, positive angle means clockwise.
 
     Parameter
     ----------
@@ -167,7 +169,7 @@ def two_vecs_to_angle(vec1: tuple[float, float], vec2: tuple[float, float]) -> f
     Return
     ----------
         angle_degree: float
-            The angle between two vectors. Positive number represents "vec2 is counterclockwise relative to vec1".
+            The angle between two vectors. Positive angle represents "vec2 is counterclockwise relative to vec1".
     """
     # Calculate the dot product of the two vectors.
     dot_product = vec1[0] * vec2[0] + vec1[1] * vec2[1]
