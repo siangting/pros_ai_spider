@@ -23,7 +23,7 @@ def reward_cal_main(data: dict, step_counter: int) -> float:
        
     distance_reward: float = (SpiderConfig.SPIDER_TARGET_INIT_DIST - current_spider_tree_dist) * PPOConfig.DISTANCE_REWARD_WEIGHT
     time_penalty: float = step_counter * PPOConfig.TIME_PENALTY_WEIGHT
-    angle_penalty: float = data["offset_angle"] * PPOConfig.ANGLE_PENALTY_WEIGHT
+    angle_penalty: float = abs(data["offset_angle"]) * PPOConfig.ANGLE_PENALTY_WEIGHT
 
     reward: float = distance_reward - time_penalty - angle_penalty
 

@@ -39,16 +39,16 @@ class redirect_PPOConfig:
     SAVE_MODEL_PATH: str = "./redirect_Model/PPO_spider_2024-09-11.pt"
     
     # training PPO model
-    SAVE_MODEL_FREQUENCE: int = 1024 * 16
+    SAVE_MODEL_FREQUENCE: int = 1024
     TOTAL_TIME_STEPS: int = 1024 * 128 * 256 * 8
-    RESET_REDIRECT_ANGLE_THRESHOLD: float = 2.5 # degrees
+    RESET_REDIRECT_ANGLE_THRESHOLD: float = 1.0 # degrees
 
     # reward parameters
-    REWARD_CAL_ANGLE_BASELINE: float = 100.0 # in degrees
+    REWARD_CAL_ANGLE_BASELINE: float = 15.0 # in degrees
 
-    DISTANCE_REWARD_WEIGHT: float = 1.0 # The weight for calculating distance reward.
+    DISTANCE_REWARD_WEIGHT: float = 0.5 # The weight for calculating distance reward.
     ANGLE_PENALTY_WEIGHT: float = 35.0
-    TIME_PENALTY_WEIGHT: float = 0.5
+    TIME_PENALTY_WEIGHT: float = 1.0
 
 
 
