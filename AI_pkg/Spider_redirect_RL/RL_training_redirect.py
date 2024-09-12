@@ -4,8 +4,7 @@ import gymnasium as gym
 from gymnasium import spaces
 from utils import utils
 from Spider_redirect_RL import redirect_reward_cal
-# In RL_training_redirect, use PPOConfig, not use redirect_PPOConfig.
-from Spider_RL.PPOConfig import PPOConfig
+from redirect_PPOConfig import redirect_PPOConfig
 
 
 class CustomSpiderRedirectEnv(gym.Env):
@@ -44,7 +43,7 @@ class CustomSpiderRedirectEnv(gym.Env):
 
         terminated = False
         print("angle = " + str(unity_data["offset_angle"]))
-        if (unity_data["offset_angle"] < PPOConfig.RESET_TOWARD_ANGLE_THRESHOLD):
+        if (unity_data["offset_angle"] < redirect_PPOConfig.RESET_REDIRECT_ANGLE_THRESHOLD):
             terminated = True
         
 
