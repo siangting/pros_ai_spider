@@ -27,6 +27,6 @@ def reward_cal_main(data: dict, step_counter: int) -> float:
 
     reward: float = distance_reward - time_penalty - angle_penalty
 
-    print("Forward distance " +  str(SpiderConfig.SPIDER_TARGET_INIT_DIST - current_spider_tree_dist))
+    print("Forward distance " +  str(round(SpiderConfig.SPIDER_TARGET_INIT_DIST - current_spider_tree_dist)))
     
     return  reward

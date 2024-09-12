@@ -43,7 +43,7 @@ class CustomSpiderRedirectEnv(gym.Env):
             print("\nreward: " + str(round(reward)) + '\n')
 
         terminated = False
-        print("angle = " + str(unity_data["offset_angle"]))
+        print("angle = " + str(round(unity_data["offset_angle"])))
         if (unity_data["offset_angle"] < redirect_PPOConfig.RESET_REDIRECT_ANGLE_THRESHOLD):
             terminated = True
         
