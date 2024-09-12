@@ -255,14 +255,23 @@ class AI_spider_node(Node):
         """
         for action in actions:
             if action == 0:
-                joint_target: list[float] = SpiderConfig.FORWARD_ACTION["0"]
+                joint_target: list[float] = SpiderConfig.CW_ACTION["0"]
             elif action == 1:
-                joint_target: list[float] = SpiderConfig.FORWARD_ACTION["1"]
+                joint_target: list[float] = SpiderConfig.CW_ACTION["1"]
             elif action == 2:
-                joint_target: list[float] = SpiderConfig.FORWARD_ACTION["2"]
+                joint_target: list[float] = SpiderConfig.CW_ACTION["2"]
             elif action == 3:
-                joint_target: list[float] = SpiderConfig.FORWARD_ACTION["3"]
-            
+                joint_target: list[float] = SpiderConfig.CW_ACTION["3"]
+
+            elif action == 4:
+                joint_target: list[float] = SpiderConfig.CCW_ACTION["0"]
+            elif action == 5:
+                joint_target: list[float] = SpiderConfig.CCW_ACTION["1"]
+            elif action == 6:
+                joint_target: list[float] = SpiderConfig.CCW_ACTION["2"]            
+            elif action == 7:
+                joint_target: list[float] = SpiderConfig.CCW_ACTION["3"]
+
         return joint_target
     
     def limit_joint_targets(self, joint_target: list[float]) -> list[float]:

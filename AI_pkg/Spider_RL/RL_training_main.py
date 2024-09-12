@@ -30,7 +30,7 @@ class CustomSpiderEnv(gym.Env):
         
         # call AI_spider_node.publish_to_robot
         self.AI_node.publish_jointtarget(action) 
-        time.sleep(0.1)
+        time.sleep(0.12)
 
         unity_data = utils.get_observation(self.AI_node)
         self.state = utils.process_data_to_npfloat32_array(unity_data)

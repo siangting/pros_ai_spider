@@ -33,7 +33,7 @@ class PPOConfig:
     N_EPOCHS: int = 10
 
     # Load PPO model
-    LOAD_MODEL_PATH: str = "./Model/PPO_spider_2024-09-09.pt"
+    LOAD_MODEL_PATH: str = "./Model/PPO_spider_2024-09-11.pt"
     SAVE_MODEL_PATH: str = "./Model/PPO_spider_2024-09-11.pt"
 
     # training PPO model
