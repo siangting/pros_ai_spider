@@ -33,6 +33,10 @@ class CustomSpiderEnv(gym.Env):
         time.sleep(0.12)
 
         unity_data = utils.get_observation(self.AI_node)
+
+        # TODO The current PPO model reads offset_angle as positive, but now it includes both positive and negative values.
+        # For now, all values will be made positive, but after retraining, this won't be necessary.
+
         self.state = utils.process_data_to_npfloat32_array(unity_data)
 
         reward = reward_cal.reward_cal_main(unity_data, self.step_counter)
