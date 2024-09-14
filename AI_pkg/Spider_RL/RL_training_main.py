@@ -35,7 +35,7 @@ class CustomSpiderEnv(gym.Env):
         unity_data = utils.get_observation(self.AI_node)
 
         # TODO The current PPO model reads offset_angle as positive, but now it includes both positive and negative values.
-        # For now, all values will be made positive, but after retraining, this won't be necessary.
+        # For now, all values will be made positive, but after retraining the new model, this won't be necessary.
 
         self.state = utils.process_data_to_npfloat32_array(unity_data)
 
@@ -57,6 +57,7 @@ class CustomSpiderEnv(gym.Env):
 
         print("Reset Game")
         self.step_counter = 0
+        self.AI_node.reset_spider_toward_angle(90.0)
         self.AI_node.reset_unity()
         time.sleep(1)
 

@@ -4,6 +4,7 @@ from rclpy.node import Node
 from ros_receive_and_data_processing.data_transform import preprocess_data
 from trajectory_msgs.msg import JointTrajectoryPoint
 from std_msgs.msg import Bool
+from std_msgs.msg import Float32
 from std_msgs.msg import Float32MultiArray
 from ros_receive_and_data_processing.SpiderConfig import SpiderConfig
 from utils import utils
@@ -74,6 +75,13 @@ class AI_spider_node(Node):
         self.spider_scene_reset_publisher_ = self.create_publisher(
             Bool,
             'reset_unity',
+            10
+        )
+
+        # send spider toward reset signal to SpiderSceneResetSubscriber.cs
+        self.spider_toward_angle_publisher_ = self.create_publisher(
+            Float32,
+            'spider_toward_angle',
             10
         )
         
@@ -313,5 +321,10 @@ class AI_spider_node(Node):
         msg = Bool()
         msg.data = True # True: reset Unity/ False: Do not reset Unity
         self.spider_scene_reset_publisher_.publish(msg)
+    
+    def reset_spider_toward_angle(self, toward_angle: float) -> None:
+        msg = Float32()
+        msg.data = toward_angle
+        self.spider_toward_angle_publisher_.publish(msg)
 
 
