@@ -55,6 +55,12 @@ class CustomSpiderRedirectEnv(gym.Env):
         print("Reset Game")
         self.step_counter = 0
         self.AI_node.reset_unity()
+
+        self.AI_node.set_is_training_pause(True)
+        while(self.AI_node.get_is_training_pause()):
+            print("Wait for Unity Reset Scene complete...")
+            time.sleep(2)
+            
         # self.AI_node.reset_spider_toward_angle(90.0)
         time.sleep(1)
 

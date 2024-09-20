@@ -39,6 +39,8 @@ class AI_spider_node(Node):
             "head_position": False
         }
 
+        # The break point flag for PPO training.
+        self._is_training_pause = False
 
         # Recieve spider center array(x, y, z) from unity SpiderCenterPublisher.cs
         self.spider_center_subscriber = self.create_subscription(
@@ -168,7 +170,7 @@ class AI_spider_node(Node):
         self._is_training_pause = msg.data
 
     
-    def get_is_training_pasue(self) -> Bool:
+    def get_is_training_pause(self) -> Bool:
         """
         Returns
         ----------
@@ -179,11 +181,11 @@ class AI_spider_node(Node):
 
         return self._is_training_pause
     
-    def set_is_training_pause(self, training_pause_state: Bool) -> None:
+    def set_is_training_pause(self, new_training_pause_state: Bool) -> None:
         """
         Parameters
         ----------
-            training_pause_state: The new training pause state.
+            new_training_pause_state: The new training pause state.
                 - True: PPO training will be paused.
                 - False: PPO training will be continued.
         
@@ -193,7 +195,7 @@ class AI_spider_node(Node):
                 - True: PPO training will be paused.
                 - False: PPO training will be continued.            
         """
-        self._is_training_pause = training_pause_state
+        self._is_training_pause = new_training_pause_state
         
         return self._is_training_pause
 
