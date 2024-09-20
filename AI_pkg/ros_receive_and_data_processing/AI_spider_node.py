@@ -167,6 +167,36 @@ class AI_spider_node(Node):
         """
         self._is_training_pause = msg.data
 
+    
+    def get_is_training_pasue(self) -> Bool:
+        """
+        Returns
+        ----------
+            _is_training_pause: Bool
+                - True: PPO training will be paused.
+                - False: PPO training will be continued.
+        """
+
+        return self._is_training_pause
+    
+    def set_is_training_pause(self, training_pause_state: Bool) -> None:
+        """
+        Parameters
+        ----------
+            training_pause_state: The new training pause state.
+                - True: PPO training will be paused.
+                - False: PPO training will be continued.
+        
+        Returns
+        ----------
+            _is_training_pause: Bool
+                - True: PPO training will be paused.
+                - False: PPO training will be continued.            
+        """
+        self._is_training_pause = training_pause_state
+        
+        return self._is_training_pause
+
     def check_and_get_latest_data(self) -> None: 
         """
         Check if all data is recieved.
