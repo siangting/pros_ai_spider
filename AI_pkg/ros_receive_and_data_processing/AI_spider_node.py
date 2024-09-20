@@ -64,6 +64,14 @@ class AI_spider_node(Node):
             1
         )
 
+        # 
+        self.training_pause_subscriber = self.create_subscription(
+            Bool,
+            "/is_training_pause",
+            self.is_training_pause_subscribe_callback,
+            1
+        )
+
         # send 16 joints' angles to unity spiderROSBridgeSubscriber.cs
         self.joint_trajectory_publisher_ = self.create_publisher(
             JointTrajectoryPoint,
@@ -141,6 +149,23 @@ class AI_spider_node(Node):
         # Check and get the latest data
         self.check_and_get_latest_data()
 
+    def is_training_pause_subscribe_callback(self, msg: Bool) -> None:
+        """
+        Receives the is_training_pause information from Unity.
+        This information is used to control the training break point.
+        Ensures that the "Reset Unity spider angle" operation occurs after the "Reset Unity scene" is finished.
+        Ensures that training resumes only after the "Reset Unity spider angle" operation is finished.
+
+        Parameters
+        ----------
+            msg : Bool
+                The raw message received from is_training_pause_subscriber. False indicates that the training can be continued.
+
+        Returns
+        ----------
+            None
+        """
+        self._is_training_pause = msg.data
 
     def check_and_get_latest_data(self) -> None: 
         """
@@ -318,11 +343,20 @@ class AI_spider_node(Node):
         self.latest_data = None
 
     def reset_unity(self) -> None:
+        """
+        Reset Unity scene to MonoBehaviour.Start().
+        Publish True(Bool) to RosBridge topic.
+        """
         msg = Bool()
         msg.data = True # True: reset Unity/ False: Do not reset Unity
         self.spider_scene_reset_publisher_.publish(msg)
     
     def reset_spider_toward_angle(self, toward_angle: float) -> None:
+        """
+        Reset spider toward angle in Unity.
+        Used in redirect PPO training.
+        Publish toward angle(Float32) to RosBridge topic.
+        """
         msg = Float32()
         msg.data = toward_angle
         self.spider_toward_angle_publisher_.publish(msg)

@@ -55,6 +55,7 @@ class CustomSpiderRedirectEnv(gym.Env):
         print("Reset Game")
         self.step_counter = 0
         self.AI_node.reset_unity()
+        # self.AI_node.reset_spider_toward_angle(90.0)
         time.sleep(1)
 
         unity_data_reset_state = utils.get_observation(self.AI_node)

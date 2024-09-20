@@ -57,7 +57,6 @@ class CustomSpiderEnv(gym.Env):
 
         print("Reset Game")
         self.step_counter = 0
-        self.AI_node.reset_spider_toward_angle(90.0)
         self.AI_node.reset_unity()
         time.sleep(1)
 
