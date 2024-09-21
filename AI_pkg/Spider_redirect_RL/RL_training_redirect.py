@@ -21,8 +21,10 @@ class CustomSpiderRedirectEnv(gym.Env):
         self.observation_space = spaces.Box(
             low=-np.inf, high=np.inf, shape=(self.shape_number,), dtype=np.float32
         )
-        # 3 action options and 16 joints
+
         self.action_space = spaces.MultiDiscrete([8]) 
+        
+        self.redirect_init_angle: float = redirect_PPOConfig.REDIRECT_INIT_ANGLE
 
 
 
@@ -36,7 +38,7 @@ class CustomSpiderRedirectEnv(gym.Env):
         self.state = utils.process_data_to_npfloat32_array(unity_data)
 
         reward = redirect_reward_cal.reward_cal_main(unity_data, self.step_counter)
-
+    
         self.step_counter = self.step_counter + 1
         if (self.step_counter % 64 == 0):
             print("\nreward: " + str(round(reward)) + '\n')
@@ -60,9 +62,11 @@ class CustomSpiderRedirectEnv(gym.Env):
         while(self.AI_node.get_is_training_pause()):
             print("Wait for Unity Reset Scene complete...")
             time.sleep(2)
-        time.sleep(2)
-        self.AI_node.reset_spider_toward_angle(redirect_PPOConfig.REDIRECT_INIT_ANGLE)
-        time.sleep(3)
+        time.sleep(0.5)
+        self.AI_node.reset_spider_toward_angle(self.redirect_init_angle)
+        # redirect_init_angle must alternate between CW and CCW for training.
+        self.redirect_init_angle = (-self.redirect_init_angle)
+        time.sleep(1)
 
         unity_data_reset_state = utils.get_observation(self.AI_node)
         self.state = utils.process_data_to_npfloat32_array(unity_data_reset_state)

@@ -45,7 +45,7 @@ class redirect_PPOConfig:
     SAVE_MODEL_FREQUENCE: int = 1024
     TOTAL_TIME_STEPS: int = 1024 * 128 * 256 * 8
     RESET_REDIRECT_ANGLE_THRESHOLD: float = 2.0 # degrees
-    REDIRECT_INIT_ANGLE: float = PPOConfig.RESET_TOWARD_ANGLE_THRESHOLD + 2.0 # During inferencing, the redirect PPO will start with the end of toward PPO.
+    REDIRECT_INIT_ANGLE: float = PPOConfig.RESET_TOWARD_ANGLE_THRESHOLD + 5.0 # During inferencing, the redirect PPO will start with the end of toward PPO.
 
     # reward parameters
     REWARD_CAL_ANGLE_BASELINE: float = 15.0 # in degrees
