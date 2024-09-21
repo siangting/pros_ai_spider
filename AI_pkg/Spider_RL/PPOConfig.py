@@ -39,7 +39,7 @@ class PPOConfig:
     # training PPO model
     SAVE_MODEL_FREQUENCE: int = 1024 * 16
     TOTAL_TIME_STEPS: int = 1024 * 128 * 256 * 8
-    RESET_TOWARD_ANGLE_THRESHOLD: float = 25 # degrees
+    RESET_TOWARD_ANGLE_THRESHOLD: float = 25.0 # degrees
 
     DISTANCE_REWARD_WEIGHT: float = 25.0 # The weight for calculating distance reward.
     TIME_PENALTY_WEIGHT: float = 0.15  # The weight for calculating time penalty.

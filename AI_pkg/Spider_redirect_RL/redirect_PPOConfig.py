@@ -1,3 +1,5 @@
+from Spider_RL.PPOConfig import PPOConfig
+
 class redirect_PPOConfig:
     """
     The redirect_PPOConfig class encapsulates all configuration parameters for training a redirect PPO model
@@ -16,6 +18,7 @@ class redirect_PPOConfig:
         SAVE_MODEL_FREQUENCE (int): The frequency (in timesteps) at which the model is saved during training.
         TOTAL_TIME_STEPS (int): The total number of timesteps for training the PPO model. 
         RESET_REDIRECT_ANGLE_THRESHOLD (float) : The training step terminated threshold for training redirect PPO.
+        REDIRECT_INIT_ANGLE (float) : The init spider toward angle for redirect training.
         
         REWARD_CAL_ANGLE_BASELINE (float): The positive and negative threshold for calculating angle reward. When the offset angle is smaller than baseline, angle_reward will be positive and vice versa.
         
@@ -41,7 +44,8 @@ class redirect_PPOConfig:
     # training PPO model
     SAVE_MODEL_FREQUENCE: int = 1024
     TOTAL_TIME_STEPS: int = 1024 * 128 * 256 * 8
-    RESET_REDIRECT_ANGLE_THRESHOLD: float = 1.0 # degrees
+    RESET_REDIRECT_ANGLE_THRESHOLD: float = 2.0 # degrees
+    REDIRECT_INIT_ANGLE: float = PPOConfig.RESET_TOWARD_ANGLE_THRESHOLD + 2.0 # During inferencing, the redirect PPO will start with the end of toward PPO.
 
     # reward parameters
     REWARD_CAL_ANGLE_BASELINE: float = 15.0 # in degrees

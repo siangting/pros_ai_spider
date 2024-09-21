@@ -168,7 +168,6 @@ class AI_spider_node(Node):
             None
         """
         self._is_training_pause = msg.data
-
     
     def get_is_training_pause(self) -> Bool:
         """
