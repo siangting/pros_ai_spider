@@ -11,7 +11,7 @@ from Spider_RL.PPOConfig import PPOConfig
 from Spider_redirect_RL.redirect_PPOConfig import redirect_PPOConfig
 import sys
 
-def init_ros_node():
+def init_AI_spider_node():
     rclpy.init()
     node = AI_spider_node()
     thread = threading.Thread(target = rclpy.spin, args = (node,))
@@ -104,7 +104,7 @@ def print_usage():
 
 
 def main(mode):
-    node, ros_thread = init_ros_node()
+    node, ros_thread = init_AI_spider_node()
 
     if mode == "1":
         env = gym_env_register(node)
