@@ -44,7 +44,7 @@ class CustomSpiderRedirectEnv(gym.Env):
             print("\nreward: " + str(round(reward)) + '\n')
 
         terminated = False
-        print("angle = " + str(round(unity_data["offset_angle"])))
+        print("Angle: " + str(round(unity_data["offset_angle"])))
         if (abs(unity_data["offset_angle"]) < redirect_PPOConfig.RESET_REDIRECT_ANGLE_THRESHOLD):
             terminated = True
         
@@ -62,12 +62,16 @@ class CustomSpiderRedirectEnv(gym.Env):
         while(self.AI_node.get_is_training_pause()):
             print("Wait for Unity Reset Scene complete...")
             time.sleep(2)
-        time.sleep(0.5)
+        
+        self.AI_node.set_is_training_pause(True)
         self.AI_node.reset_spider_toward_angle(self.redirect_init_angle)
-        # redirect_init_angle must alternate between CW and CCW for training.
-        self.redirect_init_angle = (-self.redirect_init_angle)
-        time.sleep(1)
+        while(self.AI_node.get_is_training_pause()):
+            print("Wait for Unity Rotate Spider complete...")
+            time.sleep(2)
 
+        # redirect_init_angle must alternate between CW and CCW for balance training.
+        self.redirect_init_angle = (-self.redirect_init_angle)
+        
         unity_data_reset_state = utils.get_observation(self.AI_node)
         self.state = utils.process_data_to_npfloat32_array(unity_data_reset_state)
         time.sleep(0.5)
