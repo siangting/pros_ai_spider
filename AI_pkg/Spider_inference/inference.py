@@ -43,9 +43,9 @@ class Inference:
         If angle < 30 degrees, use the forward model.
         If angle >= 30 degrees, use the turning model.
         """
-        if current_model == "foward" and abs(angle) < 30:
-            next_model: str = "foward"
-        elif current_model == "foward" and abs(angle) >= 30:
+        if current_model == "forward" and abs(angle) < 30:
+            next_model: str = "forward"
+        elif current_model == "forward" and abs(angle) >= 30:
             next_model: str = "redirect"
         elif current_model == "redirect" and abs(angle) > 3:
             next_model: str = "redirect"
@@ -68,11 +68,11 @@ class Inference:
         forward_env = self.gym_env_register(node)
         redirect_env = self.gym_redirect_env_register(node)
 
-        obs_redirect, _ = redirect_env.reset()
-        obs_forward, _ = forward_env.reset()
+        redirect_env.reset()
+        obs, _ = forward_env.reset()
         
 
-        current_model = "foward"
+        current_model = "forward"
         while (True):
             # Get the robot's current angle
             spider_toward_angle = self.get_spider_toward_angle(node)
@@ -80,14 +80,12 @@ class Inference:
             # Select the model and environment based on the angle
             current_model = self.select_model(spider_toward_angle, current_model)
 
-            if current_model == "foward":
+            if current_model == "forward":
                 model = self._forward_model
                 env = forward_env
-                obs = obs_forward
             else:
                 model = self._redirect_model
                 env = redirect_env
-                obs = obs_redirect
 
             action, _ = model.predict(obs)
 
@@ -95,4 +93,3 @@ class Inference:
 
 
             print(current_model)
-            print(obs)
