@@ -90,6 +90,3 @@ class Inference:
             action, _ = model.predict(obs)
 
             obs, reward, done, info, _ = env.step(action)
-
-
-            print(current_model)
