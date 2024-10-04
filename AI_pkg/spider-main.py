@@ -10,6 +10,7 @@ from stable_baselines3.common.monitor import Monitor
 from Spider_RL.PPOConfig import PPOConfig
 from Spider_redirect_RL.redirect_PPOConfig import redirect_PPOConfig
 import sys
+from Spider_inference.inference import Inference
 
 def init_AI_spider_node():
     rclpy.init()
@@ -113,7 +114,8 @@ def main(mode):
         env = gym_redirect_env_register(node)
         train_redirect_PPO(env)
     elif mode == "3":
-        pass
+        inference_manager = Inference()
+        inference_manager.inference(node)
     else:
         print("Please type the correct numbers.")
 
