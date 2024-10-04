@@ -101,7 +101,7 @@ def print_usage():
     print("modes:")
     print(" 1 -- Train forward PPO")
     print(" 2 -- Train redirect PPO")
-
+    print(" 3 -- Inference")
 
 def main(mode):
     node, ros_thread = init_AI_spider_node()
@@ -112,6 +112,8 @@ def main(mode):
     elif mode == "2":
         env = gym_redirect_env_register(node)
         train_redirect_PPO(env)
+    elif mode == "3":
+        pass
     else:
         print("Please type the correct numbers.")
 
