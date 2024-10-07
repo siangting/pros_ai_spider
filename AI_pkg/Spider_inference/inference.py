@@ -1,7 +1,7 @@
 import gymnasium as gym
 from stable_baselines3 import PPO
-from Spider_RL.RL_training_main import CustomSpiderEnv
-from Spider_redirect_RL.RL_training_redirect import CustomSpiderRedirectEnv
+from Spider_RL.spider_toward_env import CustomSpiderEnv
+from Spider_redirect_RL.spider_redirect_env import CustomSpiderRedirectEnv
 from Spider_inference.inference_config import InferenceConfig
 from utils import utils
 
@@ -50,8 +50,8 @@ class Inference:
 
     def inference(self, unity_bridge_node) -> None:
 
-        forward_env = self.gym_env_register(unity_bridge_node, CustomSpiderEnv.ENV_NAME, "Spider_RL.RL_training_main:CustomSpiderEnv")
-        redirect_env = self.gym_env_register(unity_bridge_node, CustomSpiderRedirectEnv.ENV_NAME, "Spider_redirect_RL.RL_training_redirect:CustomSpiderRedirectEnv")
+        forward_env = self.gym_env_register(unity_bridge_node, CustomSpiderEnv.ENV_NAME, "Spider_RL.spider_toward_env:CustomSpiderEnv")
+        redirect_env = self.gym_env_register(unity_bridge_node, CustomSpiderRedirectEnv.ENV_NAME, "Spider_redirect_RL.spider_redirect_env:CustomSpiderRedirectEnv")
 
         redirect_env.reset()
         obs, _ = forward_env.reset()
