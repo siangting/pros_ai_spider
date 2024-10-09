@@ -232,9 +232,9 @@ class SpiderConfig:
     }
     
     JOINT_LIMIT: dict[str, float] = {
-        "shoulder_abduction": 88.0,  # Maximum allowable abduction angle for the shoulder joints
-        "shoulder_adduction": 18.0,  # Maximum allowable adduction angle for the shoulder joints
-        "calf": 58.0           # Maximum allowable extension angle for the calf joints
+        "shoulder_abduction": 45.0,  # Maximum allowable abduction angle for the shoulder joints
+        "shoulder_adduction": 35.0,  # Maximum allowable adduction angle for the shoulder joints
+        "calf": 45.0           # Maximum allowable extension angle for the calf joints
     }
 
 
