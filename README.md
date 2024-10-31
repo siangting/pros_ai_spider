@@ -26,7 +26,7 @@ Build the rosbridge `scripts_my_bridge_network` manually.
 ![Static Badge](https://img.shields.io/badge/Unity-black)  
 Download the [pros_integration_spider](https://paia-tech.synology.me:8943/pros/pros_integration_spider#) project and open it in Unity.
 
-### Create Model folder
+### Create Model folders
 ```bash
 cd AI_pkg
 ```
