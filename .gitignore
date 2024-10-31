@@ -8,3 +8,4 @@ __pycache__/
 Model/
 redirect_Model/
 /AI_pkg/Spider_RL/PPOConfig.py
+/AI_pkg/Spider_redirect_RL/redirect_PPOConfig.py
