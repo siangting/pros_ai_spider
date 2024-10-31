@@ -1,5 +1,7 @@
 # PROS AI Spider
 
+[Digital twins: Motion Demo in Unity](https://youtu.be/rl5G2wjM3S0)
+
 ## pros AI spider Architecture
 ![pros AI spider Architecture](https://github.com/roger20415/pros_AI_spider/blob/develop/diagram/pros_AI%20spider%20Architecture.drawio.png)
 
@@ -20,4 +22,6 @@
 ![Multi-PPO Predict flowchart](https://github.com/roger20415/pros_AI_spider/blob/develop/diagram/Multi-PPO_predict.drawio.png)
 
 
-
+## Other Resource
+[Circuit and Machenism Design](https://drive.google.com/drive/folders/139djy3Gg4i-CpHx8RhV_BGYDbM0R4fZM?usp=sharing)  
+[3D Model in Fusion360](https://a360.co/4enicxd)

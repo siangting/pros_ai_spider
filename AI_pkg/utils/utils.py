@@ -76,7 +76,7 @@ def remove_key(data_dict: dict) -> dict:
     return data_dict
 
 
-def process_data_to_npfloat32_array(unity_data: dict) -> dict:
+def process_data_to_npfloat32_array(unity_data: dict) -> np.ndarray:
     """
     Process dictionary to 1D array.
 

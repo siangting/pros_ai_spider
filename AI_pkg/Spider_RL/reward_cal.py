@@ -19,14 +19,14 @@ def reward_cal_main(data: dict, step_counter: int) -> float:
         reward: float
             The reward of forward PPO training.
     """
-    current_spider_tree_dist: float = (data["spider_target_vecz"]) ** 2 + (data["spider_target_vecx"]) ** 2
+    current_spider_target_dist: float = (data["spider_target_vecz"]) ** 2 + (data["spider_target_vecx"]) ** 2
        
-    distance_reward: float = (SpiderConfig.SPIDER_TARGET_INIT_DIST - current_spider_tree_dist) * PPOConfig.DISTANCE_REWARD_WEIGHT
+    distance_reward: float = (SpiderConfig.SPIDER_TARGET_INIT_DIST - current_spider_target_dist) * PPOConfig.DISTANCE_REWARD_WEIGHT
     time_penalty: float = step_counter * PPOConfig.TIME_PENALTY_WEIGHT
     angle_penalty: float = abs(data["offset_angle"]) * PPOConfig.ANGLE_PENALTY_WEIGHT
 
     reward: float = distance_reward - time_penalty - angle_penalty
 
-    print("Forward distance " +  str(round(SpiderConfig.SPIDER_TARGET_INIT_DIST - current_spider_tree_dist)))
+    print("Forward distance " +  str(round(SpiderConfig.SPIDER_TARGET_INIT_DIST - current_spider_target_dist)))
     
     return  reward
