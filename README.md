@@ -23,5 +23,5 @@
 
 
 ## Other Resource
-[Circuit and Machenism Design](https://drive.google.com/drive/folders/139djy3Gg4i-CpHx8RhV_BGYDbM0R4fZM?usp=sharing)
+[Circuit and Machenism Design](https://drive.google.com/drive/folders/139djy3Gg4i-CpHx8RhV_BGYDbM0R4fZM?usp=sharing)  
 [3D Model in Fusion360](https://a360.co/4enicxd)
