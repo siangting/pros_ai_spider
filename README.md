@@ -36,7 +36,7 @@ mkdir Model
 ```bash
 mkdir redirect_Model
 ```
-If you have RL Models have been trained, then move the `.pt` model files in the folders created above. 
+If you have RL Models have been trained, then move the `.pt` model files to the folders created above. 
 
 ### Run the project
 1.  Open and run pros_integration_spider project in Unity.
