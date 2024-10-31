@@ -1,12 +1,12 @@
 # PROS AI Spider
-This is a project about robot digital twins.
+
 ![Static Badge](https://img.shields.io/badge/ROS2-green)
 ![Static Badge](https://img.shields.io/badge/Unity-black)
 ![Static Badge](https://img.shields.io/badge/python3-blue)
 ![Static Badge](https://img.shields.io/badge/docker-blue)
 ![Static Badge](https://img.shields.io/badge/websocket-purple)  
 
-
+This is a project about robot digital twins.  
 [Motion Demo in Unity](https://youtu.be/rl5G2wjM3S0)
 
 
