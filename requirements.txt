@@ -1,7 +1,4 @@
 # TODO add the python package you need
-pydantic==1.10
-pyserial
-orjson
 gym==0.21.0
 numpy==1.21.0
 stable-baselines3==1.1.0

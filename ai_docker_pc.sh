@@ -1,1 +1,1 @@
-docker run -it --rm --gpus all -v "$(pwd)/AI_pkg:/workspaces/AI_pkg" --network scripts_my_bridge_network --env-file ./.env pros_ai_stable_baselines3:latest /bin/bash
+docker run -it --rm --gpus all -v "$(pwd)/AI_pkg:/workspaces/AI_pkg" --network spider_bridge_network -p 9090:9090 --env-file ./.env pros_ai_stable_baselines3:latest /bin/bash

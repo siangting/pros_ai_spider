@@ -38,8 +38,8 @@ class redirect_PPOConfig:
     N_EPOCHS: int = 10
 
     # Load PPO model
-    LOAD_MODEL_PATH: str = "./redirect_Model/PPO_spider_2024-09-11.pt"
-    SAVE_MODEL_PATH: str = "./redirect_Model/PPO_spider_2024-09-11.pt"
+    LOAD_MODEL_PATH: str = "./redirect_Model/PPO_spider_redirect_2024-09-11.pt"
+    SAVE_MODEL_PATH: str = "./redirect_Model/PPO_spider_redirect_2024-09-11.pt"
     
     # training PPO model
     SAVE_MODEL_FREQUENCE: int = 1024
