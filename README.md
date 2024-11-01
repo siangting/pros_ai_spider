@@ -20,10 +20,20 @@ The project image inherits from  [pros_base_image](https://github.com/screamlab/
 
 Rename the image to  `pros_ai_stable_baselines3:latest`.
 
-### ROSBridge
+### Create rosbridge
 ![Static Badge](https://img.shields.io/badge/ROS2-green)
-  
-Create rosbridge `scripts_my_bridge_network` manually.
+
+Launch Docker and enter Linux terminal
+ 
+```bash
+docker network create --driver bridge spider_bridge_network
+```  
+
+Then check if the `spider_bridge_network` network is create successfully.
+```bash
+docker network ls
+```
+The terminal should show `<network ID>   spider_bridge_network   bridge    local`  
 
 ### Unity project
 ![Static Badge](https://img.shields.io/badge/Unity-black) 
@@ -47,17 +57,33 @@ Download the [PPO Models](https://drive.google.com/drive/folders/1b2GkoGkeoqCmfV
     ```bash
     pip install stable-baselines3==1.1.0
     ```
-    ROS2 colcon build the project by the hotkey `r`
+    ROS2 colcon build the project by pressing the hotkey `r`
     ```bash
     r
-    ```  
-    ```bash
-    cd AI_pkg
-    ```  
-    ```bash
-    python3 spider-main.py
-    ```  
+    ```
 
+    Start tmux  
+    ```bash
+    tmxu
+    ```
+
+    press `control` + `B` and `shift` + `%` to open two horizontal split panes.
+
+    * In the first split pane: Lanch rosbridge server
+        ```bash
+        ros2 launch rosbridge_server rosbridge_websocket_launch.xml
+        ```  
+        ```bash
+        python3 spider-main.py
+        ```  
+
+    * In the Second split pane: Execute spider program
+        ```bash
+        cd AI_pkg
+        ```  
+        ```bash
+        python3 spider-main.py
+        ```  
 
 ## Code Architechture
 ### pros AI spider Architecture
