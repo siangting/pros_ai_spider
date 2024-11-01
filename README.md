@@ -14,15 +14,12 @@ This is a project about robot digital twins.
 
 ## User Guide
 
-### Build Docker image
-![Static Badge](https://img.shields.io/badge/docker-blue)  
+### Build Docker image  
 The project image inherits from  [pros_base_image](https://github.com/screamlab/pros_base_image/blob/main/README.md).  
 
 Rename the image to  `pros_ai_stable_baselines3:latest`.
 
 ### Create rosbridge
-![Static Badge](https://img.shields.io/badge/ROS2-green)
-
 Launch Docker and enter Linux terminal
  
 ```bash
@@ -36,14 +33,9 @@ docker network ls
 The terminal should show `<network ID>   spider_bridge_network   bridge    local`  
 
 ### Unity project
-![Static Badge](https://img.shields.io/badge/Unity-black) 
-
 Download the [pros_integration_spider](https://paia-tech.synology.me:8943/pros/pros_integration_spider#) project and open it in Unity.
 
 ### Download PPO Models
-![Static Badge](https://img.shields.io/badge/Stable%20Baselines3%20PPO-gray)    
-
-
 Download the [PPO Models](https://drive.google.com/drive/folders/1b2GkoGkeoqCmfVFrX_y7R8qLh2CPTCbh?usp=sharing), `PPO_spider_forward_2024-09-11.pt` should be under `AI_pkg/Model`, and `PPO_spider_redirect_2024-09-11.pt` should be under `AI_pkg/redirect_Model`
 
 ### Run the project
@@ -73,9 +65,6 @@ Download the [PPO Models](https://drive.google.com/drive/folders/1b2GkoGkeoqCmfV
         ```bash
         ros2 launch rosbridge_server rosbridge_websocket_launch.xml
         ```  
-        ```bash
-        python3 spider-main.py
-        ```  
 
     * In the Second split pane: Execute spider program
         ```bash
@@ -84,6 +73,8 @@ Download the [PPO Models](https://drive.google.com/drive/folders/1b2GkoGkeoqCmfV
         ```bash
         python3 spider-main.py
         ```  
+        
+        ![tmux pane](https://github.com/roger20415/pros_AI_spider/blob/develop/Document%20Picture/tmux%20pane.png)
 
 ## Code Architechture
 ### pros AI spider Architecture
