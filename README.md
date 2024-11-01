@@ -4,7 +4,9 @@
 ![Static Badge](https://img.shields.io/badge/Unity-black)
 ![Static Badge](https://img.shields.io/badge/python3-blue)
 ![Static Badge](https://img.shields.io/badge/docker-blue)
-![Static Badge](https://img.shields.io/badge/websocket-purple)  
+![Static Badge](https://img.shields.io/badge/websocket-purple)
+![Static Badge](https://img.shields.io/badge/Stable%20Baselines3%20PPO-gray)  
+
 
 This is a project about robot digital twins.  
 [Motion Demo in Unity](https://youtu.be/rl5G2wjM3S0)
@@ -19,24 +21,20 @@ The project image inherits from  [pros_base_image](https://github.com/screamlab/
 Rename the image to  `pros_ai_stable_baselines3:latest`.
 
 ### ROSBridge
-![Static Badge](https://img.shields.io/badge/ROS2-green)  
-Build the rosbridge `scripts_my_bridge_network` manually.
+![Static Badge](https://img.shields.io/badge/ROS2-green)
+  
+Create rosbridge `scripts_my_bridge_network` manually.
 
 ### Unity project
-![Static Badge](https://img.shields.io/badge/Unity-black)  
+![Static Badge](https://img.shields.io/badge/Unity-black) 
+
 Download the [pros_integration_spider](https://paia-tech.synology.me:8943/pros/pros_integration_spider#) project and open it in Unity.
 
-### Create Model folders
-```bash
-cd AI_pkg
-```
-```bash
-mkdir Model
-```
-```bash
-mkdir redirect_Model
-```
-If you have RL Models have been trained, then move the `.pt` model files to the folders created above. 
+### Download PPO Models
+![Static Badge](https://img.shields.io/badge/Stable%20Baselines3%20PPO-gray)    
+
+
+Download the [PPO Models](https://drive.google.com/drive/folders/1b2GkoGkeoqCmfVFrX_y7R8qLh2CPTCbh?usp=sharing), `PPO_spider_forward_2024-09-11.pt` should be under `AI_pkg/Model`, and `PPO_spider_redirect_2024-09-11.pt` should be under `AI_pkg/redirect_Model`
 
 ### Run the project
 1.  Open and run pros_integration_spider project in Unity.
@@ -49,7 +47,7 @@ If you have RL Models have been trained, then move the `.pt` model files to the 
     ```bash
     pip install stable-baselines3==1.1.0
     ```
-    ROS2 colcon build the project by the hotkey
+    ROS2 colcon build the project by the hotkey `r`
     ```bash
     r
     ```  
@@ -83,5 +81,5 @@ If you have RL Models have been trained, then move the `.pt` model files to the 
 
 
 ## Other Resource
-[Circuit and Machenism Design](https://drive.google.com/drive/folders/139djy3Gg4i-CpHx8RhV_BGYDbM0R4fZM?usp=sharing)  
+[Circuit and Machenism Design](https://drive.google.com/drive/folders/1BrmTyzESuAbbPu19sSF54pki32rFnTmU?usp=sharing)  
 [3D Model in Fusion360](https://a360.co/4enicxd)
