@@ -1,11 +1,8 @@
 .idea/
 .vscode/
 __pycache__/
-/AI_pkg/Model/
-# *.pth
 *.deb
 *.deb.*
-Model/
-redirect_Model/
+*.pt
 /AI_pkg/Spider_RL/PPOConfig.py
 /AI_pkg/Spider_redirect_RL/redirect_PPOConfig.py
