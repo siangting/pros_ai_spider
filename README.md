@@ -33,13 +33,14 @@ docker network ls
 The terminal should show `<network ID>   spider_bridge_network   bridge    local`  
 
 ### Unity project
-Download the [pros_integration_spider](https://paia-tech.synology.me:8943/pros/pros_integration_spider#) project and open it in Unity.
+Download the `pros_integration_spider` Unity project from Gitlab [Click here](https://gitlab.screamtrumpet.csie.ncku.edu.tw/unity_env/pros_integration_spider.git).
 
 ### Download PPO Models
-Download the [PPO Models](https://drive.google.com/drive/folders/1b2GkoGkeoqCmfVFrX_y7R8qLh2CPTCbh?usp=sharing), `PPO_spider_forward_2024-09-11.pt` should be under `AI_pkg/Model`, and `PPO_spider_redirect_2024-09-11.pt` should be under `AI_pkg/redirect_Model`
+Download the PPO Models [Click here](https://github.com/roger20415/pros_AI_spider/releases/download/MultiPPO-v1.0.0/Spider_PPO_Models.zip).
+ `PPO_spider_forward_2024-09-11.pt` should be under `AI_pkg/Model`, and `PPO_spider_redirect_2024-09-11.pt` should be under `AI_pkg/redirect_Model`
 
 ### Run the project
-1.  Open and run pros_integration_spider project in Unity.
+1.  Open and run `pros_integration_spider` project in Unity.
 2.  Launch Docker.
 3.  Enter the Linux or wsl terminal.  
     Run a container from `pros_ai_stable_baselines3:latest`
