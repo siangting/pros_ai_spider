@@ -36,7 +36,7 @@ The terminal should show `<network ID>   spider_bridge_network   bridge    local
 Download the `pros_integration_spider` Unity project from Gitlab [Click here](https://gitlab.screamtrumpet.csie.ncku.edu.tw/unity_env/pros_integration_spider.git).
 
 ### Download PPO Models
-Download the PPO Models [Click here](https://github.com/roger20415/pros_AI_spider/releases/download/MultiPPO-v1.0.0/Spider_PPO_Models.zip).
+Download the PPO Models [Click here](https://github.com/roger20415/pros_AI_spider/releases/download/MultiPPO-v1.0.0/Spider_PPO_Models.zip).  
  `PPO_spider_forward_2024-09-11.pt` should be under `AI_pkg/Model`, and `PPO_spider_redirect_2024-09-11.pt` should be under `AI_pkg/redirect_Model`
 
 ### Run the project
